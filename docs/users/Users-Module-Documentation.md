@@ -18,13 +18,14 @@ The User module is responsible for managing user's information and connect user 
 
 ### Included
 
-- User
-- User with Profile
+- User (Create, Read, Update, Delete)
+- Email Verification
 
 ### Excluded
 
 - User Authentication
 - Access Control
+- User Profile Management (see [User Profile Sub-Module](./user-profile-module.md))
 
 ---
 
@@ -40,9 +41,10 @@ The User module is responsible for managing user's information and connect user 
 
 # 3. Business Goals
 
-- Allow users to create and save their information (profile and preferences).
-- Manage user profile data.
-- Allow users to view their profile.
+- Allow admins to create, update, retrieve, and delete user accounts.
+- Enforce email uniqueness and email verification flow.
+- Manage user status lifecycle (Unverified → Active → Disabled/Suspended).
+- Profile management is handled in the [User Profile Sub-Module](./user-profile-module.md).
 
 ---
 
@@ -167,94 +169,9 @@ Allows a admin to delete user information.
 
 ---
 
-## FR-005 Create User Profile
+> 📄 Profile-related functional requirements (FR-005 through FR-007) have been moved to the [User Profile Sub-Module](./user-profile-module.md).
 
-### Description
-
-Allows a admin to create user profile information when they have no profile.
-
-### Inputs
-
-| Field       | Required |
-| ----------- | -------- |
-| FirstName   | Yes      |
-| LastName    | Yes      |
-| Phone       | Yes      |
-| DateOfBirth | Yes      |
-| Gender      | Yes      |
-| Image       | No       |
-
-### Process
-
-1. User Profile will be created after the user creation
-
-### Success Response
-
-- Not Required. (it will internal actions)
-
----
-
-## FR-006 Update User Profile
-
-### Description
-
-Allows a admin to update user profile information.
-
-### Inputs
-
-| Field       | Required |
-| ----------- | -------- |
-| FirstName   | No       |
-| LastName    | No       |
-| Phone       | No       |
-| DateOfBirth | No       |
-| Gender      | No       |
-| Image       | No       |
-
-### Process
-
-1. Validate request data.
-2. Update user profile record.
-
-### Success Response
-
-- User profile updated.
-
-### Failure Cases
-
-- Missing required fields.
-- Invalid image.
-
----
-
-## FR-007 Get User Profile
-
-### Description
-
-Allows a admin to get user profile information.
-
-### Inputs
-
-| Field   | Required | Descriptions      |
-| ------- | -------- | ----------------- |
-| user_id | Yes      | User id as params |
-
-### Process
-
-1. Verify user_id exists.
-2. Get user profile record.
-
-### Success Response
-
-- User profile found.
-
-### Failure Cases
-
-- User profile not found.
-
----
-
-## FR-008 Verify User Email
+## FR-005 Verify User Email
 
 ### Description
 
@@ -287,11 +204,10 @@ Allows a user to verify their email using a token.
 
 # 5. Business Rules
 
-| ID     | Rule                                     |
-| ------ | ---------------------------------------- |
-| BR-001 | Email must be unique.                    |
-| BR-003 | User can have only one profile.          |
-| BR-004 | A user profile can be created only once. |
+| ID     | Rule                                                                                          |
+| ------ | --------------------------------------------------------------------------------------------- |
+| BR-001 | Email must be unique.                                                                         |
+| BR-002 | Profile-specific business rules are defined in the [User Profile Sub-Module](./user-profile-module.md). |
 
 ---
 
@@ -301,15 +217,14 @@ Allows a user to verify their email using a token.
 
 # 7. Authorization Matrix
 
-| Action              | Guest | User | Admin |
-| ------------------- | :---: | :--: | :---: |
-| Create User         |  ❌   |  ❌  |  ✅   |
-| Update User         |  ❌   |  ❌  |  ✅   |
-| Get User            |  ❌   |  ✅  |  ✅   |
-| Delete User         |  ❌   |  ❌  |  ✅   |
-| Create User Profile |  ❌   |  ✅  |  ✅   |
-| Update User Profile |  ❌   |  ✅  |  ✅   |
-| Get User Profile    |  ❌   |  ✅  |  ✅   |
+| Action      | Guest | User | Admin |
+| ----------- | :---: | :--: | :---: |
+| Create User |  ❌   |  ❌  |  ✅   |
+| Update User |  ❌   |  ❌  |  ✅   |
+| Get User    |  ❌   |  ✅  |  ✅   |
+| Delete User |  ❌   |  ❌  |  ✅   |
+
+> 📄 Profile authorization matrix is defined in the [User Profile Sub-Module](./user-profile-module.md).
 
 ---
 
@@ -384,22 +299,7 @@ sequenceDiagram
 
 ---
 
-## users-profile
-
-| Field         | Type        |
-| ------------- | ----------- |
-| id            | UUID        |
-| first_name    | VARCHAR     |
-| last_name     | VARCHAR     |
-| phone         | VARCHAR     |
-| date_of_birth | DATE        |
-| gender        | Gender Enum |
-| image         | TEXT        |
-| user_id       | UUID (FK)   |
-| created_at    | TIMESTAMP   |
-| updated_at    | TIMESTAMP   |
-
----
+> 📄 The `users-profile` table schema is defined in the [User Profile Sub-Module](./user-profile-module.md).
 
 ## user-tokens
 
@@ -419,17 +319,16 @@ sequenceDiagram
 
 # 11. API Endpoints
 
-| Method | Endpoint             | Description       |
-| ------ | -------------------- | ----------------- |
-| POST   | /users/              | Create user       |
-| GET    | /users/              | Get all users     |
-| GET    | /users/{id}          | Get user by id    |
-| PUT    | /users/{id}          | Update user       |
-| DELETE | /users/{id}          | Delete user       |
-| PUT    | /users/{id}/profile  | Update profile    |
-| GET    | /users/{id}/profile  | Get profile by id |
-| DELETE | /users/{id}/profile  | Delete profile    |
-| GET    | /users/verify/:token | Verify email      |
+| Method | Endpoint             | Description   |
+| ------ | -------------------- | ------------- |
+| POST   | /users/              | Create user   |
+| GET    | /users/              | Get all users |
+| GET    | /users/{id}          | Get user by id|
+| PUT    | /users/{id}          | Update user   |
+| DELETE | /users/{id}          | Delete user   |
+| GET    | /users/verify/:token | Verify email  |
+
+> 📄 Profile-related endpoints (`/users/{id}/profile`) are documented in the [User Profile Sub-Module](./user-profile-module.md).
 
 ---
 
@@ -475,11 +374,12 @@ sequenceDiagram
 | -------- | -------------------------- |
 | USER_001 | User Not Found             |
 | USER_002 | Email Already Exists       |
-| USER_003 | Profile Not Found          |
-| USER_004 | Invalid Input Data         |
-| USER_005 | Invalid Verification Token |
-| USER_006 | Token Expired              |
-| USER_007 | Missing Required Fields    |
+| USER_003 | Invalid Input Data         |
+| USER_004 | Invalid Verification Token |
+| USER_005 | Token Expired              |
+| USER_006 | Missing Required Fields    |
+
+> 📄 Profile-specific error codes are defined in the [User Profile Sub-Module](./user-profile-module.md).
 
 ---
 
@@ -488,9 +388,8 @@ sequenceDiagram
 - Passwords must be hashed using BCrypt or Argon2 before storage.
 - HTTPS is mandatory for all user data transmission.
 - Email verification tokens must expire automatically (e.g., after 24 hours).
-- Sanitize all user profile inputs to prevent XSS.
 - Protect against brute-force attacks on verification endpoints.
-- Ensure only authorized users can view or update their own profiles.
+- Profile-specific security requirements are defined in the [User Profile Sub-Module](./user-profile-module.md).
 
 ---
 
@@ -498,23 +397,24 @@ sequenceDiagram
 
 | Requirement                 | Target          |
 | --------------------------- | --------------- |
-| User Retrieval Time         | <200 ms         |
-| User Creation Response Time | <500 ms         |
-| Profile Update Time         | <300 ms         |
+| User Retrieval Time         | < 200ms         |
+| User Creation Response Time | < 500ms         |
 | Availability                | 99.9%           |
 | Scalability                 | 1,000,000 Users |
+
+> 📄 Profile-specific NFRs are defined in the [User Profile Sub-Module](./user-profile-module.md).
 
 ---
 
 # 16. Acceptance Criteria
 
-- Users and profiles can be created and updated successfully.
+- Users can be created, updated, retrieved, and deleted successfully.
 - Duplicate emails are rejected during user creation.
-- Requesting an invalid user ID returns a 404 Not Found error.
-- Profile images are validated for size and format if provided.
+- Requesting an invalid user ID returns a `404 Not Found` error.
 - Verification tokens update user status to Active when used.
 - Expired or invalid verification tokens are rejected.
-- Users can only have one associated profile.
+
+> 📄 Profile-specific acceptance criteria are defined in the [User Profile Sub-Module](./user-profile-module.md).
 
 ---
 
@@ -523,7 +423,7 @@ sequenceDiagram
 - Database
 - Email Service
 - Password Hashing Library
-- File Storage (for profile images)
+- [User Profile Sub-Module](./user-profile-module.md)
 
 ---
 
@@ -531,7 +431,6 @@ sequenceDiagram
 
 - Email service is operational for sending verification emails.
 - Database is highly available.
-- File storage service is accessible for saving profile images.
 - HTTPS is enabled for all environments.
 
 ---
@@ -540,9 +439,8 @@ sequenceDiagram
 
 - Soft delete for user accounts.
 - Activity logs for user actions (audit trail).
-- Role-Based Access Control (RBAC) integration with profiles.
-- Multiple profile images or avatar generation.
-- Integration with external identity providers for profile population.
+- Role-Based Access Control (RBAC) integration.
+- Profile-specific enhancements are tracked in the [User Profile Sub-Module](./user-profile-module.md).
 
 ---
 
@@ -550,6 +448,7 @@ sequenceDiagram
 
 ## Related Documents
 
+- [User Profile Sub-Module](./user-profile-module.md)
 - System Architecture
 - API Documentation
 - Database Design
