@@ -1,9 +1,9 @@
 # Introduction
 
-> **Module Type:** Module
-> **Version:** 1.0  
-> **Status:** Draft  
-> **Priority:** Critical  
+> **Module Type:** Sub-Module (Projects)
+> **Version:** 1.0
+> **Status:** Draft
+> **Priority:** Critical
 > **Owner:** Backend Team
 
 ---
@@ -12,22 +12,23 @@
 
 ## Purpose
 
-The Environment Variables module manages environment variables for projects. It allows configuring key-value pairs scoped across target environments (`Development`, `Preview`, `Production`), with support for secret encryption at rest, value masking, and variable lifecycle operations (Create, Update, Delete, Encrypt).
+The Environment Variables sub-module manages environment variables for projects within the [Projects Module](./projects-module.md). It allows configuring key-value pairs scoped across target environments (`Development`, `Preview`, `Production`), with support for secret encryption at rest, value masking, and full variable lifecycle operations (Create, Update, Delete, Encrypt Secrets).
 
 ## Scope
 
 ### Included
 
-- Managing key-value environment variables per project
-- Scoping variables by environment: `Development`, `Preview`, `Production`
+- Managing `key`/`value` environment variables per project
+- Scoping variables by target environment: `Development`, `Preview`, `Production`
 - Automatic AES-256-GCM encryption of secret values at rest
 - Value masking (`••••••••`) in public list responses to protect sensitive credentials
-- Full CRUD operations on environment variables
+- Operations: **Create**, **Update**, **Delete**, **Encrypt Secrets**
 
 ### Excluded
 
 - Runtime environment variable injection into container / server instances (handled in Deployment pipeline)
 - User authentication and authorization guard rules (handled in Auth & Project Permissions modules)
+- Project lifecycle management (handled in [Projects Module](./projects-module.md))
 
 ---
 
@@ -448,7 +449,9 @@ DELETE /projects/07c0060e-8e8c-44c1-942c-3004f5a6c5b6/env-vars/env-12345678-8e8c
 
 # 17. Dependencies
 
-- Projects Module
+- [Projects Module](./projects-module.md)
+- Database
+- Encryption Key Management Service
 
 ---
 
@@ -469,5 +472,15 @@ DELETE /projects/07c0060e-8e8c-44c1-942c-3004f5a6c5b6/env-vars/env-12345678-8e8c
 
 ## Related Documents
 
-- Projects Module Design
-- Repository Module Design
+- [Projects Module](./projects-module.md)
+- [Repository Sub-Module](./repository-module.md)
+- [Project Permissions Sub-Module](./project-permissions-module.md)
+- System Architecture
+- API Documentation
+- Security Policy
+
+---
+
+**Document Version:** 1.0
+**Last Updated:** 2026-08-12
+**Author:** Monirul Islam
