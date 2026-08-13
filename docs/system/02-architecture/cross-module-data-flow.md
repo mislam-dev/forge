@@ -165,7 +165,7 @@ sequenceDiagram
 - Build Worker fetches encrypted credentials from `project_repositories` and decrypts them at runtime.
 - Build Worker fetches encrypted env vars from `project_environment_variables` and decrypts them at runtime.
 - All status transitions go back through `PATCH /deployments/:id/status` using an internal service token.
-- Log lines are published to Pub/Sub (for live streaming) and written to `build_logs` (for storage).
+- Log lines are published to RabbitMQ (for real-time SSE streaming) and ingested into Grafana Loki (for log storage per [ADR-005](../09-adr/ADR-005-use-loki-for-centralized-logging.md)).
 
 ---
 

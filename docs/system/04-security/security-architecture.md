@@ -250,7 +250,7 @@ graph TB
 The Build Worker (BR-004) enforces:
 - Environment variables are decrypted only within the worker's secure runtime context.
 - Decrypted values are passed to `docker run` via in-memory environment injection, **not** via command-line arguments (prevents exposure in process listings).
-- Log storage (build_logs) must never contain plaintext secret values.
+- Log storage (Grafana Loki / build logs per [ADR-005](../09-adr/ADR-005-use-loki-for-centralized-logging.md)) must never contain plaintext secret values.
 
 ---
 

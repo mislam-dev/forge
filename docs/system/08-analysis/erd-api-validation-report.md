@@ -87,7 +87,7 @@ POST /projects/{id}/members          ──► project_members
 POST /projects/{id}/teams            ──► project_teams
 POST /deployments                    ──► deployments
 PATCH /deployments/{id}/status       ──► deployments
-GET /deployments/{id}/logs           ──► build_logs
+GET /deployments/{id}/logs           ──► Grafana Loki (per ADR-005)
 GET /notifications                   ──► notifications
 GET /dashboard                       ──► (Read-only aggregation over projects, deployments, orgs)
 GET /health                          ──► (No table — live service & DB connection probe)

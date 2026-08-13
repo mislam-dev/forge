@@ -964,7 +964,8 @@ Tracks async deployment lifecycle state machine per project. Owned by Deployment
 
 ### Description
 
-Stores line-by-line build and execution output from Build Workers. Owned by Build Worker Sub-Module.
+Stores line-by-line build and execution output from Build Workers. Owned by Build Worker Sub-Module.  
+*Architectural Note (ADR-005): Raw build/deployment log output is offloaded to Grafana Loki per [ADR-005](../09-adr/ADR-005-use-loki-for-centralized-logging.md). PostgreSQL retains deployment metadata (`deployments` table).*
 
 ### Columns
 

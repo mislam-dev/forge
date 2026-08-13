@@ -19,7 +19,7 @@ Forge relies on the following internal integration points beyond the primary dat
 | **Pub/Sub Channel** | Redis Pub/Sub / WebSocket broker | Real-time log line delivery from Build Worker to Live Logs API |
 | **Docker Runtime** | Docker / OCI-compatible runtime | Container image build and execution during deployments |
 | **Git Service** | Native git / libgit2 | Repository clone and commit metadata fetching |
-| **Log Store** | Database (`build_logs`) or object storage | Persistent storage of structured build log lines |
+| **Log Store** | Grafana Loki | Persistent aggregation and storage of raw build/deployment log output streams ([ADR-005](../09-adr/ADR-005-use-loki-for-centralized-logging.md)) |
 | **Encryption Key Service** | Application-level (master key + project salt) | AES-256-GCM key derivation for secrets |
 
 ---
@@ -104,8 +104,8 @@ Each build step emits structured log entries in real time:
 }
 ```
 
-- Log lines are **persisted** to the `build_logs` database table.
-- Log lines are **published** to the Pub/Sub channel for `deployment_id` for real-time delivery.
+- Log lines are **persisted** to Grafana Loki (per [ADR-005](../09-adr/ADR-005-use-loki-for-centralized-logging.md)).
+- Log lines are **published** to RabbitMQ topic exchange for `deployment_id` for real-time SSE delivery.
 
 ### 3.3 Env Var Decryption → Environment Variables API
 
@@ -157,7 +157,7 @@ forge:logs:{deployment_id}
 
 ### Fallback
 
-If a client connects after the deployment has already reached a terminal state, the Live Logs API serves stored logs from `build_logs` directly, bypassing Pub/Sub.
+If a client connects after the deployment has already reached a terminal state, the Live Logs API queries stored logs directly from Grafana Loki (per [ADR-005](../09-adr/ADR-005-use-loki-for-centralized-logging.md)), bypassing real-time Pub/Sub.
 
 ---
 

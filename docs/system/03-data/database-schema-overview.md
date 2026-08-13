@@ -238,7 +238,9 @@ This document provides a consolidated reference for all database tables owned by
 > Valid state machine: `Queued → Building → Deploying → Running → Success`. Any state → `Failed`.  
 > Records are **immutable** once in `Success` or `Failed`.
 
-### `build_logs`
+### `build_logs` *(Deprecated / Legacy)*
+
+> **Architectural Note (ADR-005):** Raw build and deployment log streams are aggregated and stored in **Grafana Loki** (per [ADR-005](../09-adr/ADR-005-use-loki-for-centralized-logging.md)). PostgreSQL does not store raw log output. The `build_logs` database table is marked as legacy and is candidates for deprecation once all log endpoints query Loki directly.
 
 | Column          | Type      | Constraints                                |
 | --------------- | --------- | ------------------------------------------ |

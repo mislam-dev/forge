@@ -38,12 +38,12 @@ The Build Worker sub-module is responsible for asynchronously executing the buil
 
 # 2. Actors
 
-| Actor        | Description                                                             |
-| ------------ | ----------------------------------------------------------------------- |
-| Build Worker | Internal async service that processes build jobs from the queue         |
-| Job Queue    | Message broker that dispatches jobs to available workers                |
-| Deployment API | Internal REST endpoint used by the worker to update deployment state  |
-| Container Runtime | Docker / OCI runtime on the host for building and running images   |
+| Actor             | Description                                                          |
+| ----------------- | -------------------------------------------------------------------- |
+| Build Worker      | Internal async service that processes build jobs from the queue      |
+| Job Queue         | Message broker that dispatches jobs to available workers             |
+| Deployment API    | Internal REST endpoint used by the worker to update deployment state |
+| Container Runtime | Docker / OCI runtime on the host for building and running images     |
 
 ---
 
@@ -67,11 +67,11 @@ The worker clones the project repository at the specific commit hash for the dep
 
 ### Inputs
 
-| Field       | Required | Descriptions                              |
-| ----------- | -------- | ----------------------------------------- |
-| repo_url    | Yes      | Git repository URL from project config    |
-| commit_hash | Yes      | Exact commit SHA to checkout              |
-| branch      | Yes      | Branch name for context                   |
+| Field       | Required | Descriptions                           |
+| ----------- | -------- | -------------------------------------- |
+| repo_url    | Yes      | Git repository URL from project config |
+| commit_hash | Yes      | Exact commit SHA to checkout           |
+| branch      | Yes      | Branch name for context                |
 
 ### Process
 
@@ -98,9 +98,9 @@ The worker reads and validates the `Dockerfile` from the cloned repository root 
 
 ### Inputs
 
-| Field           | Required | Descriptions                                          |
-| --------------- | -------- | ----------------------------------------------------- |
-| workspace_path  | Yes      | Path to the cloned repository on the worker           |
+| Field           | Required | Descriptions                                             |
+| --------------- | -------- | -------------------------------------------------------- |
+| workspace_path  | Yes      | Path to the cloned repository on the worker              |
 | dockerfile_path | No       | Relative path to Dockerfile (defaults to `./Dockerfile`) |
 
 ### Process
@@ -128,10 +128,10 @@ The worker executes `docker build` to build the image from the Dockerfile.
 
 ### Inputs
 
-| Field          | Required | Descriptions                                          |
-| -------------- | -------- | ----------------------------------------------------- |
-| workspace_path | Yes      | Build context directory                               |
-| image_tag      | Yes      | Image tag (e.g. `project-{id}:{commit_short_sha}`)   |
+| Field          | Required | Descriptions                                       |
+| -------------- | -------- | -------------------------------------------------- |
+| workspace_path | Yes      | Build context directory                            |
+| image_tag      | Yes      | Image tag (e.g. `project-{id}:{commit_short_sha}`) |
 
 ### Process
 
@@ -158,11 +158,11 @@ The worker starts the built Docker image as a container, injecting project envir
 
 ### Inputs
 
-| Field         | Required | Descriptions                                            |
-| ------------- | -------- | ------------------------------------------------------- |
-| image_tag     | Yes      | Docker image tag to run                                 |
+| Field         | Required | Descriptions                                                       |
+| ------------- | -------- | ------------------------------------------------------------------ |
+| image_tag     | Yes      | Docker image tag to run                                            |
 | env_vars      | Yes      | Decrypted project environment variables for the target environment |
-| port_mappings | No       | Host-to-container port mappings                         |
+| port_mappings | No       | Host-to-container port mappings                                    |
 
 ### Process
 
@@ -189,11 +189,11 @@ After the container starts, the worker performs an HTTP health check to confirm 
 
 ### Inputs
 
-| Field              | Required | Descriptions                                          |
-| ------------------ | -------- | ----------------------------------------------------- |
-| health_check_url   | Yes      | URL to poll (e.g. `http://localhost:{port}/health`)   |
-| timeout_seconds    | No       | Max wait time in seconds (default: 30s)               |
-| retry_interval_ms  | No       | Polling interval in ms (default: 1000ms)              |
+| Field             | Required | Descriptions                                        |
+| ----------------- | -------- | --------------------------------------------------- |
+| health_check_url  | Yes      | URL to poll (e.g. `http://localhost:{port}/health`) |
+| timeout_seconds   | No       | Max wait time in seconds (default: 30s)             |
+| retry_interval_ms | No       | Polling interval in ms (default: 1000ms)            |
 
 ### Process
 
@@ -220,15 +220,15 @@ All build and deployment output is captured and stored for later retrieval and r
 
 ### Inputs
 
-| Field         | Required | Descriptions                                 |
-| ------------- | -------- | -------------------------------------------- |
-| deployment_id | Yes      | UUID of the associated deployment            |
+| Field         | Required | Descriptions                                       |
+| ------------- | -------- | -------------------------------------------------- |
+| deployment_id | Yes      | UUID of the associated deployment                  |
 | log_lines     | Yes      | Structured log entries (timestamp, level, message) |
 
 ### Process
 
-1. Write each log line to the log store (e.g. time-series DB or object storage).
-2. Emit each log line to the real-time streaming channel (see [Live Build Logs](./live-build-logs-module.md)).
+1. Push each log line to Grafana Loki (per [ADR-005](../../system/09-adr/ADR-005-use-loki-for-centralized-logging.md)).
+2. Emit each log line to the RabbitMQ real-time streaming channel (see [Live Build Logs](./live-build-logs-module.md)).
 
 ### Success Response
 
@@ -248,13 +248,13 @@ On build/deploy completion (success or failure), the worker calls the Deployment
 
 ### Inputs
 
-| Field            | Required | Descriptions                                        |
-| ---------------- | -------- | --------------------------------------------------- |
-| deployment_id    | Yes      | UUID of the deployment                              |
-| status           | Yes      | `Success` or `Failed`                               |
-| build_duration   | No       | Total build time in milliseconds                    |
-| deploy_duration  | No       | Total deploy time in milliseconds                   |
-| error_message    | No       | Error summary if `Failed`                           |
+| Field           | Required | Descriptions                      |
+| --------------- | -------- | --------------------------------- |
+| deployment_id   | Yes      | UUID of the deployment            |
+| status          | Yes      | `Success` or `Failed`             |
+| build_duration  | No       | Total build time in milliseconds  |
+| deploy_duration | No       | Total deploy time in milliseconds |
+| error_message   | No       | Error summary if `Failed`         |
 
 ### Process
 
@@ -273,14 +273,14 @@ On build/deploy completion (success or failure), the worker calls the Deployment
 
 # 5. Business Rules
 
-| ID     | Rule                                                                                           |
-| ------ | ---------------------------------------------------------------------------------------------- |
-| BR-001 | Workers must run asynchronously — no synchronous blocking of the API layer.                    |
-| BR-002 | Each build step must update the deployment status and stream a log entry upon start.           |
-| BR-003 | Any step failure must immediately transition the deployment to `Failed` and stop further steps.|
-| BR-004 | Environment variables must be decrypted only at runtime within the worker's secure context.    |
-| BR-005 | Worker temporary workspaces must be cleaned up after each build (success or failure).          |
-| BR-006 | Workers must emit log lines with `timestamp`, `level`, and `message` for each output line.    |
+| ID     | Rule                                                                                            |
+| ------ | ----------------------------------------------------------------------------------------------- |
+| BR-001 | Workers must run asynchronously — no synchronous blocking of the API layer.                     |
+| BR-002 | Each build step must update the deployment status and stream a log entry upon start.            |
+| BR-003 | Any step failure must immediately transition the deployment to `Failed` and stop further steps. |
+| BR-004 | Environment variables must be decrypted only at runtime within the worker's secure context.     |
+| BR-005 | Worker temporary workspaces must be cleaned up after each build (success or failure).           |
+| BR-006 | Workers must emit log lines with `timestamp`, `level`, and `message` for each output line.      |
 
 ---
 
@@ -288,13 +288,13 @@ On build/deploy completion (success or failure), the worker calls the Deployment
 
 ## Build Job
 
-| Field       | Validation                              |
-| ----------- | --------------------------------------- |
-| deployment_id | Required, valid UUID                  |
-| repo_url    | Required, valid Git URL format          |
-| commit_hash | Required, 40-character hex SHA          |
-| branch      | Required, non-empty string              |
-| environment | Required: `Development`, `Preview`, `Production` |
+| Field         | Validation                                       |
+| ------------- | ------------------------------------------------ |
+| deployment_id | Required, valid UUID                             |
+| repo_url      | Required, valid Git URL format                   |
+| commit_hash   | Required, 40-character hex SHA                   |
+| branch        | Required, non-empty string                       |
+| environment   | Required: `Development`, `Preview`, `Production` |
 
 ---
 
@@ -363,15 +363,17 @@ sequenceDiagram
 
 # 9. Database Design
 
-## build_logs
+## build*logs *(Deprecated / Offloaded to Grafana Loki)\_
 
-| Field         | Type      | Constraints                      |
-| ------------- | --------- | -------------------------------- |
-| id            | UUID      | Primary                          |
-| deployment_id | UUID      | Foreign Key → `deployments.id`   |
-| timestamp     | TIMESTAMP | Log entry time                   |
-| level         | VARCHAR   | `INFO`, `WARN`, `ERROR`, `DEBUG` |
-| message       | TEXT      | Log line content                 |
+> **Architectural Note (ADR-005):** Raw build and deployment log output is aggregated and stored in **Grafana Loki** (per [ADR-005](../../system/09-adr/ADR-005-use-loki-for-centralized-logging.md)). PostgreSQL retains deployment metadata (`deployments` table). The legacy `build_logs` schema is documented below for historical context:
+
+| Field         | Type      | Constraints                                |
+| ------------- | --------- | ------------------------------------------ |
+| id            | UUID      | Primary                                    |
+| deployment_id | UUID      | Foreign Key → `deployments.id`             |
+| timestamp     | TIMESTAMP | Log entry time                             |
+| level         | VARCHAR   | `INFO`, `WARN`, `ERROR`, `DEBUG`           |
+| message       | TEXT      | Log line content                           |
 | step          | VARCHAR   | `clone`, `build`, `deploy`, `health_check` |
 
 ---
@@ -380,24 +382,24 @@ sequenceDiagram
 
 > The Build Worker is an **internal service** and does not expose public API endpoints. It communicates with the Deployment API via internal service calls.
 
-| Method | Endpoint                      | Description                              |
-| ------ | ----------------------------- | ---------------------------------------- |
-| PATCH  | /deployments/:id/status       | Update deployment status (internal only) |
-| POST   | /deployments/:id/logs         | Write log lines (internal only)          |
+| Method | Endpoint                | Description                              |
+| ------ | ----------------------- | ---------------------------------------- |
+| PATCH  | /deployments/:id/status | Update deployment status (internal only) |
+| POST   | /deployments/:id/logs   | Write log lines (internal only)          |
 
 ---
 
 # 11. Error Codes
 
-| Code       | Description                                      |
-| ---------- | ------------------------------------------------ |
-| WORKER_001 | Repository Clone Failed                          |
-| WORKER_002 | Dockerfile Not Found                             |
-| WORKER_003 | Docker Build Failed                              |
-| WORKER_004 | Container Start Failed                           |
-| WORKER_005 | Health Check Timeout / Failed                    |
-| WORKER_006 | Environment Variable Decryption Error            |
-| WORKER_007 | Log Store Unavailable                            |
+| Code       | Description                           |
+| ---------- | ------------------------------------- |
+| WORKER_001 | Repository Clone Failed               |
+| WORKER_002 | Dockerfile Not Found                  |
+| WORKER_003 | Docker Build Failed                   |
+| WORKER_004 | Container Start Failed                |
+| WORKER_005 | Health Check Timeout / Failed         |
+| WORKER_006 | Environment Variable Decryption Error |
+| WORKER_007 | Log Store Unavailable                 |
 
 ---
 
@@ -413,13 +415,13 @@ sequenceDiagram
 
 # 13. Non-Functional Requirements
 
-| Requirement              | Target    |
-| ------------------------ | --------- |
-| Worker Pickup Latency    | < 5s      |
-| Build Execution Time     | < 10 min  |
-| Health Check Max Wait    | 30s       |
-| Log Write Latency        | < 100ms   |
-| Worker Availability      | 99.9%     |
+| Requirement           | Target   |
+| --------------------- | -------- |
+| Worker Pickup Latency | < 5s     |
+| Build Execution Time  | < 10 min |
+| Health Check Max Wait | 30s      |
+| Log Write Latency     | < 100ms  |
+| Worker Availability   | 99.9%    |
 
 ---
 

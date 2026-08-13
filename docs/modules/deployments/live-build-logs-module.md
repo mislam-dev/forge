@@ -104,8 +104,8 @@ Returns the full stored log history for a completed deployment.
 
 ### Process
 
-1. Verify `deployment_id` exists.
-2. Query `build_logs` filtered by optional `step` and `level`.
+1. Verify `deployment_id` exists in PostgreSQL `deployments` table.
+2. Query Grafana Loki via LogQL (`{service="build-worker"} | json | deployment_id="<uuid>"`) filtered by optional `step` and `level` (per [ADR-005](../../system/09-adr/ADR-005-use-loki-for-centralized-logging.md)).
 3. Return log lines ordered by `timestamp` ASC.
 
 ### Success Response
@@ -136,7 +136,7 @@ Allows users to search within the log output of a deployment using a keyword.
 
 ### Process
 
-1. Query `build_logs` for `deployment_id` where `message ILIKE %query%`.
+1. Query Grafana Loki using LogQL line filter (`{service="build-worker"} | json | deployment_id="<uuid>" |= "<query>"`).
 2. Apply optional `level` and `step` filters.
 3. Return matching log lines with surrounding context (3 lines before/after each match).
 
@@ -165,7 +165,7 @@ Allows users to download the complete log output of a deployment as a plain-text
 
 ### Process
 
-1. Fetch all `build_logs` for `deployment_id` ordered by `timestamp` ASC.
+1. Fetch all log lines for `deployment_id` from Grafana Loki ordered by `timestamp` ASC (per [ADR-005](../../system/09-adr/ADR-005-use-loki-for-centralized-logging.md)).
 2. Format each line as `[TIMESTAMP] [LEVEL] [STEP] MESSAGE`.
 3. Return as a file download with `Content-Disposition: attachment; filename="deploy-{id}.log"`.
 
@@ -258,9 +258,9 @@ sequenceDiagram
 
 ---
 
-# 10. Database Design
+# 10. Database & Log Storage Architecture
 
-> Log storage schema is defined in [Build Worker Sub-Module — build_logs table](./build-worker-module.md).
+> **Log Storage Architecture (ADR-005):** Raw build and deployment log streams are aggregated and stored in **Grafana Loki** (see [ADR-005](../../system/09-adr/ADR-005-use-loki-for-centralized-logging.md)). PostgreSQL stores deployment metadata in the `deployments` table.
 
 ## Log Event Schema (SSE / WebSocket Payload)
 

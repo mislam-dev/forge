@@ -155,25 +155,25 @@ Every log line emitted by the Build Worker carries:
 
 | Mode | Availability | Mechanism |
 |------|-------------|-----------|
-| **Live streaming** | While deployment is in non-terminal state | SSE or WebSocket via Pub/Sub channel |
-| **Stored retrieval** | Any time (including after terminal state) | Database query on `build_logs` |
-| **Log search** | Any time | `ILIKE` query with optional step/level filters |
-| **Log download** | Any time | Full log file download as `.log` |
+| **Live streaming** | While deployment is in non-terminal state | SSE or WebSocket via RabbitMQ topic exchange |
+| **Stored retrieval** | Any time (including after terminal state) | LogQL query on Grafana Loki ([ADR-005](../09-adr/ADR-005-use-loki-for-centralized-logging.md)) |
+| **Log search** | Any time | LogQL pattern matching query on Grafana Loki |
+| **Log download** | Any time | Full log stream fetch as `.log` file |
 
 ### 4.3 Log Lifecycle
 
 ```mermaid
 sequenceDiagram
     participant Worker as Build Worker
-    participant PubSub as Pub/Sub Channel
+    participant PubSub as RabbitMQ Topic Exchange
     participant LogsAPI as Live Logs API
     participant Client as Browser / Client
-    participant LogStore as build_logs table
+    participant LogStore as Grafana Loki (Log Store)
 
     Worker->>PubSub: Publish log line {timestamp, level, step, message}
     PubSub->>LogsAPI: Forward log line (if subscribers exist)
     LogsAPI->>Client: SSE push: data: {...log line...}
-    Worker->>LogStore: Write log line (concurrent with publish)
+    Worker->>LogStore: Push log line to Loki API (POST /loki/api/v1/push)
 ```
 
 ### 4.4 Log Retention
@@ -243,7 +243,7 @@ For distributed tracing, inject a `correlation_id` / `X-Request-ID` header at th
 
 1. Build logs will not persist, but deployments will continue running.
 2. Build Worker has a fallback: log to local disk if the log store is unavailable.
-3. Restore log store and verify `build_logs` writes resume.
+3. Restore log store and verify Loki push ingestion resumes.
 
 ### Deployment Stuck in `Queued`
 

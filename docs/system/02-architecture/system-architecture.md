@@ -216,9 +216,10 @@ flowchart LR
 
 ### Log Storage
 
-- Build logs are stored in `build_logs` table (owned by Build Worker sub-module).
-- Retention: 90 days (per Live Build Logs NFR).
-- Log lines carry: `deployment_id`, `timestamp`, `level`, `step`, `message`.
+- Raw build and deployment log streams are aggregated and stored in **Grafana Loki** (per [ADR-005](../09-adr/ADR-005-use-loki-for-centralized-logging.md)).
+- Deployment business metadata (status, duration, error summary) is stored in PostgreSQL (`deployments` table).
+- Log retention: 90 days managed via Loki retention policies.
+- Log entries carry structured metadata: `deployment_id`, `timestamp`, `level`, `step`, `message`.
 
 ---
 
