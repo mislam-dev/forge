@@ -14,11 +14,11 @@ The table below catalogs every module and sub-module in the Forge platform, its 
 | Module / Sub-Module | Type | Priority | Doc File | Description |
 |---------------------|------|----------|----------|-------------|
 | **Auth** | Core Module | Critical | `docs/auth/Authentication Module Documentation.md` | JWT-based authentication, login, logout, token refresh |
-| **Access Control — Roles** | Sub-Module (Auth) | Critical | `docs/auth/acess-control/00.Roles.md` | System role definitions (key/value pairs) |
-| **Access Control — Permissions** | Sub-Module (Auth) | Critical | `docs/auth/acess-control/01.Permissions.md` | System permission definitions |
-| **Access Control — Role-Permissions** | Sub-Module (Auth) | Critical | `docs/auth/acess-control/02.RolePermissions.md` | Mapping roles to their granted permissions |
-| **Access Control — User-Roles** | Sub-Module (Auth) | Critical | `docs/auth/acess-control/03.UserRoles.md` | Assigning system roles to users |
-| **Access Control — User-Permissions** | Sub-Module (Auth) | Critical | `docs/auth/acess-control/04.UserPermissions.md` | Assigning permissions directly to users (override path) |
+| **Access Control — Roles** | Sub-Module (Auth) | Critical | `docs/modules/auth/access-control/00.Roles.md` | System role definitions (key/value pairs) |
+| **Access Control — Permissions** | Sub-Module (Auth) | Critical | `docs/modules/auth/access-control/01.Permissions.md` | System permission definitions |
+| **Access Control — Role-Permissions** | Sub-Module (Auth) | Critical | `docs/modules/auth/access-control/02.RolePermissions.md` | Mapping roles to their granted permissions |
+| **Access Control — User-Roles** | Sub-Module (Auth) | Critical | `docs/modules/auth/access-control/03.UserRoles.md` | Assigning system roles to users |
+| **Access Control — User-Permissions** | Sub-Module (Auth) | Critical | `docs/modules/auth/access-control/04.UserPermissions.md` | Assigning permissions directly to users (override path) |
 | **Users** | Core Module | Critical | `docs/users/Users Module Documentation.md` | User registration, profile, account management |
 | **User Profile** | Sub-Module (Users) | High | `docs/users/user-profile/user-profile-module.md` | User profile data management |
 | **Notifications** | Module | High | `docs/notifications/notifications-module.md` | Event-driven user notification system |

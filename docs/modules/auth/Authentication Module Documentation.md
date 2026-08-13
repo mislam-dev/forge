@@ -374,8 +374,9 @@ sequenceDiagram
 
 ```json
 {
-  "accessToken": "<JWT>",
-  "refreshToken": "<JWT>",
+  "access_token": "<JWT>",
+  "refresh_token": "<JWT>",
+  "expires_in": 900
 }
 ```
 
@@ -400,17 +401,18 @@ sequenceDiagram
 
 # 13. Error Codes
 
-| Code     | Description           |
-| -------- | --------------------- |
-| AUTH_001 | Invalid Email         |
-| AUTH_002 | Incorrect Password    |
-| AUTH_003 | Email Already Exists  |
-| AUTH_004 | JWT Expired           |
-| AUTH_005 | Invalid Refresh Token |
-| AUTH_006 | Reset Token Expired   |
-| AUTH_007 | Email Not Verified    |
-| AUTH_008 | Account Suspended     |
-| AUTH_008 | Account Disabled      |
+| Code     | Description                   |
+| -------- | ----------------------------- |
+| AUTH_000 | Token Missing or Invalid      |
+| AUTH_001 | Invalid Email                 |
+| AUTH_002 | Incorrect Password            |
+| AUTH_003 | Email Already Exists          |
+| AUTH_004 | JWT Expired                   |
+| AUTH_005 | Invalid Refresh Token         |
+| AUTH_006 | Reset Token Expired           |
+| AUTH_007 | Email Not Verified            |
+| AUTH_008 | Account Suspended             |
+| AUTH_009 | Account Disabled              |
 
 ---
 
