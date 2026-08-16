@@ -1,3 +1,4 @@
+set dotenv-load
 # ================================
 # Development
 # ================================
@@ -41,7 +42,7 @@ ci:
 #
 setup:
     cargo check
-    sea-orm-cli migrate up --migration-dir src/database/migrations
+    just db-up
 
 entity path tables:
     @if [ -z "{{ path }}" ]; then echo "Error: module path is required"; exit 1; fi
@@ -69,6 +70,9 @@ db-down:
 db-reset:
     sea-orm-cli migrate reset --migration-dir src/database/migrations
 
+db-fresh:
+    sea-orm-cli migrate fresh -u "$DATABASE_URL" --migration-dir src/database/migrations
+
 # Create a new migration
 migration name:
     @if [ -z "{{ name }}" ]; then echo "Error: migration name is required"; exit 1; fi
@@ -76,4 +80,4 @@ migration name:
 
 # generating migrations scaffolding
 migration-cli init:
-  sea-orm-cli migrate init -d src/database/migrations
+    sea-orm-cli migrate init -d src/database/migrations

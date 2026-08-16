@@ -12,6 +12,7 @@
 PostgreSQL is the **sole authoritative data store** for all persistent business data in the Forge Platform (ADR-001). SeaORM is the exclusive database access layer (ADR-002).
 
 This plan covers:
+
 - Cargo dependencies for database access
 - Database connection pool setup
 - `sea-orm-migration` directory and runner
@@ -25,15 +26,15 @@ The database module lives in `src/infrastructure/database/` and `src/databse/` (
 
 ## 2. Current State
 
-| Item | Status |
-|------|--------|
-| `src/databse/mod.rs` | Exists — empty stub |
-| `src/databse/connection.rs` | Exists — empty stub |
-| `src/infrastructure/database/mod.rs` | Exists — empty stub |
-| Cargo.toml dependencies | Not added |
-| Migrations directory | Missing (`src/database/migrations/`) |
-| SeaORM entities | Not generated |
-| Connection pool | Not implemented |
+| Item                                 | Status                               |
+| ------------------------------------ | ------------------------------------ |
+| `src/databse/mod.rs`                 | Exists — empty stub                  |
+| `src/databse/connection.rs`          | Exists — empty stub                  |
+| `src/infrastructure/database/mod.rs` | Exists — empty stub                  |
+| Cargo.toml dependencies              | Not added                            |
+| Migrations directory                 | Missing (`src/database/migrations/`) |
+| SeaORM entities                      | Not generated                        |
+| Connection pool                      | Not implemented                      |
 
 > **Note:** The justfile already references `src/database/migrations` as the migration directory. This path does not yet exist.
 
@@ -42,13 +43,16 @@ The database module lives in `src/infrastructure/database/` and `src/databse/` (
 ## 3. Dependencies
 
 ### Depends On
+
 - Foundation (Cargo.toml must be set up first)
 - PostgreSQL server (Docker Compose service)
 
 ### Used By
+
 - Every module that reads or writes data (all modules)
 
 ### External Dependencies
+
 - PostgreSQL 15+
 - `sea-orm` crate with `sqlx-postgres` feature
 - `sea-orm-migration` crate
@@ -83,28 +87,28 @@ dotenvy = "0.15"
 
 > All tables derived from `docs/system/03-data/erd.md` and `docs/system/03-data/database-schema-overview.md`.
 
-| Migration | Table | Module Owner |
-|-----------|-------|--------------|
-| m001 | `users` | Users |
-| m002 | `roles` | Access Control — Roles |
-| m003 | `permissions` | Access Control — Permissions |
-| m004 | `role_permissions` | Access Control — Role-Permissions |
-| m005 | `user_roles` | Access Control — User-Roles |
-| m006 | `user_permissions` | Access Control — User-Permissions |
-| m007 | `refresh_tokens` | Auth |
-| m008 | `password_resets` | Auth |
-| m009 | `organizations` | Organizations |
-| m010 | `organization_members` | Org Members |
-| m011 | `teams` | Teams |
-| m012 | `team_members` | Teams |
-| m013 | `projects` | Projects |
-| m014 | `project_repositories` | Repository |
-| m015 | `project_environment_variables` | Environment Variables |
-| m016 | `project_members` | Project Assignments |
-| m017 | `project_teams` | Project Assignments |
-| m018 | `deployments` | Deployments |
-| m019 | `build_logs` | Build Worker (legacy — see ADR-005) |
-| m020 | `notifications` | Notifications |
+| Migration | Table                           | Module Owner                        |
+| --------- | ------------------------------- | ----------------------------------- |
+| m001      | `users`                         | Users                               |
+| m002      | `roles`                         | Access Control — Roles              |
+| m003      | `permissions`                   | Access Control — Permissions        |
+| m004      | `role_permissions`              | Access Control — Role-Permissions   |
+| m005      | `user_roles`                    | Access Control — User-Roles         |
+| m006      | `user_permissions`              | Access Control — User-Permissions   |
+| m007      | `refresh_tokens`                | Auth                                |
+| m008      | `password_resets`               | Auth                                |
+| m009      | `organizations`                 | Organizations                       |
+| m010      | `organization_members`          | Org Members                         |
+| m011      | `teams`                         | Teams                               |
+| m012      | `team_members`                  | Teams                               |
+| m013      | `projects`                      | Projects                            |
+| m014      | `project_repositories`          | Repository                          |
+| m015      | `project_environment_variables` | Environment Variables               |
+| m016      | `project_members`               | Project Assignments                 |
+| m017      | `project_teams`                 | Project Assignments                 |
+| m018      | `deployments`                   | Deployments                         |
+| m019      | `build_logs`                    | Build Worker (legacy — see ADR-005) |
+| m020      | `notifications`                 | Notifications                       |
 
 ---
 
@@ -182,15 +186,18 @@ All entities must include `--with-serde both --date-time-crate chrono`.
 ## 9. Implementation Tasks
 
 ### Cargo Setup
+
 - [ ] Add `sea-orm`, `sea-orm-migration`, `uuid`, `chrono`, `tokio`, `dotenvy` to `Cargo.toml`
 - [ ] Verify `Cargo.lock` updates
 
 ### Database Directory
+
 - [ ] Create `src/database/migrations/` directory
 - [ ] Create `src/database/migrations/mod.rs` migration runner
 - [ ] Resolve typo: consolidate `src/databse/` into `src/infrastructure/database/`
 
 ### Migrations (in order)
+
 - [ ] m001 — `users` table with UUID PK, email UK, timestamps
 - [ ] m002 — `roles` table with value UK
 - [ ] m003 — `permissions` table with value UK
@@ -213,15 +220,18 @@ All entities must include `--with-serde both --date-time-crate chrono`.
 - [ ] m020 — `notifications` with user FK
 
 ### Connection Pool
+
 - [ ] Implement `create_connection_pool()` in `src/infrastructure/database/mod.rs`
 - [ ] Expose `DatabaseConnection` via `AppState`
 - [ ] Configure pool size from environment variables
 
 ### Entity Generation
+
 - [ ] Run `just entity` for all module entities after migrations pass
 - [ ] Verify all generated entity files compile
 
 ### Testing
+
 - [ ] Migration `up` runs cleanly from empty DB
 - [ ] Migration `down` rolls back cleanly
 - [ ] All FK constraints are enforced (foreign key violation test)
@@ -255,13 +265,16 @@ Migration writing is mechanical but careful. Entity generation is automated but 
 ## 12. Recommendations
 
 **Required:**
+
 - All constraints from ADR-001 must be implemented in migrations — not just at the application layer.
 - The `password_resets` and `refresh_tokens` tables are required by the auth module documentation but are not in the simplified ERD diagram — they must be included.
 
 **Recommended:**
+
 - Use `uuid-ossp` PostgreSQL extension for `uuid_generate_v4()` or use Rust-generated UUIDs (both are acceptable per ADR-001).
 - Apply `NOT NULL DEFAULT CURRENT_TIMESTAMP` on all `created_at`/`updated_at` columns.
 - Add `ON UPDATE CURRENT_TIMESTAMP` trigger or handle `updated_at` in Rust service layer.
 
 **Future Enhancement:**
+
 - Database-level row-level security (RLS) for multi-tenancy enforcement at the PostgreSQL layer.
