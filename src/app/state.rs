@@ -18,9 +18,19 @@ impl AppState {
             .await
             .map_err(|e| format!("Failed to connect to database: {}", e))?;
 
-        Ok(Self {
-            db: Arc::new(db_connection),
-            config: Arc::new(app_config),
-        })
+        Ok(Self::from_parts(db_connection, app_config))
+    }
+
+    pub fn from_parts(db: DatabaseConnection, config: AppConfig) -> Self {
+        Self {
+            db: Arc::new(db),
+            config: Arc::new(config),
+        }
+    }
+
+    pub fn mock(config: AppConfig) -> Self {
+        let db = sea_orm::MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
+        Self::from_parts(db, config)
     }
 }
+

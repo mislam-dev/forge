@@ -3,18 +3,11 @@ use std::net::SocketAddr;
 use tokio::signal;
 use tower_http::trace::TraceLayer;
 
-use crate::{
+use forge::{
     app::{app::create_app, state::AppState},
     config::AppConfig,
     shared::logger,
 };
-
-mod app;
-mod config;
-mod database;
-mod infrastructure;
-mod modules;
-mod shared;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

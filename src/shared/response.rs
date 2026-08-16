@@ -78,3 +78,48 @@ impl<T: Serialize> IntoResponse for ApiResponse<T> {
         res
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::to_bytes;
+
+    #[test]
+    fn test_api_response_builder() {
+        let res = ApiResponse::new()
+            .status(StatusCode::CREATED)
+            .message("Created successfully".to_string())
+            .body(Some("payload"))
+            .header(HeaderName::from_static("x-custom-header"), "custom-value");
+
+        assert_eq!(res.status_code, StatusCode::CREATED);
+        assert_eq!(res.msg, "Created successfully");
+        assert_eq!(res.data, Some("payload"));
+        assert_eq!(
+            res.headers.get("x-custom-header").unwrap(),
+            "custom-value"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_api_response_into_response() {
+        let res = ApiResponse::new()
+            .status(StatusCode::OK)
+            .message("Resource retrieved".to_string())
+            .body(Some(vec![1, 2, 3]))
+            .header(HeaderName::from_static("x-test-header"), "test-val");
+
+        let http_res = res.into_response();
+        assert_eq!(http_res.status(), StatusCode::OK);
+        assert_eq!(
+            http_res.headers().get("x-test-header").unwrap(),
+            "test-val"
+        );
+
+        let body_bytes = to_bytes(http_res.into_body(), usize::MAX).await.unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
+        assert_eq!(json["message"], "Resource retrieved");
+        assert_eq!(json["data"], json!([1, 2, 3]));
+    }
+}
+

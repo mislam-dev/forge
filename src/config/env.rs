@@ -140,3 +140,46 @@ impl AppConfig {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::env;
+
+    #[test]
+    fn test_app_config_get_secrets_success() {
+        unsafe {
+            env::set_var("JWT_SECRET", "supersecretjwtkey");
+            env::set_var("MASTER_ENCRYPTION_KEY", "0123456789abcdef0123456789abcdef");
+        }
+
+        let secrets = AppConfig::get_secrets().expect("Secrets parsing should succeed when vars are set");
+        assert_eq!(secrets.jwt_secret, "supersecretjwtkey");
+        assert_eq!(secrets.master_encryption_key, "0123456789abcdef0123456789abcdef");
+    }
+
+    #[test]
+    fn test_app_config_missing_required_secret() {
+        unsafe {
+            env::remove_var("JWT_SECRET");
+        }
+
+        let res = AppConfig::get_secrets();
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_server_config_defaults() {
+        unsafe {
+            env::remove_var("SERVER_PORT");
+            env::remove_var("SERVER_HOST");
+        }
+
+        let server_cfg = AppConfig::get_server_config().unwrap();
+        assert_eq!(server_cfg.server_port, 3000);
+        assert_eq!(server_cfg.server_host, "127.0.0.1".parse::<IpAddr>().unwrap());
+    }
+}
+
+
+
