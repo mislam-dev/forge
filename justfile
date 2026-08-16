@@ -73,3 +73,7 @@ db-reset:
 migration name:
     @if [ -z "{{ name }}" ]; then echo "Error: migration name is required"; exit 1; fi
     sea-orm-cli migrate generate "{{ name }}" --migration-dir src/database/migrations
+
+# generating migrations scaffolding
+migration-cli init:
+  sea-orm-cli migrate init -d src/database/migrations
