@@ -26,12 +26,14 @@ The Deployments module manages the **full lifecycle of project deployments**. De
 ### Scope
 
 **Included:**
+
 - `POST /projects/:project_id/deployments` — trigger deployment
 - `GET /projects/:project_id/deployments` — list deployments for project
 - `GET /projects/:project_id/deployments/:deployment_id` — get deployment
 - Internal: `PUT /internal/deployments/:id/status` — Build Worker status callback
 
 **Excluded:**
+
 - Build execution logic (Build Worker)
 - Live log streaming (Live Build Logs)
 - Deployment history/redeploy/rollback (Deployment History)
@@ -40,18 +42,19 @@ The Deployments module manages the **full lifecycle of project deployments**. De
 
 ## 2. Current State
 
-| Item | Status |
-|------|--------|
+| Item                             | Status              |
+| -------------------------------- | ------------------- |
 | `src/modules/deployments/mod.rs` | Exists — empty stub |
-| Handlers | Not implemented |
-| Service | Not implemented |
-| Tests | None |
+| Handlers                         | Not implemented     |
+| Service                          | Not implemented     |
+| Tests                            | None                |
 
 ---
 
 ## 3. Dependencies
 
 ### Depends On
+
 - **Projects** (deployment belongs to a project)
 - **Repository** (needs valid git repo + branch to deploy)
 - **RabbitMQ** (emit deployment job to queue)
@@ -59,6 +62,7 @@ The Deployments module manages the **full lifecycle of project deployments**. De
 - **Authentication**
 
 ### Used By
+
 - **Build Worker** (consumes deployment job, updates status)
 - **Live Build Logs** (reads deployment_id for log correlation)
 - **Deployment History** (reads deployments table)
@@ -71,21 +75,22 @@ The Deployments module manages the **full lifecycle of project deployments**. De
 
 ### `deployments`
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | UUID | PK |
-| project_id | UUID | FK -> projects.id CASCADE, Not Null |
-| triggered_by | UUID | FK -> users.id, Not Null |
-| branch | VARCHAR(255) | Not Null |
-| commit_hash | VARCHAR(40) | Not Null |
-| status | VARCHAR | CHECK(Queued, Building, Deploying, Running, Failed, Success) |
-| build_duration | INTEGER | Nullable (milliseconds) |
-| deploy_duration | INTEGER | Nullable (milliseconds) |
-| error_message | TEXT | Nullable |
-| created_at | TIMESTAMP | Not Null |
-| updated_at | TIMESTAMP | Not Null |
+| Column          | Type         | Constraints                                                  |
+| --------------- | ------------ | ------------------------------------------------------------ |
+| id              | UUID         | PK                                                           |
+| project_id      | UUID         | FK -> projects.id CASCADE, Not Null                          |
+| triggered_by    | UUID         | FK -> users.id, Not Null                                     |
+| branch          | VARCHAR(255) | Not Null                                                     |
+| commit_hash     | VARCHAR(40)  | Not Null                                                     |
+| status          | VARCHAR      | CHECK(Queued, Building, Deploying, Running, Failed, Success) |
+| build_duration  | INTEGER      | Nullable (milliseconds)                                      |
+| deploy_duration | INTEGER      | Nullable (milliseconds)                                      |
+| error_message   | TEXT         | Nullable                                                     |
+| created_at      | TIMESTAMP    | Not Null                                                     |
+| updated_at      | TIMESTAMP    | Not Null                                                     |
 
 **Critical Indexes:**
+
 - `(project_id, created_at DESC)` — for deployment list queries
 - `CREATE UNIQUE INDEX idx_single_running_deployment ON deployments (project_id) WHERE status = 'Running'` — enforces single running deployment per project at the database level
 
@@ -100,6 +105,7 @@ Queued -> Building -> Deploying -> Running -> Success
 ```
 
 **Rules:**
+
 - `Queued`, `Building`, `Deploying`, `Running` are transient states
 - `Success` and `Failed` are **immutable terminal states** — no transition out
 - Only one deployment per project can be in `Running` state (enforced by partial unique index)
@@ -168,31 +174,32 @@ Publisher Confirms must be awaited before returning `201` to the client.
 
 ## 8. Authorization Matrix
 
-| Action | Viewer | Developer | Admin | Owner | System Admin |
-|--------|--------|-----------|-------|-------|--------------|
-| Trigger deployment | No | Yes | Yes | Yes | Yes |
-| List deployments | Yes | Yes | Yes | Yes | Yes |
-| Get deployment | Yes | Yes | Yes | Yes | Yes |
-| Update status (internal) | SERVICE_TOKEN only | — | — | — | — |
+| Action                   | Viewer             | Developer | Admin | Owner | System Admin |
+| ------------------------ | ------------------ | --------- | ----- | ----- | ------------ |
+| Trigger deployment       | No                 | Yes       | Yes   | Yes   | Yes          |
+| List deployments         | Yes                | Yes       | Yes   | Yes   | Yes          |
+| Get deployment           | Yes                | Yes       | Yes   | Yes   | Yes          |
+| Update status (internal) | SERVICE_TOKEN only | —         | —     | —     | —            |
 
 ---
 
 ## 9. Logging
 
-| Event | Level | Fields |
-|-------|-------|--------|
-| Deployment triggered | INFO | deployment_id, project_id, branch, commit, user_id |
-| Deployment job published to RabbitMQ | INFO | deployment_id, request_id |
-| Deployment status updated | INFO | deployment_id, old_status, new_status |
-| Terminal state transition blocked | WARN | deployment_id, current_status, attempted_status |
-| Duplicate in-progress deployment blocked | WARN | project_id, existing_deployment_id |
-| Build Worker auth failed | WARN | request_id, endpoint |
+| Event                                    | Level | Fields                                             |
+| ---------------------------------------- | ----- | -------------------------------------------------- |
+| Deployment triggered                     | INFO  | deployment_id, project_id, branch, commit, user_id |
+| Deployment job published to RabbitMQ     | INFO  | deployment_id, request_id                          |
+| Deployment status updated                | INFO  | deployment_id, old_status, new_status              |
+| Terminal state transition blocked        | WARN  | deployment_id, current_status, attempted_status    |
+| Duplicate in-progress deployment blocked | WARN  | project_id, existing_deployment_id                 |
+| Build Worker auth failed                 | WARN  | request_id, endpoint                               |
 
 ---
 
 ## 10. Testing
 
 ### Integration Tests
+
 - [ ] `POST /deployments` — no existing in-progress: deployment created
 - [ ] `POST /deployments` — existing Queued/Building: 409 returned
 - [ ] `POST /deployments` — no repository connected: 400 returned
@@ -210,10 +217,12 @@ Publisher Confirms must be awaited before returning `201` to the client.
 ## 11. Implementation Tasks
 
 ### Database
+
 - [ ] Create `deployments` migration with all columns, CHECK constraints, and partial unique index
 - [ ] Generate SeaORM entity for `deployments`
 
 ### Service
+
 - [ ] Implement `DeploymentsService` in `src/modules/deployments/service.rs`
 - [ ] Implement `trigger_deployment()` — validate, create record, publish to RabbitMQ
 - [ ] Implement `list_deployments()` with pagination and optional status filter
@@ -222,15 +231,18 @@ Publisher Confirms must be awaited before returning `201` to the client.
 - [ ] Enforce single-in-progress check at service layer (DB constraint as backup)
 
 ### RabbitMQ Integration
+
 - [ ] Implement deployment job publisher with Publisher Confirms
 - [ ] Handle RabbitMQ publish failure (log error, return 503)
 
 ### Handlers
+
 - [ ] Implement handlers for `POST`, `GET` (list), `GET` (single)
 - [ ] Implement internal `PUT /status` handler with SERVICE_TOKEN guard
 - [ ] Register routes in router
 
 ### Testing
+
 - [ ] Write all integration tests listed above
 - [ ] Unit test: state machine transition validation
 
@@ -253,6 +265,7 @@ Publisher Confirms must be awaited before returning `201` to the client.
 **Large (3–4 days)**
 
 The deployment module is complex due to:
+
 - RabbitMQ Publisher Confirms integration
 - State machine enforcement
 - Partial unique index for Running constraint
@@ -262,8 +275,8 @@ The deployment module is complex due to:
 
 ## 14. Risks
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| RabbitMQ publish fails after DB insert | High — deployment stuck in Queued | Implement idempotent retry; Build Worker checks DB state before consuming |
-| State machine bypass via direct DB write | High | Enforce validation in service layer; partial index as DB safeguard |
-| Two workers racing on same deployment | Medium | DB partial index prevents two Running simultaneously |
+| Risk                                     | Impact                            | Mitigation                                                                |
+| ---------------------------------------- | --------------------------------- | ------------------------------------------------------------------------- |
+| RabbitMQ publish fails after DB insert   | High — deployment stuck in Queued | Implement idempotent retry; Build Worker checks DB state before consuming |
+| State machine bypass via direct DB write | High                              | Enforce validation in service layer; partial index as DB safeguard        |
+| Two workers racing on same deployment    | Medium                            | DB partial index prevents two Running simultaneously                      |

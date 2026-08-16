@@ -1,9 +1,9 @@
 # Forge Platform — Master Development Plan Index
 
 > **Document:** Master Development Plan Index
-> **Version:** 1.0
+> **Version:** 1.1
 > **Status:** Active
-> **Last Updated:** 2026-08-13
+> **Last Updated:** 2026-08-16
 > **Scope:** Complete implementation roadmap from current documented-only state to production-ready platform
 
 ---
@@ -63,7 +63,7 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 
 | # | Module | Plan | Status | Priority | Depends On |
 |---|--------|------|--------|----------|------------|
-| 01 | Foundation & Project Setup | [Plan](./modules/01-foundation.md) | Not Started | P0 | — |
+| 01 | Foundation & Project Setup | [Plan](./modules/01-foundation.md) | Completed | P0 | — |
 | 02 | Authentication | [Plan](./modules/02-authentication.md) | Not Started | P0 | Foundation |
 | 03 | Access Control (RBAC) | [Plan](./modules/03-access-control.md) | Not Started | P0 | Foundation, Auth |
 | 04 | Users & User Profile | [Plan](./modules/04-users.md) | Not Started | P0 | Foundation, Auth |
@@ -315,6 +315,6 @@ See [progress.md](./progress.md) for live tracking.
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2026-08-13
+**Document Version:** 1.1
+**Last Updated:** 2026-08-16
 **Author:** Backend Architecture Team

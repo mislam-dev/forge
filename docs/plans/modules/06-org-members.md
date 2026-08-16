@@ -25,12 +25,14 @@ Manages **user membership within organizations**, including inviting members, up
 ### Scope
 
 **Included:**
+
 - `POST /organizations/:org_id/members` — invite member
 - `GET /organizations/:org_id/members` — list members
 - `PUT /organizations/:org_id/members/:user_id` — update member role
 - `DELETE /organizations/:org_id/members/:user_id` — remove member
 
 **Excluded:**
+
 - Org-level RBAC permission resolution (Org Permissions sub-module)
 - Team membership (Teams module)
 
@@ -39,11 +41,13 @@ Manages **user membership within organizations**, including inviting members, up
 ## 2. Dependencies
 
 ### Depends On
+
 - **Organizations** (org must exist)
 - **Users** (user being invited must exist)
 - **Authentication**
 
 ### Used By
+
 - **Org Permissions** (reads organization_members for role resolution)
 - **Project Assignments** (membership checks)
 
@@ -53,12 +57,12 @@ Manages **user membership within organizations**, including inviting members, up
 
 ### `organization_members`
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| organization_id | UUID | PK (composite), FK -> organizations.id CASCADE |
-| user_id | UUID | PK (composite), FK -> users.id CASCADE |
-| role | VARCHAR | CHECK(Viewer, Developer, Admin, Owner), Not Null |
-| joined_at | TIMESTAMP | Not Null |
+| Column          | Type      | Constraints                                      |
+| --------------- | --------- | ------------------------------------------------ |
+| organization_id | UUID      | PK (composite), FK -> organizations.id CASCADE   |
+| user_id         | UUID      | PK (composite), FK -> users.id CASCADE           |
+| role            | VARCHAR   | CHECK(Viewer, Developer, Admin, Owner), Not Null |
+| joined_at       | TIMESTAMP | Not Null                                         |
 
 ---
 
@@ -95,18 +99,19 @@ Manages **user membership within organizations**, including inviting members, up
 
 ## 5. Business Rules
 
-| Rule | Implementation |
-|------|---------------|
+| Rule                                   | Implementation                                    |
+| -------------------------------------- | ------------------------------------------------- |
 | Cannot remove the sole Owner of an org | Check count of Owner-role members before deletion |
-| Cannot demote the sole Owner | Same check before role update |
-| Duplicate membership not allowed | Composite PK enforces this at DB level |
-| Only Admin or Owner can invite | Authorization guard |
+| Cannot demote the sole Owner           | Same check before role update                     |
+| Duplicate membership not allowed       | Composite PK enforces this at DB level            |
+| Only Admin or Owner can invite         | Authorization guard                               |
 
 ---
 
 ## 6. Testing
 
 ### Integration Tests
+
 - [ ] `POST /members` — success: member added
 - [ ] `POST /members` — duplicate: 409 returned
 - [ ] `POST /members` — invalid role: 400 returned
@@ -149,11 +154,14 @@ Manages **user membership within organizations**, including inviting members, up
 ## 10. Recommendations
 
 **Required:**
+
 - Sole-owner guard: count owners before any removal or demotion operation.
 - Role must be validated as one of: `Viewer`, `Developer`, `Admin`, `Owner`.
 
 **Recommended:**
+
 - For `GET /members`, join with the `users` table to return name and email alongside membership data.
 
 **Future Enhancement:**
+
 - Email invitation flow (invite by email address rather than user_id).
