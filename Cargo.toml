@@ -34,3 +34,11 @@ validator = { version = "0.21.0", features = ["derive"] }
 [dev-dependencies]
 tower = { version = "0.5.3", features = ["util"] }
 
+[[test]]
+name = "foundation_tests"
+path = "tests/foundation_tests.rs"
+
+[[test]]
+name = "auth_tests"
+path = "tests/auth_tests.rs"
+

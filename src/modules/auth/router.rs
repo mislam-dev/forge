@@ -1,16 +1,20 @@
+use crate::app::state::AppState;
+use crate::modules::auth::handlers::{
+    forgot_password, login, logout, me, refresh, register, reset_password, verify_email,
+};
 use axum::{
     Router,
     routing::{get, post},
 };
 
-use crate::app::state::AppState;
-
 pub fn auth_router() -> Router<AppState> {
     Router::new()
-        .route("/register", post(|| async { "Hello, World!" }))
-        .route("/login", post(|| async { "Hello, World!" }))
-        .route("/logout", post(|| async { "Hello, World!" }))
-        .route("/me", get(|| async { "Hello, World!" }))
-        .route("/forgot-password", post(|| async { "Hello, World!" }))
-        .route("/verify-email", get(|| async { "Hello, World!" }))
+        .route("/register", post(register))
+        .route("/login", post(login))
+        .route("/logout", post(logout))
+        .route("/refresh", post(refresh))
+        .route("/me", get(me))
+        .route("/forgot-password", post(forgot_password))
+        .route("/reset-password", post(reset_password))
+        .route("/verify-email", post(verify_email))
 }
