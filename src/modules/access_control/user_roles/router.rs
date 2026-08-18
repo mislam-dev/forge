@@ -12,3 +12,14 @@ pub fn user_roles_router() -> Router<AppState> {
         .route("/user/{id}", get(UserRolesHandlers::show))
         .route_layer(middleware::from_extractor::<JwtClaims>())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_user_roles_router_creation() {
+        let _router = user_roles_router();
+    }
+}
+

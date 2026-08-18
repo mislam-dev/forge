@@ -12,3 +12,14 @@ pub fn role_permissions_router() -> Router<AppState> {
         .route("/{id}", get(RolePermissionsHandlers::show))
         .route_layer(middleware::from_extractor::<JwtClaims>())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_role_permissions_router_creation() {
+        let _router = role_permissions_router();
+    }
+}
+

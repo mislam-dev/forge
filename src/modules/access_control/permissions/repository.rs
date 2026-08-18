@@ -94,3 +94,42 @@ impl PermissionsRepository {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sea_orm::{DatabaseBackend, MockDatabase};
+
+    fn setup_mock_db() -> DatabaseConnection {
+        MockDatabase::new(DatabaseBackend::Postgres).into_connection()
+    }
+
+    #[tokio::test]
+    async fn test_find_by_id_empty_db() {
+        let db = setup_mock_db();
+        let id = Uuid::new_v4();
+        let result = PermissionsRepository::find_by_id(&db, id).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_find_by_value_empty_db() {
+        let db = setup_mock_db();
+        let result = PermissionsRepository::find_by_value(&db, &"create-user".to_string()).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_remove_not_found() {
+        let db = MockDatabase::new(DatabaseBackend::Postgres)
+            .append_exec_results([sea_orm::MockExecResult {
+                last_insert_id: 0,
+                rows_affected: 0,
+            }])
+            .into_connection();
+        let id = Uuid::new_v4();
+        let result = PermissionsRepository::remove(&db, id).await;
+        assert!(result.is_err());
+    }
+}
+

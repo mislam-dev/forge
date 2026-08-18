@@ -12,3 +12,14 @@ pub fn user_permissions_router() -> Router<AppState> {
         .route("/permissions/{id}", get(UserPermissionsHandlers::show))
         .route_layer(middleware::from_extractor::<JwtClaims>())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_user_permissions_router_creation() {
+        let _router = user_permissions_router();
+    }
+}
+

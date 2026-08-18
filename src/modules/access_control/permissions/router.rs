@@ -14,3 +14,14 @@ pub fn permissions_router() -> Router<AppState> {
         .route("/{id}", delete(PermissionsHandlers::remove))
         .route_layer(middleware::from_extractor::<JwtClaims>())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_permissions_router_creation() {
+        let _router = permissions_router();
+    }
+}
+

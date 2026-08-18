@@ -71,3 +71,44 @@ impl UserPermissionsRepository {
             .map_err(AppError::Database)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sea_orm::{DatabaseBackend, MockDatabase};
+
+    fn setup_mock_db() -> DatabaseConnection {
+        MockDatabase::new(DatabaseBackend::Postgres).into_connection()
+    }
+
+    #[tokio::test]
+    async fn test_assign_empty_vec() {
+        let db = setup_mock_db();
+        let user_id = Uuid::new_v4();
+        let result = UserPermissionsRepository::assign(&db, user_id, vec![]).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_remove_empty_db() {
+        let db = MockDatabase::new(DatabaseBackend::Postgres)
+            .append_exec_results([sea_orm::MockExecResult {
+                last_insert_id: 0,
+                rows_affected: 0,
+            }])
+            .into_connection();
+        let user_id = Uuid::new_v4();
+        let perm_id = Uuid::new_v4();
+        let result = UserPermissionsRepository::remove(&db, user_id, vec![perm_id]).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_find_permissions_by_user_id_empty_db() {
+        let db = setup_mock_db();
+        let user_id = Uuid::new_v4();
+        let result = UserPermissionsRepository::find_permissions_by_user_id(&db, user_id).await;
+        assert!(result.is_err());
+    }
+}
+

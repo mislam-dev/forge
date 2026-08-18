@@ -79,3 +79,34 @@ impl PermissionsService {
         PermissionsRepository::remove(db, id).await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sea_orm::{DatabaseBackend, MockDatabase};
+
+    fn setup_mock_db() -> DatabaseConnection {
+        MockDatabase::new(DatabaseBackend::Postgres).into_connection()
+    }
+
+    #[tokio::test]
+    async fn test_find_by_id_not_found() {
+        let db = setup_mock_db();
+        let id = Uuid::new_v4();
+        let result = PermissionsService::find_by_id(&db, id).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_create_permission_duplicate_check() {
+        let db = setup_mock_db();
+        let dto = PermissionCreateDto {
+            key: "Create User".to_string(),
+            value: "create-user".to_string(),
+            descriptions: None,
+        };
+        let result = PermissionsService::create(&db, dto).await;
+        assert!(result.is_err());
+    }
+}
+
