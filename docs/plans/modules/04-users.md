@@ -2,8 +2,8 @@
 
 > **Module Type:** Core Module
 > **Priority:** P0 — Blocker
-> **Status:** Not Started
-> **Last Updated:** 2026-08-13
+> **Status:** In Progress (80%)
+> **Last Updated:** 2026-08-17
 > **Source Docs:** [Users Module](../../modules/users/Users-Module-Documentation.md) | [User Profile](../../modules/users/user-profile-module.md)
 
 ---
@@ -45,13 +45,19 @@ Note: User registration and authentication are handled by the Auth module. This 
 
 ## 2. Current State
 
-| Item                       | Status              |
-| -------------------------- | ------------------- |
-| `src/modules/users/mod.rs` | Exists — empty stub |
-| Handlers                   | Not implemented     |
-| Service                    | Not implemented     |
-| SeaORM entities            | Not generated       |
-| Tests                      | None                |
+| Item                                              | Status                                                                                                                                          |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/modules/users/dto/`                          | Completed — `CreateUserDto`, `UpdateUserDto`, `UserItemResponse`, `UserItemWithPassword`                                                        |
+| `src/modules/users/password.rs`                   | Completed — Argon2 password hashing & verification                                                                                              |
+| `src/modules/users/entities/`                     | Completed — SeaORM `users` and `UserStatus` active enum entities                                                                                |
+| `src/modules/users/repository.rs`                 | Completed — `UserRepository` (find, find_by_id, find_by_email_with_password, create, update, remove, update_password, update_status)            |
+| `src/modules/users/service.rs`                    | Completed — `UserService` (`find`, `find_one`, `create`, `update`, `remove`, `find_by_email_with_password`, `update_password`, `update_status`) |
+| `src/modules/users/handlers.rs`                   | Completed — `list`, `show`, `add`, `update`, `remove` handlers                                                                                  |
+| `src/modules/users/router.rs`                     | Completed — `user_router` mapped and protected with `JwtClaims` extractor middleware                                                            |
+| Profile sub-module (`GET/PUT /users/:id/profile`) | Pending — Profile sub-routes                                                                                                                    |
+| Self-or-Admin Guard                               | Pending — `require_self_or_admin` extractor/guard                                                                                               |
+| Pagination & Search Filter                        | Pending — Paginated query parameters on `GET /users`                                                                                            |
+| Tests                                             | Pending — Integration tests for Users endpoints                                                                                                 |
 
 ---
 
@@ -184,28 +190,33 @@ Note: User registration and authentication are handled by the Auth module. This 
 
 ### Database
 
-- [ ] Ensure `users` migration includes all required columns
-- [ ] Generate SeaORM entity for `users`
+- [x] Ensure `users` migration includes all required columns
+- [x] Generate SeaORM entity for `users`
+
+### Password & Security Utilities
+
+- [x] Implement Argon2 password hashing and verification in `src/modules/users/password.rs`
 
 ### Service
 
-- [ ] Implement `UserService` in `src/modules/users/service.rs`
-- [ ] Implement `list_users()` with pagination and optional search
-- [ ] Implement `get_user_by_id()` — never return password_hash
-- [ ] Implement `update_user()` — name, email (uniqueness check)
-- [ ] Implement `delete_user()` — check for sole org ownership before deletion
-- [ ] Implement `get_user_profile()` — profile fields subset
-- [ ] Implement `update_user_profile()` — profile fields update
+- [x] Implement `UserService` in `src/modules/users/service.rs`
+- [x] Implement `find()` — get all users
+- [ ] Implement pagination (`page`, `per_page`) and search filtering on `find()`
+- [x] Implement `find_one()` / `get_user_by_id()` — never return password_hash (returns `UserItemResponse`)
+- [x] Implement `update()` — update user fields
+- [x] Implement `remove()` — delete user
+- [x] Implement `find_by_email_with_password()`, `update_password()`, `update_status()`
+- [ ] Implement `get_user_profile()` and `update_user_profile()` sub-module
 
-### Handlers
+### Handlers & Routing
 
-- [ ] Implement handlers for all 6 user endpoints
-- [ ] Register routes in router
+- [x] Implement handlers (`list`, `show`, `add`, `update`, `remove`) in `src/modules/users/handlers.rs`
+- [x] Register user routes in `src/modules/users/router.rs` and bind to `app_router`
+- [x] Protect user routes with `JwtClaims` extractor layer middleware
 
 ### Authorization
 
-- [ ] Implement `require_self_or_admin()` Axum extractor/middleware
-- [ ] Apply to PUT, DELETE, GET /:id
+- [ ] Implement `require_self_or_admin()` Axum extractor/middleware for granular self vs admin route protection
 
 ### Testing
 

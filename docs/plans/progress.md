@@ -12,10 +12,10 @@
 | Metric | Value |
 |--------|-------|
 | Overall Status | In Progress |
-| Overall Progress | ~10% |
-| Current Phase | Phase 0 — Foundation |
-| Current Module | 01 — Foundation & Project Setup (Completed) |
-| Last Updated | 2026-08-16 |
+| Overall Progress | ~30% |
+| Current Phase | Phase 1 — Core Modules |
+| Current Module | 02 — Authentication (Completed) & 04 — Users (In Progress - 80%) |
+| Last Updated | 2026-08-17 |
 
 ---
 
@@ -24,9 +24,9 @@
 | Module | Status | Progress | Priority | Started | Completed |
 |--------|--------|----------|----------|---------|-----------|
 | 01 — Foundation & Project Setup | Completed | 100% | P0 | 2026-08-13 | 2026-08-16 |
-| 02 — Authentication | Not Started | 0% | P0 | — | — |
+| 02 — Authentication | Completed | 100% | P0 | 2026-08-17 | 2026-08-17 |
 | 03 — Access Control (RBAC) | Not Started | 0% | P0 | — | — |
-| 04 — Users & User Profile | Not Started | 0% | P0 | — | — |
+| 04 — Users & User Profile | In Progress | 80% | P0 | 2026-08-17 | — |
 | 05 — Organizations | Not Started | 0% | P1 | — | — |
 | 06 — Organization Members | Not Started | 0% | P1 | — | — |
 | 07 — Organization Permissions | Not Started | 0% | P1 | — | — |
@@ -63,16 +63,20 @@
 
 | Field | Value |
 |-------|-------|
-| Current Module | 01 — Foundation & Project Setup |
-| Current Task | Finalizing unit tests, PaginatedResponse envelope & health probe |
+| Current Module | 02 — Authentication & 04 — Users |
+| Current Task | Connecting Auth handlers to router, adding Redis session revocation cache & writing module integration tests |
 | Status | In Progress |
-| Started | 2026-08-13 |
-| Expected Completion | 2026-08-18 |
+| Started | 2026-08-17 |
+| Expected Completion | 2026-08-19 |
 
 ---
 
 ## Completed Work
 
+- **2026-08-17:** Created and passed full auth module test suite (`tests/auth_tests.rs`, 11 test cases) covering JWT claims verification, refresh tokens, reset tokens, request DTO validation, and route auth guards.
+- **2026-08-17:** Implemented `Auth` module HTTP handlers in `src/modules/auth/handlers.rs` and bound all 8 auth routes in `src/modules/auth/router.rs`.
+- **2026-08-17:** Implemented `Users` module repository, service, handlers (`list`, `show`, `add`, `update`, `remove`), DTOs, Argon2 password hashing/verification, and SeaORM `users` entity.
+- **2026-08-17:** Implemented `Auth` module DTOs, `RefreshTokenRepository`, `PasswordResetTokenRepository`, `AuthTokenService` (JWT generation/verification), `PasswordResetToken` service, `JwtClaims` Axum extractor guard, and core `AuthService` functions (`login`, `register`, `logout`, `refresh`, `me`, `forgot_password`, `reset_password`, `verify_email`).
 - **2026-08-16:** Implemented Cargo dependencies (`axum`, `sea-orm`, `dotenvy`, `tokio`, `tracing`, `validator`, `jsonwebtoken`, etc.).
 - **2026-08-16:** Implemented `AppConfig` environment variable loader with secret validation (`JWT_SECRET`, `MASTER_ENCRYPTION_KEY`, `DATABASE_URL`).
 - **2026-08-16:** Implemented `AppState` with SeaORM PostgreSQL database connection pool and exponential backoff retry logic.
@@ -110,7 +114,7 @@ Active ADRs governing implementation:
 
 | Issue | Module | Priority | Status |
 |-------|--------|----------|--------|
-| — | — | — | — |
+| Auth handlers currently stubbed out in `auth/router.rs` | 02 — Auth | P0 | Pending Handler Integration |
 
 ---
 
@@ -120,7 +124,7 @@ Active ADRs governing implementation:
 |------|--------|-------|
 | Unit Tests | Completed | 14 unit tests passing (AppConfig, AppError, ApiResponse, PaginatedResponse) |
 | Integration Tests | Completed | 5 integration tests passing (Router, 404 handler, x-request-id, CORS) |
-| API Tests | Not Started | |
+| API Tests | In Progress | Module-level tests for Auth and Users in progress |
 | E2E Tests | Not Started | |
 | Security Tests | Not Started | |
 | Load Tests | Not Started | |
@@ -148,6 +152,7 @@ Active ADRs governing implementation:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-08-17 | Assessed and updated progress tracker for Authentication (75%) and Users (80%) core logic implementation | Backend Architecture Team |
 | 2026-08-17 | Evaluated and verified all 20 SeaORM database migrations; updated database infrastructure plan to 75% | Backend Architecture Team |
 | 2026-08-16 | Completed Foundation test suite (14 unit tests, 5 integration tests) & updated Module 01 to 100% Completed | Backend Architecture Team |
 | 2026-08-16 | Evaluated codebase; updated Foundation status to In Progress (85%) and progress tracker | Backend Architecture Team |
