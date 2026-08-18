@@ -311,30 +311,30 @@ The JWT middleware must be applied to all routes **except**:
 
 ### Unit Tests
 
-- [ ] Password hashing: hash is not equal to plaintext
-- [ ] Password verification: correct password verifies, wrong password fails
-- [ ] JWT generation: contains correct claims
-- [ ] JWT validation: valid token passes, expired fails, tampered fails
-- [ ] Email uniqueness check logic
+- [x] Password hashing: hash is not equal to plaintext
+- [x] Password verification: correct password verifies, wrong password fails
+- [x] JWT generation: contains correct claims
+- [x] JWT validation: valid token passes, expired fails, tampered fails
+- [x] Email uniqueness check logic
 
 ### Integration Tests
 
-- [ ] `POST /auth/register` — success: user created, 201 returned
-- [ ] `POST /auth/register` — duplicate email: 409 returned
-- [ ] `POST /auth/register` — weak password: 400 returned
-- [ ] `POST /auth/login` — valid credentials: JWT returned
-- [ ] `POST /auth/login` — wrong password: 401 returned
-- [ ] `POST /auth/login` — unverified email: 403 returned
-- [ ] `POST /auth/logout` — session invalidated
-- [ ] `POST /auth/refresh` — new token issued
-- [ ] `POST /auth/refresh` — expired token: 401 returned
-- [ ] `GET /auth/me` — authenticated: user returned
-- [ ] `GET /auth/me` — no JWT: 401 returned
-- [ ] `POST /auth/forgot-password` — email found: reset token created
-- [ ] `POST /auth/forgot-password` — email not found: 200 returned anyway (no enumeration)
-- [ ] `POST /auth/reset-password` — valid token: password changed
-- [ ] `POST /auth/reset-password` — expired token: 400 returned
-- [ ] `GET /auth/verify-email` — valid token: user verified
+- [x] `POST /auth/register` — success: user created, 201 returned
+- [x] `POST /auth/register` — duplicate email: 409 returned
+- [x] `POST /auth/register` — weak password: 400 returned
+- [x] `POST /auth/login` — valid credentials: JWT returned
+- [x] `POST /auth/login` — wrong password: 401 returned
+- [x] `POST /auth/login` — unverified email: 403 returned
+- [x] `POST /auth/logout` — session invalidated
+- [x] `POST /auth/refresh` — new token issued
+- [x] `POST /auth/refresh` — expired token: 401 returned
+- [x] `GET /auth/me` — authenticated: user returned
+- [x] `GET /auth/me` — no JWT: 401 returned
+- [x] `POST /auth/forgot-password` — email found: reset token created
+- [x] `POST /auth/forgot-password` — email not found: 200 returned anyway (no enumeration)
+- [x] `POST /auth/reset-password` — valid token: password changed
+- [x] `POST /auth/reset-password` — expired token: 400 returned
+- [x] `GET /auth/verify-email` — valid token: user verified
 
 ---
 

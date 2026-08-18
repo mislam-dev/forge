@@ -71,3 +71,35 @@ impl PasswordResetToken {
         Ok(token_data.claims)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn setup_secret() {
+        unsafe {
+            std::env::set_var("JWT_SECRET", "test_secret_key_12345_67890_super_secret");
+        }
+    }
+
+    #[test]
+    fn test_password_reset_token_creation_and_verification() {
+        setup_secret();
+        let user_id = Uuid::new_v4();
+        let data = ResetTokenData { user_id };
+
+        let token = PasswordResetToken::token(data).expect("Reset token creation should succeed");
+        assert!(!token.is_empty());
+
+        let claims = PasswordResetToken::verify(&token).expect("Token verification should succeed");
+        assert_eq!(claims.sub, user_id);
+    }
+
+    #[test]
+    fn test_password_reset_token_invalid_format() {
+        setup_secret();
+        let result = PasswordResetToken::verify("invalid_token_string");
+        assert!(result.is_err());
+    }
+}
+

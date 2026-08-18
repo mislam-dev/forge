@@ -18,3 +18,14 @@ pub fn auth_router() -> Router<AppState> {
         .route("/reset-password", post(reset_password))
         .route("/verify-email", post(verify_email))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_auth_router_creation() {
+        let _router = auth_router();
+    }
+}
+

@@ -55,3 +55,22 @@ impl PasswordResetTokenRepository {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_password_reset_token_struct_creation() {
+        let user_id = Uuid::new_v4();
+        let dto = PasswordResetToken {
+            token: "reset_token_sample".to_string(),
+            user_id,
+            expires_at: 3600,
+        };
+        assert_eq!(dto.token, "reset_token_sample");
+        assert_eq!(dto.user_id, user_id);
+        assert_eq!(dto.expires_at, 3600);
+    }
+}
+

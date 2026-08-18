@@ -56,3 +56,22 @@ impl RefreshTokenRepository {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_refresh_token_struct_creation() {
+        let user_id = Uuid::new_v4();
+        let dto = RefreshToken {
+            token: "refresh_token_sample".to_string(),
+            user_id,
+            expires_at: 604800,
+        };
+        assert_eq!(dto.token, "refresh_token_sample");
+        assert_eq!(dto.user_id, user_id);
+        assert_eq!(dto.expires_at, 604800);
+    }
+}
+

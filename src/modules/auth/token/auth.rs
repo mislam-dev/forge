@@ -103,3 +103,62 @@ impl AuthTokenService {
         Ok(token_data.claims)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn setup_secret() {
+        unsafe {
+            std::env::set_var("JWT_SECRET", "test_secret_key_12345_67890_super_secret");
+        }
+    }
+
+    #[test]
+    fn test_access_token_creation_and_verification() {
+        setup_secret();
+        let user_id = Uuid::new_v4();
+        let email = "user@example.com".to_string();
+        let payload = JwtPayload {
+            user_id,
+            email: email.clone(),
+            role: vec!["Admin".to_string()],
+            permissions: vec!["write:users".to_string()],
+        };
+
+        let token = AuthTokenService::access(payload).expect("Access token creation should succeed");
+        assert!(!token.is_empty());
+
+        let claims = AuthTokenService::verify(&token).expect("Token verification should succeed");
+        assert_eq!(claims.sub, user_id);
+        assert_eq!(claims.email, email);
+        assert_eq!(claims.role, vec!["Admin".to_string()]);
+        assert_eq!(claims.permissions, vec!["write:users".to_string()]);
+    }
+
+    #[test]
+    fn test_refresh_token_creation_and_verification() {
+        setup_secret();
+        let user_id = Uuid::new_v4();
+        let email = "refresh@example.com".to_string();
+        let payload = RefreshTokenPayload {
+            user_id,
+            email: email.clone(),
+        };
+
+        let token = AuthTokenService::refresh(payload).expect("Refresh token creation should succeed");
+        assert!(!token.is_empty());
+
+        let claims = AuthTokenService::verify(&token).expect("Token verification should succeed");
+        assert_eq!(claims.sub, user_id);
+        assert_eq!(claims.email, email);
+    }
+
+    #[test]
+    fn test_verify_invalid_token_format() {
+        setup_secret();
+        let result = AuthTokenService::verify("malformed.jwt.token");
+        assert!(result.is_err());
+    }
+}
+

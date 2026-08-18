@@ -5,8 +5,11 @@ use axum::{
 use forge::{
     app::{app::create_app, state::AppState},
     config::AppConfig,
-    modules::auth::token::{
-        AuthTokenService, JwtPayload, PasswordResetToken, RefreshTokenPayload, ResetTokenData,
+    modules::{
+        auth::token::{
+            AuthTokenService, JwtPayload, PasswordResetToken, RefreshTokenPayload, ResetTokenData,
+        },
+        users::password::PasswordService,
     },
 };
 use serde_json::json;
@@ -20,6 +23,38 @@ fn setup_test_config() -> AppConfig {
         std::env::set_var("MASTER_ENCRYPTION_KEY", "0123456789abcdef0123456789abcdef");
     }
     AppConfig::load().expect("Test AppConfig must load successfully")
+}
+
+// --- Unit Tests for Password Hashing ---
+
+#[tokio::test]
+async fn test_password_hash_and_verify_success() {
+    let password = "SuperSecretPassword123!";
+    let hashed = PasswordService::hash(password)
+        .await
+        .expect("Password hashing failed");
+
+    assert_ne!(password, hashed);
+    assert!(!hashed.is_empty());
+
+    let is_valid = PasswordService::verify(&hashed, password)
+        .await
+        .expect("Password verification call failed");
+    assert!(is_valid);
+}
+
+#[tokio::test]
+async fn test_password_verify_wrong_password_fails() {
+    let password = "CorrectPassword123!";
+    let wrong_password = "WrongPassword321!";
+    let hashed = PasswordService::hash(password)
+        .await
+        .expect("Password hashing failed");
+
+    let is_valid = PasswordService::verify(&hashed, wrong_password)
+        .await
+        .unwrap_or(false);
+    assert!(!is_valid);
 }
 
 // --- Unit Tests for Token Services ---
@@ -70,6 +105,23 @@ fn test_auth_token_service_refresh_token() {
 fn test_auth_token_service_invalid_token() {
     let _config = setup_test_config();
     let result = AuthTokenService::verify("invalid.token.str");
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_auth_token_service_tampered_token() {
+    let _config = setup_test_config();
+    let user_id = Uuid::new_v4();
+    let token = AuthTokenService::access(JwtPayload {
+        user_id,
+        email: "tamper@example.com".to_string(),
+        role: vec![],
+        permissions: vec![],
+    })
+    .unwrap();
+
+    let tampered_token = format!("{}extra", token);
+    let result = AuthTokenService::verify(&tampered_token);
     assert!(result.is_err());
 }
 
@@ -127,8 +179,7 @@ async fn test_me_endpoint_authorized_with_valid_jwt() {
         .unwrap();
 
     let response = app.oneshot(req).await.unwrap();
-    // Since MockDatabase has no user seeded, AuthService::me returns AppError::NotFound (404)
-    // showing the request successfully passed JWT authorization middleware guard!
+    // MockDatabase has no user seeded -> AuthService::me returns NotFound (404), showing JWT guard passed!
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
 
@@ -138,7 +189,6 @@ async fn test_register_validation_failure() {
     let state = AppState::mock(config);
     let app = create_app(state).await.expect("App creation failed");
 
-    // Invalid payload: short password and empty username
     let invalid_payload = json!({
         "username": "",
         "email": "not-an-email",
@@ -183,6 +233,64 @@ async fn test_login_validation_failure() {
 }
 
 #[tokio::test]
+async fn test_logout_unauthorized_without_jwt() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let req = Request::builder()
+        .uri("/api/auth/logout")
+        .method("POST")
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn test_refresh_validation_failure() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let invalid_payload = json!({
+        "refresh_token": ""
+    });
+
+    let req = Request::builder()
+        .uri("/api/auth/refresh")
+        .method("POST")
+        .header("Content-Type", "application/json")
+        .body(Body::from(serde_json::to_vec(&invalid_payload).unwrap()))
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn test_refresh_invalid_token() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let payload = json!({
+        "refresh_token": "invalid.refresh.token"
+    });
+
+    let req = Request::builder()
+        .uri("/api/auth/refresh")
+        .method("POST")
+        .header("Content-Type", "application/json")
+        .body(Body::from(serde_json::to_vec(&payload).unwrap()))
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
 async fn test_forgot_password_success() {
     let config = setup_test_config();
     let state = AppState::mock(config);
@@ -208,6 +316,27 @@ async fn test_forgot_password_success() {
         json["message"],
         "If the email exists, a reset link has been sent"
     );
+}
+
+#[tokio::test]
+async fn test_forgot_password_empty_email() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let payload = json!({
+        "email": ""
+    });
+
+    let req = Request::builder()
+        .uri("/api/auth/forgot-password")
+        .method("POST")
+        .header("Content-Type", "application/json")
+        .body(Body::from(serde_json::to_vec(&payload).unwrap()))
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 }
 
 #[tokio::test]
@@ -241,6 +370,29 @@ async fn test_reset_password_passwords_mismatch() {
 }
 
 #[tokio::test]
+async fn test_reset_password_invalid_token() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let payload = json!({
+        "token": "invalid_reset_token",
+        "new_password": "NewPassword123!",
+        "confirm_password": "NewPassword123!"
+    });
+
+    let req = Request::builder()
+        .uri("/api/auth/reset-password")
+        .method("POST")
+        .header("Content-Type", "application/json")
+        .body(Body::from(serde_json::to_vec(&payload).unwrap()))
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
 async fn test_verify_email_invalid_token() {
     let config = setup_test_config();
     let state = AppState::mock(config);
@@ -264,3 +416,4 @@ async fn test_verify_email_invalid_token() {
     let json: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
     assert_eq!(json["message"], "Invalid or expired verification token");
 }
+

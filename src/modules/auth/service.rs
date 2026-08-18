@@ -288,3 +288,130 @@ impl AuthService {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sea_orm::{DatabaseBackend, MockDatabase};
+
+    fn setup_mock_db() -> DatabaseConnection {
+        MockDatabase::new(DatabaseBackend::Postgres).into_connection()
+    }
+
+    fn setup_jwt_secret() {
+        unsafe {
+            std::env::set_var("JWT_SECRET", "test_secret_key_12345_67890_super_secret");
+        }
+    }
+
+    #[tokio::test]
+    async fn test_login_invalid_credentials() {
+        let db = setup_mock_db();
+        let dto = LoginUserDto {
+            email: "nobody@example.com".to_string(),
+            password: "Password123!".to_string(),
+        };
+        let result = AuthService::login(&db, dto).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_register_failed_creation() {
+        let db = setup_mock_db();
+        let dto = RegisterUserDto {
+            username: "newuser".to_string(),
+            email: "newuser@example.com".to_string(),
+            password: "Password123!".to_string(),
+        };
+        let result = AuthService::register(&db, dto).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_logout_success() {
+        let db = MockDatabase::new(DatabaseBackend::Postgres)
+            .append_exec_results([sea_orm::MockExecResult {
+                last_insert_id: 0,
+                rows_affected: 0,
+            }])
+            .into_connection();
+        let user_id = Uuid::new_v4();
+        let result = AuthService::logout(&db, user_id).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_refresh_invalid_token() {
+        setup_jwt_secret();
+        let db = setup_mock_db();
+        let dto = RefreshTokenDto {
+            refresh_token: "invalid.refresh.token".to_string(),
+        };
+        let result = AuthService::refresh(&db, dto).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_me_user_not_found() {
+        let db = setup_mock_db();
+        let claims = JwtClaims {
+            sub: Uuid::new_v4(),
+            email: "nobody@example.com".to_string(),
+            role: vec![],
+            permissions: vec![],
+            iat: 100000,
+            exp: 200000,
+        };
+        let result = AuthService::me(&db, claims).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_forgot_password_nonexistent_user() {
+        setup_jwt_secret();
+        let db = setup_mock_db();
+        let dto = ForgotPasswordDto {
+            email: "nonexistent@example.com".to_string(),
+        };
+        let result = AuthService::forgot_password(&db, dto).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_reset_password_mismatched_passwords() {
+        let db = setup_mock_db();
+        let dto = ResetPasswordDto {
+            token: "valid_or_invalid_token".to_string(),
+            new_password: "Password123!".to_string(),
+            confirm_password: "Password321!".to_string(),
+        };
+        let result = AuthService::reset_password(&db, dto).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_reset_password_invalid_token() {
+        setup_jwt_secret();
+        let db = setup_mock_db();
+        let dto = ResetPasswordDto {
+            token: "invalid.reset.token".to_string(),
+            new_password: "Password123!".to_string(),
+            confirm_password: "Password123!".to_string(),
+        };
+        let result = AuthService::reset_password(&db, dto).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_verify_email_invalid_token() {
+        setup_jwt_secret();
+        let db = setup_mock_db();
+        let dto = VerifyEmailDto {
+            token: "invalid.verify.token".to_string(),
+        };
+        let result = AuthService::verify_email(&db, dto).await;
+        assert!(result.is_err());
+    }
+}
+
+
