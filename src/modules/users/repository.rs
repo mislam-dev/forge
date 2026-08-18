@@ -6,7 +6,7 @@ use super::entities::users::{
 use crate::{
     modules::users::{
         dto::request::{CreateUserDto, UpdateUserDto},
-        password::hash_password,
+        password::PasswordService,
     },
     shared::error::AppError,
 };
@@ -41,7 +41,7 @@ impl UserRepository {
         db: &DatabaseConnection,
         dto: CreateUserDto,
     ) -> Result<UserModel, AppError> {
-        let hash_p = hash_password(&dto.password).await?;
+        let hash_p = PasswordService::hash(&dto.password).await?;
         let new_user = UsersActiveModel {
             email: Set(dto.email),
             password_hash: Set(hash_p),
@@ -97,7 +97,7 @@ impl UserRepository {
             .await?
             .ok_or(AppError::NotFound("User not found".to_string()))?;
 
-        let new_hash = hash_password(new_password).await?;
+        let new_hash = PasswordService::hash(new_password).await?;
         let mut active_user: UsersActiveModel = existing_user.into();
         active_user.password_hash = Set(new_hash);
         active_user.update(db).await.map_err(AppError::Database)

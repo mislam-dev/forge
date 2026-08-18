@@ -1,11 +1,13 @@
 use axum::{
-    body::{to_bytes, Body},
+    body::{Body, to_bytes},
     http::{Request, StatusCode},
 };
 use forge::{
     app::{app::create_app, state::AppState},
     config::AppConfig,
-    modules::auth::token::{AuthTokenService, JwtPayload, PasswordResetToken, ResetTokenData},
+    modules::auth::token::{
+        AuthTokenService, JwtPayload, PasswordResetToken, RefreshTokenPayload, ResetTokenData,
+    },
 };
 use serde_json::json;
 use tower::util::ServiceExt;
@@ -51,11 +53,9 @@ fn test_auth_token_service_refresh_token() {
     let user_id = Uuid::new_v4();
     let email = "refreshuser@example.com".to_string();
 
-    let payload = JwtPayload {
+    let payload = RefreshTokenPayload {
         user_id,
         email: email.clone(),
-        role: vec![],
-        permissions: vec![],
     };
 
     let token = AuthTokenService::refresh(payload).expect("Refresh token creation failed");

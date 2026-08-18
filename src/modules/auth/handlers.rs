@@ -14,7 +14,7 @@ use axum::http::StatusCode;
 
 pub async fn register(
     State(state): State<AppState>,
-    payload: JsonValidate<RegisterUserDto>,
+    JsonValidate(payload): JsonValidate<RegisterUserDto>,
 ) -> Result<ApiResponse<RegisterResponseDto>, AppError> {
     let user = AuthService::register(&state.db, payload).await?;
     Ok(ApiResponse::new()
@@ -25,7 +25,7 @@ pub async fn register(
 
 pub async fn login(
     State(state): State<AppState>,
-    payload: JsonValidate<LoginUserDto>,
+    JsonValidate(payload): JsonValidate<LoginUserDto>,
 ) -> Result<ApiResponse<LoginResponseDto>, AppError> {
     let res = AuthService::login(&state.db, payload).await?;
     Ok(ApiResponse::new()
@@ -41,12 +41,13 @@ pub async fn logout(
     AuthService::logout(&state.db, jwt_claims.sub).await?;
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
-        .message("Logged out successfully".to_string()))
+        .message("Logged out successfully".to_string())
+        .body(None))
 }
 
 pub async fn refresh(
     State(state): State<AppState>,
-    payload: JsonValidate<RefreshTokenDto>,
+    JsonValidate(payload): JsonValidate<RefreshTokenDto>,
 ) -> Result<ApiResponse<RefreshTokenResponseDto>, AppError> {
     let res = AuthService::refresh(&state.db, payload).await?;
     Ok(ApiResponse::new()
@@ -68,7 +69,7 @@ pub async fn me(
 
 pub async fn forgot_password(
     State(state): State<AppState>,
-    payload: JsonValidate<ForgotPasswordDto>,
+    JsonValidate(payload): JsonValidate<ForgotPasswordDto>,
 ) -> Result<ApiResponse<()>, AppError> {
     AuthService::forgot_password(&state.db, payload).await?;
     Ok(ApiResponse::new()
@@ -78,7 +79,7 @@ pub async fn forgot_password(
 
 pub async fn reset_password(
     State(state): State<AppState>,
-    payload: JsonValidate<ResetPasswordDto>,
+    JsonValidate(payload): JsonValidate<ResetPasswordDto>,
 ) -> Result<ApiResponse<()>, AppError> {
     AuthService::reset_password(&state.db, payload).await?;
     Ok(ApiResponse::new()
@@ -88,7 +89,7 @@ pub async fn reset_password(
 
 pub async fn verify_email(
     State(state): State<AppState>,
-    payload: JsonValidate<VerifyEmailDto>,
+    JsonValidate(payload): JsonValidate<VerifyEmailDto>,
 ) -> Result<ApiResponse<()>, AppError> {
     AuthService::verify_email(&state.db, payload).await?;
     Ok(ApiResponse::new()

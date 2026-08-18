@@ -41,7 +41,16 @@ impl UserService {
         db: &DatabaseConnection,
         dto: CreateUserDto,
     ) -> Result<UserItemResponse, AppError> {
+        let find = UserRepository::find_by_email_with_password(db, &dto.email).await?;
+
+        if find.is_some() {
+            return Err(AppError::BadRequest("User already exists".to_string()));
+        }
+
         let user = UserRepository::create(db, dto).await?;
+
+        // todo: generate email verification token
+        // todo: send verification token
 
         Ok(UserItemResponse {
             id: user.id,

@@ -10,14 +10,14 @@ use crate::modules::auth::repository::{
 };
 use crate::modules::auth::token::{
     AuthTokenService, JwtClaims, JwtPayload, PasswordResetToken as PasswordResetTokenService,
-    ResetTokenData,
+    RefreshTokenPayload, ResetTokenData,
 };
 use crate::modules::users::dto::request::CreateUserDto;
 use crate::modules::users::entities::sea_orm_active_enums::UserStatus;
-use crate::modules::users::password::verify_password;
+use crate::modules::users::password::PasswordService;
 use crate::modules::users::repository::UserRepository;
 use crate::modules::users::service::UserService;
-use crate::shared::{error::AppError, validation::JsonValidate};
+use crate::shared::error::AppError;
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
@@ -26,12 +26,12 @@ pub struct AuthService;
 impl AuthService {
     pub async fn login(
         db: &DatabaseConnection,
-        JsonValidate(dto): JsonValidate<LoginUserDto>,
+        dto: LoginUserDto,
     ) -> Result<LoginResponseDto, AppError> {
         let user = UserService::find_by_email_with_password(db, &dto.email)
             .await
             .map_err(|_| AppError::BadRequest("Invalid Credentials".to_string()))?;
-        let is_valid = verify_password(&user.password, &dto.password)
+        let is_valid = PasswordService::verify(&user.password, &dto.password)
             .await
             .map_err(|_| AppError::BadRequest("Invalid credentials".to_string()))?;
 
@@ -39,6 +39,7 @@ impl AuthService {
             return Err(AppError::BadRequest("Invalid credentials".to_string()));
         }
 
+        // todo fetch user roles and permissions
         let access_token = AuthTokenService::access(JwtPayload {
             user_id: user.id,
             email: user.email.clone(),
@@ -49,11 +50,9 @@ impl AuthService {
             AppError::InternalServerError("Failed to generate access token".to_string())
         })?;
 
-        let refresh_token = AuthTokenService::refresh(JwtPayload {
+        let refresh_token = AuthTokenService::refresh(RefreshTokenPayload {
             user_id: user.id,
             email: user.email.clone(),
-            permissions: vec![],
-            role: vec![],
         })
         .map_err(|_| {
             AppError::InternalServerError("Failed to generate refresh token".to_string())
@@ -64,13 +63,15 @@ impl AuthService {
             RefreshToken {
                 token: refresh_token.clone(),
                 user_id: user.id,
-                expires_at: 4,
+                expires_at: 7, // todo update proper value
             },
         )
         .await
         .map_err(|_| {
             AppError::InternalServerError("Failed to store refresh token on the db".to_string())
         })?;
+
+        // todo: store access_token with expiration in redis
 
         Ok(LoginResponseDto {
             access_token,
@@ -81,7 +82,7 @@ impl AuthService {
 
     pub async fn register(
         db: &DatabaseConnection,
-        JsonValidate(dto): JsonValidate<RegisterUserDto>,
+        dto: RegisterUserDto,
     ) -> Result<RegisterResponseDto, AppError> {
         let user = UserService::create(
             db,
@@ -109,17 +110,20 @@ impl AuthService {
                     "Failed to remove refresh tokens from the db".to_string(),
                 )
             })?;
+        // todo remove access_token from redis.
         Ok(())
     }
 
     pub async fn refresh(
         db: &DatabaseConnection,
-        JsonValidate(dto): JsonValidate<RefreshTokenDto>,
+        dto: RefreshTokenDto,
     ) -> Result<RefreshTokenResponseDto, AppError> {
-        let token_decode = AuthTokenService::verify(&dto.refresh_token)?;
+        let token_decode = AuthTokenService::verify(&dto.refresh_token)
+            .map_err(|_| AppError::Unauthorized("Invalid token".to_string()))?;
+
         let user = UserService::find_one(db, token_decode.sub)
             .await
-            .map_err(|_| AppError::NotFound("User not found".to_string()))?;
+            .map_err(|_| AppError::Unauthorized("Invalid token".to_string()))?;
 
         let access_token = AuthTokenService::access(JwtPayload {
             user_id: user.id,
@@ -131,11 +135,9 @@ impl AuthService {
             AppError::InternalServerError("Failed to generate access token".to_string())
         })?;
 
-        let refresh_token = AuthTokenService::refresh(JwtPayload {
+        let refresh_token = AuthTokenService::refresh(RefreshTokenPayload {
             user_id: user.id,
             email: user.email.clone(),
-            permissions: vec![],
-            role: vec![],
         })
         .map_err(|_| {
             AppError::InternalServerError("Failed to generate refresh token".to_string())
@@ -185,22 +187,25 @@ impl AuthService {
 
     pub async fn forgot_password(
         db: &DatabaseConnection,
-        JsonValidate(dto): JsonValidate<ForgotPasswordDto>,
+        dto: ForgotPasswordDto,
     ) -> Result<(), AppError> {
         // find user with email
         let user = UserService::find_by_email_with_password(db, &dto.email)
             .await
             .ok();
         if let Some(user) = user {
-            let password_token =
-                PasswordResetTokenService::token(ResetTokenData { user_id: user.id }).map_err(
-                    |_| AppError::InternalServerError("Failed to create reset token".to_string()),
-                )?;
+            let reset_token = PasswordResetTokenService::token(ResetTokenData { user_id: user.id })
+                .map_err(|_| {
+                    AppError::InternalServerError("Failed to create reset token".to_string())
+                })?;
+
+            println!("reset_token: {}", &reset_token);
+
             PasswordResetTokenRepository::create(
                 db,
                 PasswordResetToken {
                     user_id: user.id,
-                    token: password_token,
+                    token: reset_token,
                     expires_at: 3600,
                 },
             )
@@ -208,16 +213,15 @@ impl AuthService {
             .map_err(|_| {
                 AppError::InternalServerError("Failed to create reset token".to_string())
             })?;
+
             // todo send email to the user
         }
-        // create password reset token
-        // send mail to user email with token
         Ok(())
     }
 
     pub async fn reset_password(
         db: &DatabaseConnection,
-        JsonValidate(dto): JsonValidate<ResetPasswordDto>,
+        dto: ResetPasswordDto,
     ) -> Result<(), AppError> {
         // Validate passwords match before doing any DB work
         if dto.new_password != dto.confirm_password {
@@ -252,9 +256,10 @@ impl AuthService {
 
     pub async fn verify_email(
         db: &DatabaseConnection,
-        JsonValidate(dto): JsonValidate<VerifyEmailDto>,
+        dto: VerifyEmailDto,
     ) -> Result<(), AppError> {
         // Verify the JWT and expiration
+        // todo: implement this
         let claims = PasswordResetTokenService::verify(&dto.token).map_err(|_| {
             AppError::BadRequest("Invalid or expired verification token".to_string())
         })?;
