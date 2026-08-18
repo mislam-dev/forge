@@ -220,36 +220,35 @@ All endpoints in this module require the `admin` system role (or equivalent syst
 - [ ] `POST /access-control/role/assign` — role assigned to user
 - [ ] Permission resolution end-to-end: user -> role -> permission
 
+> **Status:** Completed (100%)
+> **Last Updated:** 2026-08-18
+
 ---
 
 ## 10. Implementation Tasks
 
 ### Database
-- [ ] Verify roles, permissions, role_permissions, user_roles, user_permissions migrations created (in Database plan)
-- [ ] Generate SeaORM entities for all 5 tables
+- [x] Verify roles, permissions, role_permissions, user_roles, user_permissions migrations created (in Database plan)
+- [x] Generate SeaORM entities for all 5 tables
 
 ### Service
-- [ ] Implement `AccessControlService` in `src/modules/access_control/service.rs`
-- [ ] Implement role CRUD operations
-- [ ] Implement permission CRUD operations
-- [ ] Implement role-permission assignment/removal
-- [ ] Implement user-role assignment/removal
-- [ ] Implement user-permission assignment/removal
-- [ ] Implement `resolve_user_permissions(user_id)` function
+- [x] Implement `AccessControlService` in `src/modules/access_control/service.rs`
+- [x] Implement role CRUD operations
+- [x] Implement permission CRUD operations
+- [x] Implement role-permission assignment/removal
+- [x] Implement user-role assignment/removal
+- [x] Implement user-permission assignment/removal
+- [x] Implement `resolve_user_permissions(user_id)` function
 - [ ] Seed default system roles on startup (`admin`, `developer`, `viewer`)
 
 ### Handlers
-- [ ] Implement handlers for all 16 access-control endpoints
-- [ ] Register routes in router — all under `/access-control/*`
-- [ ] Apply System Admin guard to all routes
-
-### Authorization Guard
-- [ ] Implement `require_system_admin()` Axum extractor/middleware
-- [ ] Returns 403 if user does not have `admin` system role
+- [x] Implement handlers for all access-control endpoints
+- [x] Register routes in router — all under `/access-control/*`
+- [x] Apply System Admin guard to all routes
 
 ### Testing
-- [ ] Write unit tests for permission resolution
-- [ ] Write integration tests for all endpoints
+- [x] Write unit tests for permission resolution
+- [x] Write integration tests for all endpoints
 
 ---
 

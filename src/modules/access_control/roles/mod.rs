@@ -1,6 +1,6 @@
-mod dto;
-mod entities;
-mod handlers;
-mod repository;
+pub mod dto;
+pub mod entities;
+pub mod handlers;
+pub mod repository;
 pub mod router;
-mod service;
+pub mod service;
