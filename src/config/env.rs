@@ -161,6 +161,7 @@ mod tests {
     #[test]
     fn test_app_config_missing_required_secret() {
         unsafe {
+            env::set_var("MASTER_ENCRYPTION_KEY", "0123456789abcdef0123456789abcdef");
             env::remove_var("JWT_SECRET");
         }
 
