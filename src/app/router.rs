@@ -1,5 +1,8 @@
 use axum::Router;
 
-pub fn app_router() -> Router {
-    Router::new()
+use crate::app::state::AppState;
+use crate::modules::access_control::router::access_control_router;
+
+pub fn app_router() -> Router<AppState> {
+    Router::new().nest("access-control", access_control_router())
 }
