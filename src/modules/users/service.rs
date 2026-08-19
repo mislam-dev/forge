@@ -49,6 +49,9 @@ impl UserService {
 
         let user = UserRepository::create(db, dto).await?;
 
+        // Auto-create default profile for new user
+        let _ = crate::modules::users::profile::repository::UserProfileRepository::create_default_profile(db, user.id).await;
+
         // todo: generate email verification token
         // todo: send verification token
 

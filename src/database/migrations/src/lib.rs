@@ -20,6 +20,7 @@ mod m20260816_111242_create_project_members_table;
 mod m20260816_111248_create_project_teams_table;
 mod m20260816_111300_create_deployment_table;
 mod m20260816_111317_create_notifications_table;
+mod m20260819_044939_create_users_profile_table;
 
 pub struct Migrator;
 
@@ -47,6 +48,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260816_111248_create_project_teams_table::Migration),
             Box::new(m20260816_111300_create_deployment_table::Migration),
             Box::new(m20260816_111317_create_notifications_table::Migration),
+            Box::new(m20260819_044939_create_users_profile_table::Migration),
         ]
     }
 }
