@@ -59,7 +59,10 @@ async fn test_roles_endpoint_authorized_with_valid_jwt() {
 
     let response = app.oneshot(req).await.unwrap();
     // On mock DB, listing roles returns 200 OK (with empty list or error on DB query depending on mock query)
-    assert!(response.status() == StatusCode::OK || response.status() == StatusCode::INTERNAL_SERVER_ERROR);
+    assert!(
+        response.status() == StatusCode::OK
+            || response.status() == StatusCode::INTERNAL_SERVER_ERROR
+    );
 }
 
 #[tokio::test]

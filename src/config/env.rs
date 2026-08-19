@@ -153,9 +153,13 @@ mod tests {
             env::set_var("MASTER_ENCRYPTION_KEY", "0123456789abcdef0123456789abcdef");
         }
 
-        let secrets = AppConfig::get_secrets().expect("Secrets parsing should succeed when vars are set");
+        let secrets =
+            AppConfig::get_secrets().expect("Secrets parsing should succeed when vars are set");
         assert_eq!(secrets.jwt_secret, "supersecretjwtkey");
-        assert_eq!(secrets.master_encryption_key, "0123456789abcdef0123456789abcdef");
+        assert_eq!(
+            secrets.master_encryption_key,
+            "0123456789abcdef0123456789abcdef"
+        );
     }
 
     #[test]
@@ -178,9 +182,9 @@ mod tests {
 
         let server_cfg = AppConfig::get_server_config().unwrap();
         assert_eq!(server_cfg.server_port, 3000);
-        assert_eq!(server_cfg.server_host, "127.0.0.1".parse::<IpAddr>().unwrap());
+        assert_eq!(
+            server_cfg.server_host,
+            "127.0.0.1".parse::<IpAddr>().unwrap()
+        );
     }
 }
-
-
-

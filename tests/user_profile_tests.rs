@@ -59,7 +59,11 @@ async fn test_get_profile_authorized_with_jwt() {
         .unwrap();
 
     let response = app.oneshot(req).await.unwrap();
-    assert!(response.status() == StatusCode::OK || response.status() == StatusCode::NOT_FOUND || response.status() == StatusCode::INTERNAL_SERVER_ERROR);
+    assert!(
+        response.status() == StatusCode::OK
+            || response.status() == StatusCode::NOT_FOUND
+            || response.status() == StatusCode::INTERNAL_SERVER_ERROR
+    );
 }
 
 #[tokio::test]
@@ -157,5 +161,9 @@ async fn test_delete_profile_authorized_for_admin() {
         .unwrap();
 
     let response = app.oneshot(req).await.unwrap();
-    assert!(response.status() == StatusCode::OK || response.status() == StatusCode::NOT_FOUND || response.status() == StatusCode::INTERNAL_SERVER_ERROR);
+    assert!(
+        response.status() == StatusCode::OK
+            || response.status() == StatusCode::NOT_FOUND
+            || response.status() == StatusCode::INTERNAL_SERVER_ERROR
+    );
 }

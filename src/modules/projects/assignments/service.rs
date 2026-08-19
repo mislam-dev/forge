@@ -2,13 +2,16 @@ use chrono::Utc;
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::dto::{AssignProjectMemberRequest, AssignProjectTeamRequest, ProjectMemberResponse, ProjectTeamResponse};
-use super::entities::project_member::ActiveModel as ProjectMemberActiveModel;
-use super::entities::project_team::ActiveModel as ProjectTeamActiveModel;
-use super::repository::ProjectAssignmentsRepository;
 use super::super::permissions::role::ProjectRole;
 use super::super::permissions::service::ProjectPermissionsService;
 use super::super::projects::repository::ProjectsRepository;
+use super::dto::{
+    AssignProjectMemberRequest, AssignProjectTeamRequest, ProjectMemberResponse,
+    ProjectTeamResponse,
+};
+use super::entities::project_member::ActiveModel as ProjectMemberActiveModel;
+use super::entities::project_team::ActiveModel as ProjectTeamActiveModel;
+use super::repository::ProjectAssignmentsRepository;
 use crate::modules::organization::permissions::service::OrgPermissionsService;
 use crate::modules::teams::teams::repository::TeamsRepository;
 use crate::modules::users::repository::UserRepository;
@@ -41,14 +44,17 @@ impl ProjectAssignmentsService {
         }
 
         // Verify target user is a member of the parent organization!
-        let org_role = OrgPermissionsService::resolve_org_role(db, project.organization_id, req.user_id).await?;
+        let org_role =
+            OrgPermissionsService::resolve_org_role(db, project.organization_id, req.user_id)
+                .await?;
         if org_role.is_none() {
             return Err(AppError::BadRequest(
                 "Target user is not a member of the parent organization".to_string(),
             ));
         }
 
-        if (ProjectAssignmentsRepository::find_member(db, project_id, req.user_id).await?).is_some() {
+        if (ProjectAssignmentsRepository::find_member(db, project_id, req.user_id).await?).is_some()
+        {
             return Err(AppError::Conflict(
                 "User is already assigned to this project".to_string(),
             ));
@@ -57,7 +63,8 @@ impl ProjectAssignmentsService {
         let role: ProjectRole = req.role.parse().map_err(AppError::BadRequest)?;
         if role == ProjectRole::Owner {
             return Err(AppError::BadRequest(
-                "Project Owner is determined by project ownership, not member assignment".to_string(),
+                "Project Owner is determined by project ownership, not member assignment"
+                    .to_string(),
             ));
         }
 
@@ -97,7 +104,8 @@ impl ProjectAssignmentsService {
             .await?;
         }
 
-        let members = ProjectAssignmentsRepository::find_members_by_project_id(db, project_id).await?;
+        let members =
+            ProjectAssignmentsRepository::find_members_by_project_id(db, project_id).await?;
         Ok(members
             .into_iter()
             .map(|(m, u)| ProjectMemberResponse::from_model(m, u))
@@ -133,9 +141,12 @@ impl ProjectAssignmentsService {
             ));
         }
 
-        let member = ProjectAssignmentsRepository::find_member(db, project_id, target_user_id).await?;
+        let member =
+            ProjectAssignmentsRepository::find_member(db, project_id, target_user_id).await?;
         if member.is_none() {
-            return Err(AppError::NotFound("User is not assigned to this project".to_string()));
+            return Err(AppError::NotFound(
+                "User is not assigned to this project".to_string(),
+            ));
         }
 
         ProjectAssignmentsRepository::remove_member(db, project_id, target_user_id).await?;
@@ -246,7 +257,9 @@ impl ProjectAssignmentsService {
 
         let project_team = ProjectAssignmentsRepository::find_team(db, project_id, team_id).await?;
         if project_team.is_none() {
-            return Err(AppError::NotFound("Team is not assigned to this project".to_string()));
+            return Err(AppError::NotFound(
+                "Team is not assigned to this project".to_string(),
+            ));
         }
 
         ProjectAssignmentsRepository::remove_team(db, project_id, team_id).await?;
@@ -265,14 +278,23 @@ mod tests {
     #[tokio::test]
     async fn test_list_members_project_not_found() {
         let db = setup_mock_db();
-        let result = ProjectAssignmentsService::list_members(&db, Uuid::new_v4(), false, Uuid::new_v4()).await;
+        let result =
+            ProjectAssignmentsService::list_members(&db, Uuid::new_v4(), false, Uuid::new_v4())
+                .await;
         assert!(result.is_err());
     }
 
     #[tokio::test]
     async fn test_remove_team_project_not_found() {
         let db = setup_mock_db();
-        let result = ProjectAssignmentsService::remove_team(&db, Uuid::new_v4(), false, Uuid::new_v4(), Uuid::new_v4()).await;
+        let result = ProjectAssignmentsService::remove_team(
+            &db,
+            Uuid::new_v4(),
+            false,
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+        )
+        .await;
         assert!(result.is_err());
     }
 }

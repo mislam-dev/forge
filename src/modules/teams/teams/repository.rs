@@ -1,8 +1,12 @@
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::entities::team::{ActiveModel as TeamActiveModel, Column as TeamColumn, Entity as TeamEntity, Model as TeamModel};
-use super::super::members::entities::team_member::{Column as TeamMemberColumn, Entity as TeamMemberEntity};
+use super::super::members::entities::team_member::{
+    Column as TeamMemberColumn, Entity as TeamMemberEntity,
+};
+use super::entities::team::{
+    ActiveModel as TeamActiveModel, Column as TeamColumn, Entity as TeamEntity, Model as TeamModel,
+};
 use crate::shared::error::AppError;
 
 pub struct TeamsRepository;
@@ -63,10 +67,7 @@ impl TeamsRepository {
             .map_err(AppError::from)
     }
 
-    pub async fn count_members(
-        db: &DatabaseConnection,
-        team_id: Uuid,
-    ) -> Result<u64, AppError> {
+    pub async fn count_members(db: &DatabaseConnection, team_id: Uuid) -> Result<u64, AppError> {
         TeamMemberEntity::find()
             .filter(TeamMemberColumn::TeamId.eq(team_id))
             .count(db)
@@ -88,10 +89,7 @@ impl TeamsRepository {
         active_model.update(db).await.map_err(AppError::from)
     }
 
-    pub async fn delete_team(
-        db: &DatabaseConnection,
-        id: Uuid,
-    ) -> Result<u64, AppError> {
+    pub async fn delete_team(db: &DatabaseConnection, id: Uuid) -> Result<u64, AppError> {
         let res = TeamEntity::delete_by_id(id).exec(db).await?;
         Ok(res.rows_affected)
     }

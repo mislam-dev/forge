@@ -2,12 +2,14 @@ use chrono::Utc;
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::dto::{BulkCreateEnvVarRequest, CreateEnvVarRequest, EnvVarQuery, EnvVarResponse, UpdateEnvVarRequest};
-use super::entities::project_environment_variable::ActiveModel as EnvVarActiveModel;
-use super::repository::ProjectEnvironmentVariablesRepository;
 use super::super::permissions::role::ProjectRole;
 use super::super::permissions::service::ProjectPermissionsService;
 use super::super::projects::repository::ProjectsRepository;
+use super::dto::{
+    BulkCreateEnvVarRequest, CreateEnvVarRequest, EnvVarQuery, EnvVarResponse, UpdateEnvVarRequest,
+};
+use super::entities::project_environment_variable::ActiveModel as EnvVarActiveModel;
+use super::repository::ProjectEnvironmentVariablesRepository;
 use crate::shared::error::AppError;
 
 pub struct ProjectEnvironmentVariablesService;
@@ -92,7 +94,8 @@ impl ProjectEnvironmentVariablesService {
             updated_at: Set(now),
         };
 
-        let env_var = ProjectEnvironmentVariablesRepository::create_env_var(db, active_model).await?;
+        let env_var =
+            ProjectEnvironmentVariablesRepository::create_env_var(db, active_model).await?;
         Ok(EnvVarResponse::from_model(env_var))
     }
 
@@ -126,7 +129,10 @@ impl ProjectEnvironmentVariablesService {
         )
         .await?;
 
-        Ok(env_vars.into_iter().map(EnvVarResponse::from_model).collect())
+        Ok(env_vars
+            .into_iter()
+            .map(EnvVarResponse::from_model)
+            .collect())
     }
 
     pub async fn update_env_var(
@@ -158,7 +164,9 @@ impl ProjectEnvironmentVariablesService {
             .ok_or_else(|| AppError::NotFound("Environment variable not found".to_string()))?;
 
         if env_var.project_id != project_id {
-            return Err(AppError::NotFound("Environment variable not found in this project".to_string()));
+            return Err(AppError::NotFound(
+                "Environment variable not found in this project".to_string(),
+            ));
         }
 
         let mut active_model: EnvVarActiveModel = env_var.into();
@@ -172,7 +180,8 @@ impl ProjectEnvironmentVariablesService {
             active_model.is_secret = Set(Some(secret));
         }
 
-        let updated = ProjectEnvironmentVariablesRepository::update_env_var(db, active_model).await?;
+        let updated =
+            ProjectEnvironmentVariablesRepository::update_env_var(db, active_model).await?;
         Ok(EnvVarResponse::from_model(updated))
     }
 
@@ -204,7 +213,9 @@ impl ProjectEnvironmentVariablesService {
             .ok_or_else(|| AppError::NotFound("Environment variable not found".to_string()))?;
 
         if env_var.project_id != project_id {
-            return Err(AppError::NotFound("Environment variable not found in this project".to_string()));
+            return Err(AppError::NotFound(
+                "Environment variable not found in this project".to_string(),
+            ));
         }
 
         ProjectEnvironmentVariablesRepository::delete_env_var(db, env_var_id).await?;
@@ -270,7 +281,8 @@ impl ProjectEnvironmentVariablesService {
                 updated_at: Set(now),
             };
 
-            let env_var = ProjectEnvironmentVariablesRepository::create_env_var(&txn, active_model).await?;
+            let env_var =
+                ProjectEnvironmentVariablesRepository::create_env_var(&txn, active_model).await?;
             responses.push(EnvVarResponse::from_model(env_var));
         }
 

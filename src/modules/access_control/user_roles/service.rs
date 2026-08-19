@@ -9,10 +9,7 @@ use uuid::Uuid;
 pub struct UserRolesService;
 
 impl UserRolesService {
-    pub async fn assign(
-        db: &DatabaseConnection,
-        dto: AssignUserRolesDto,
-    ) -> Result<(), AppError> {
+    pub async fn assign(db: &DatabaseConnection, dto: AssignUserRolesDto) -> Result<(), AppError> {
         let user = UserRepository::find_by_id(db, dto.user_id).await?;
         if user.is_none() {
             return Err(AppError::NotFound("User not found!".to_string()));
@@ -21,10 +18,7 @@ impl UserRolesService {
         UserRolesRepository::assign(db, dto.user_id, dto.role_ids).await
     }
 
-    pub async fn remove(
-        db: &DatabaseConnection,
-        dto: RemoveUserRolesDto,
-    ) -> Result<(), AppError> {
+    pub async fn remove(db: &DatabaseConnection, dto: RemoveUserRolesDto) -> Result<(), AppError> {
         let user = UserRepository::find_by_id(db, dto.user_id).await?;
         if user.is_none() {
             return Err(AppError::NotFound("User not found!".to_string()));
@@ -95,4 +89,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-

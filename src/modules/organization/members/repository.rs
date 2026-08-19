@@ -9,7 +9,9 @@ use super::entities::organization_member::{
     ActiveModel as MemberActiveModel, Column as MemberColumn, Entity as MemberEntity,
     Model as MemberModel,
 };
-use crate::modules::users::entities::users::{Column as UserColumn, Entity as UserEntity, Model as UserModel};
+use crate::modules::users::entities::users::{
+    Column as UserColumn, Entity as UserEntity, Model as UserModel,
+};
 use crate::shared::error::AppError;
 
 pub struct OrganizationMembersRepository;
@@ -57,10 +59,7 @@ impl OrganizationMembersRepository {
             .map_err(AppError::from)
     }
 
-    pub async fn count_owners(
-        db: &DatabaseConnection,
-        org_id: Uuid,
-    ) -> Result<u64, AppError> {
+    pub async fn count_owners(db: &DatabaseConnection, org_id: Uuid) -> Result<u64, AppError> {
         MemberEntity::find()
             .filter(MemberColumn::OrganizationId.eq(org_id))
             .filter(MemberColumn::Role.eq("owner"))
@@ -69,10 +68,7 @@ impl OrganizationMembersRepository {
             .map_err(AppError::from)
     }
 
-    pub async fn count_members(
-        db: &DatabaseConnection,
-        org_id: Uuid,
-    ) -> Result<u64, AppError> {
+    pub async fn count_members(db: &DatabaseConnection, org_id: Uuid) -> Result<u64, AppError> {
         MemberEntity::find()
             .filter(MemberColumn::OrganizationId.eq(org_id))
             .count(db)
@@ -197,7 +193,8 @@ mod tests {
     #[tokio::test]
     async fn test_find_invitation_by_token_empty_db() {
         let db = setup_mock_db();
-        let result = OrganizationMembersRepository::find_invitation_by_token(&db, "tok_nonexistent").await;
+        let result =
+            OrganizationMembersRepository::find_invitation_by_token(&db, "tok_nonexistent").await;
         assert!(result.is_err());
     }
 }

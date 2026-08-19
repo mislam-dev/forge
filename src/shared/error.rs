@@ -209,4 +209,3 @@ mod tests {
         assert_eq!(json["errors"]["email"][0], "Must be a valid email address");
     }
 }
-

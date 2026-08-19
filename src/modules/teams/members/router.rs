@@ -1,7 +1,6 @@
 use axum::{
-    middleware,
+    Router, middleware,
     routing::{post, put},
-    Router,
 };
 
 use super::handlers;
@@ -10,7 +9,10 @@ use crate::modules::auth::token::JwtClaims;
 
 pub fn team_members_router() -> Router<AppState> {
     Router::new()
-        .route("/{id}/members", post(handlers::add_member).get(handlers::list_members))
+        .route(
+            "/{id}/members",
+            post(handlers::add_member).get(handlers::list_members),
+        )
         .route(
             "/{id}/members/{user_id}",
             put(handlers::update_member).delete(handlers::remove_member),

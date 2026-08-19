@@ -127,7 +127,10 @@ async fn test_list_organizations_authorized_with_jwt() {
         .unwrap();
 
     let response = app.oneshot(req).await.unwrap();
-    assert!(response.status() == StatusCode::OK || response.status() == StatusCode::INTERNAL_SERVER_ERROR);
+    assert!(
+        response.status() == StatusCode::OK
+            || response.status() == StatusCode::INTERNAL_SERVER_ERROR
+    );
 }
 
 #[tokio::test]
@@ -141,7 +144,9 @@ async fn test_invite_member_unauthorized_without_jwt() {
         .uri(format!("/api/organizations/{}/invitations", org_id))
         .method("POST")
         .header("Content-Type", "application/json")
-        .body(Body::from(r#"{"email": "invitee@example.com", "role": "editor"}"#))
+        .body(Body::from(
+            r#"{"email": "invitee@example.com", "role": "editor"}"#,
+        ))
         .unwrap();
 
     let response = app.oneshot(req).await.unwrap();

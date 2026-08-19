@@ -16,8 +16,12 @@ pub async fn get_org_dashboard(
     claims: JwtClaims,
     Path(org_id): Path<Uuid>,
 ) -> Result<ApiResponse<OrgDashboardResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let dashboard = DashboardService::get_org_dashboard(&state.db, claims.sub, is_admin, org_id).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let dashboard =
+        DashboardService::get_org_dashboard(&state.db, claims.sub, is_admin, org_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -41,21 +45,14 @@ pub async fn get_system_dashboard(
     State(state): State<AppState>,
     claims: JwtClaims,
 ) -> Result<ApiResponse<SystemDashboardResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let dashboard = DashboardService::get_system_dashboard(&state.db, claims.sub, is_admin).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
         .message("System dashboard loaded successfully.".to_string())
         .body(Some(dashboard)))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_dashboard_handlers_exist() {
-        // Simple sanity test
-    }
 }

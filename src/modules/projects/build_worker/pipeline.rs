@@ -64,7 +64,10 @@ impl BuildPipeline {
         let build_duration_ms = start_time.elapsed().as_millis() as i32;
 
         // Step 4: Run Container (Building -> Deploying)
-        let log_line = Self::scrub_secrets("Step 4/5: Deploying container with injected env vars...", &secrets);
+        let log_line = Self::scrub_secrets(
+            "Step 4/5: Deploying container with injected env vars...",
+            &secrets,
+        );
         tracing::info!(deployment_id = %deployment_id, step = "deploy", "{}", log_line);
 
         DeploymentsService::update_status_internal(
@@ -82,7 +85,10 @@ impl BuildPipeline {
         .await?;
 
         // Step 5: Health Check Probe (Deploying -> Running -> Success)
-        let log_line = Self::scrub_secrets("Step 5/5: Health check probe passed (HTTP 200 OK)", &secrets);
+        let log_line = Self::scrub_secrets(
+            "Step 5/5: Health check probe passed (HTTP 200 OK)",
+            &secrets,
+        );
         tracing::info!(deployment_id = %deployment_id, step = "health_check", "{}", log_line);
 
         DeploymentsService::update_status_internal(
@@ -130,7 +136,10 @@ mod tests {
         let db_pass = "my_database_password";
         let secrets = vec![pat, db_pass];
 
-        let log = format!("Cloning with token {} and connecting to DB {}", pat, db_pass);
+        let log = format!(
+            "Cloning with token {} and connecting to DB {}",
+            pat, db_pass
+        );
         let scrubbed = BuildPipeline::scrub_secrets(&log, &secrets);
 
         assert!(!scrubbed.contains(pat));

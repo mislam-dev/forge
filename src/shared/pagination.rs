@@ -89,4 +89,3 @@ mod tests {
         assert_eq!(res.total_pages, 3);
     }
 }
-

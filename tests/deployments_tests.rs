@@ -118,7 +118,10 @@ async fn test_rollback_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(format!("/api/projects/{}/deployments/rollback", Uuid::new_v4()))
+        .uri(format!(
+            "/api/projects/{}/deployments/rollback",
+            Uuid::new_v4()
+        ))
         .method("POST")
         .body(Body::empty())
         .unwrap();

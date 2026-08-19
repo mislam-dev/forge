@@ -1,7 +1,7 @@
 use super::dto::request::{PermissionCreateDto, PermissionUpdateDto};
 use super::entities::permissions::{
-    ActiveModel as PermissionActiveModel, Column as PermissionColumn,
-    Entity as PermissionEntity, Model as PermissionModel,
+    ActiveModel as PermissionActiveModel, Column as PermissionColumn, Entity as PermissionEntity,
+    Model as PermissionModel,
 };
 use crate::shared::error::AppError;
 use sea_orm::{
@@ -132,4 +132,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-

@@ -9,4 +9,3 @@ impl IdParams {
         self.0
     }
 }
-

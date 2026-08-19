@@ -10,7 +10,7 @@ use crate::modules::teams::router::teams_router;
 use crate::modules::users::router::user_router;
 use crate::shared::logger::logging_middleware;
 use crate::shared::response::ApiResponse;
-use axum::{http::StatusCode, middleware, routing::get, Router};
+use axum::{Router, http::StatusCode, middleware, routing::get};
 use std::time::Duration;
 use tower_http::timeout::TimeoutLayer;
 

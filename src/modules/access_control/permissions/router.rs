@@ -24,4 +24,3 @@ mod tests {
         let _router = permissions_router();
     }
 }
-

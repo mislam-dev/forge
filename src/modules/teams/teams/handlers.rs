@@ -17,7 +17,10 @@ pub async fn create_team(
     claims: JwtClaims,
     JsonValidate(payload): JsonValidate<CreateTeamRequest>,
 ) -> Result<ApiResponse<TeamResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let team = TeamsService::create_team(&state.db, claims.sub, is_admin, payload).await?;
 
     Ok(ApiResponse::new()
@@ -31,7 +34,10 @@ pub async fn list_teams(
     claims: JwtClaims,
     Query(query): Query<TeamQuery>,
 ) -> Result<ApiResponse<Vec<TeamResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let teams = TeamsService::list_teams(&state.db, claims.sub, is_admin, query).await?;
 
     Ok(ApiResponse::new()
@@ -45,7 +51,10 @@ pub async fn get_team(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<TeamResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let team = TeamsService::get_team_by_id(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()
@@ -60,7 +69,10 @@ pub async fn update_team(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<UpdateTeamRequest>,
 ) -> Result<ApiResponse<TeamResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let team = TeamsService::update_team(&state.db, claims.sub, is_admin, id, payload).await?;
 
     Ok(ApiResponse::new()
@@ -74,7 +86,10 @@ pub async fn delete_team(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     TeamsService::delete_team(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()

@@ -1,8 +1,4 @@
-use axum::{
-    middleware,
-    routing::get,
-    Router,
-};
+use axum::{Router, middleware, routing::get};
 
 use super::handlers;
 use crate::app::state::AppState;

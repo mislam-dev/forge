@@ -63,10 +63,7 @@ impl NotificationsService {
         Ok(NotificationResponse::from_model(updated))
     }
 
-    pub async fn mark_all_as_read(
-        db: &DatabaseConnection,
-        user_id: Uuid,
-    ) -> Result<u64, AppError> {
+    pub async fn mark_all_as_read(db: &DatabaseConnection, user_id: Uuid) -> Result<u64, AppError> {
         NotificationsRepository::mark_all_as_read_for_user(db, user_id).await
     }
 

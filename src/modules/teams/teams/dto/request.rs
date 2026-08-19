@@ -1,11 +1,15 @@
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct CreateTeamRequest {
     pub organization_id: Uuid,
-    #[validate(length(min = 2, max = 255, message = "Team name must be between 2 and 255 characters"))]
+    #[validate(length(
+        min = 2,
+        max = 255,
+        message = "Team name must be between 2 and 255 characters"
+    ))]
     pub name: String,
     pub descriptions: Option<String>,
 }

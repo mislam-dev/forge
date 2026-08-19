@@ -2,8 +2,8 @@ use sea_orm::*;
 use uuid::Uuid;
 
 use super::entities::organization::{
-    ActiveModel as OrganizationActiveModel, Column as OrganizationColumn, Entity as OrganizationEntity,
-    Model as OrganizationModel,
+    ActiveModel as OrganizationActiveModel, Column as OrganizationColumn,
+    Entity as OrganizationEntity, Model as OrganizationModel,
 };
 use crate::modules::organization::members::entities::organization_member::{
     Column as MemberColumn, Entity as MemberEntity,
@@ -34,9 +34,7 @@ impl OrganizationRepository {
             .map_err(AppError::from)
     }
 
-    pub async fn find_all(
-        db: &DatabaseConnection,
-    ) -> Result<Vec<OrganizationModel>, AppError> {
+    pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<OrganizationModel>, AppError> {
         OrganizationEntity::find()
             .order_by_asc(OrganizationColumn::Name)
             .all(db)
@@ -91,13 +89,8 @@ impl OrganizationRepository {
         active_model.update(db).await.map_err(AppError::from)
     }
 
-    pub async fn delete(
-        db: &DatabaseConnection,
-        id: Uuid,
-    ) -> Result<u64, AppError> {
-        let res = OrganizationEntity::delete_by_id(id)
-            .exec(db)
-            .await?;
+    pub async fn delete(db: &DatabaseConnection, id: Uuid) -> Result<u64, AppError> {
+        let res = OrganizationEntity::delete_by_id(id).exec(db).await?;
         Ok(res.rows_affected)
     }
 
@@ -114,9 +107,7 @@ impl OrganizationRepository {
         Ok(owner_member.map(|m| m.user_id))
     }
 
-    pub async fn count_all(
-        db: &DatabaseConnection,
-    ) -> Result<u64, AppError> {
+    pub async fn count_all(db: &DatabaseConnection) -> Result<u64, AppError> {
         OrganizationEntity::find()
             .count(db)
             .await

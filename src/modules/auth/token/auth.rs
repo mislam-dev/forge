@@ -126,7 +126,8 @@ mod tests {
             permissions: vec!["write:users".to_string()],
         };
 
-        let token = AuthTokenService::access(payload).expect("Access token creation should succeed");
+        let token =
+            AuthTokenService::access(payload).expect("Access token creation should succeed");
         assert!(!token.is_empty());
 
         let claims = AuthTokenService::verify(&token).expect("Token verification should succeed");
@@ -146,7 +147,8 @@ mod tests {
             email: email.clone(),
         };
 
-        let token = AuthTokenService::refresh(payload).expect("Refresh token creation should succeed");
+        let token =
+            AuthTokenService::refresh(payload).expect("Refresh token creation should succeed");
         assert!(!token.is_empty());
 
         let claims = AuthTokenService::verify(&token).expect("Token verification should succeed");
@@ -161,4 +163,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-

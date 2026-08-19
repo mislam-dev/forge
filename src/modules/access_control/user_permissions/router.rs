@@ -22,4 +22,3 @@ mod tests {
         let _router = user_permissions_router();
     }
 }
-

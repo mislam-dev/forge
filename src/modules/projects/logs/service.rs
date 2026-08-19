@@ -1,11 +1,11 @@
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::dto::{BuildLogResponse, LogItem, LogSearchQuery};
 use super::super::deployments::repository::DeploymentsRepository;
 use super::super::permissions::role::ProjectRole;
 use super::super::permissions::service::ProjectPermissionsService;
 use super::super::projects::repository::ProjectsRepository;
+use super::dto::{BuildLogResponse, LogItem, LogSearchQuery};
 use crate::shared::error::AppError;
 
 pub struct BuildLogsService;
@@ -74,7 +74,9 @@ impl BuildLogsService {
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
         if deployment.project_id != project_id {
-            return Err(AppError::NotFound("Deployment not found in this project".to_string()));
+            return Err(AppError::NotFound(
+                "Deployment not found in this project".to_string(),
+            ));
         }
 
         Ok(BuildLogResponse {
@@ -90,7 +92,8 @@ impl BuildLogsService {
         project_id: Uuid,
         deployment_id: Uuid,
     ) -> Result<String, AppError> {
-        let logs_response = Self::get_logs(db, requester_id, is_system_admin, project_id, deployment_id).await?;
+        let logs_response =
+            Self::get_logs(db, requester_id, is_system_admin, project_id, deployment_id).await?;
         let mut buffer = String::new();
         for item in logs_response.logs {
             buffer.push_str(&format!(
@@ -109,13 +112,17 @@ impl BuildLogsService {
         deployment_id: Uuid,
         query: LogSearchQuery,
     ) -> Result<BuildLogResponse, AppError> {
-        let logs_response = Self::get_logs(db, requester_id, is_system_admin, project_id, deployment_id).await?;
+        let logs_response =
+            Self::get_logs(db, requester_id, is_system_admin, project_id, deployment_id).await?;
         let pattern = query.q.to_lowercase();
 
         let filtered = logs_response
             .logs
             .into_iter()
-            .filter(|item| item.message.to_lowercase().contains(&pattern) || item.step.to_lowercase().contains(&pattern))
+            .filter(|item| {
+                item.message.to_lowercase().contains(&pattern)
+                    || item.step.to_lowercase().contains(&pattern)
+            })
             .collect();
 
         Ok(BuildLogResponse {
@@ -136,7 +143,9 @@ mod tests {
     #[tokio::test]
     async fn test_get_logs_deployment_not_found() {
         let db = setup_mock_db();
-        let result = BuildLogsService::get_logs(&db, Uuid::new_v4(), false, Uuid::new_v4(), Uuid::new_v4()).await;
+        let result =
+            BuildLogsService::get_logs(&db, Uuid::new_v4(), false, Uuid::new_v4(), Uuid::new_v4())
+                .await;
         assert!(result.is_err());
     }
 }

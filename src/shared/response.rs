@@ -95,10 +95,7 @@ mod tests {
         assert_eq!(res.status_code, StatusCode::CREATED);
         assert_eq!(res.msg, "Created successfully");
         assert_eq!(res.data, Some("payload"));
-        assert_eq!(
-            res.headers.get("x-custom-header").unwrap(),
-            "custom-value"
-        );
+        assert_eq!(res.headers.get("x-custom-header").unwrap(), "custom-value");
     }
 
     #[tokio::test]
@@ -111,10 +108,7 @@ mod tests {
 
         let http_res = res.into_response();
         assert_eq!(http_res.status(), StatusCode::OK);
-        assert_eq!(
-            http_res.headers().get("x-test-header").unwrap(),
-            "test-val"
-        );
+        assert_eq!(http_res.headers().get("x-test-header").unwrap(), "test-val");
 
         let body_bytes = to_bytes(http_res.into_body(), usize::MAX).await.unwrap();
         let json: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
@@ -122,4 +116,3 @@ mod tests {
         assert_eq!(json["data"], json!([1, 2, 3]));
     }
 }
-

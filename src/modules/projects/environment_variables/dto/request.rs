@@ -5,7 +5,11 @@ use validator::Validate;
 pub struct CreateEnvVarRequest {
     #[validate(length(min = 1, message = "Environment is required"))]
     pub environment: String,
-    #[validate(length(min = 1, max = 255, message = "Key must be between 1 and 255 characters"))]
+    #[validate(length(
+        min = 1,
+        max = 255,
+        message = "Key must be between 1 and 255 characters"
+    ))]
     pub key: String,
     pub value: String,
     pub is_secret: Option<bool>,

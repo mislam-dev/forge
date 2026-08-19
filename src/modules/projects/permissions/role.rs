@@ -55,8 +55,14 @@ mod tests {
 
     #[test]
     fn test_project_role_from_str() {
-        assert_eq!("viewer".parse::<ProjectRole>().unwrap(), ProjectRole::Viewer);
-        assert_eq!("developer".parse::<ProjectRole>().unwrap(), ProjectRole::Developer);
+        assert_eq!(
+            "viewer".parse::<ProjectRole>().unwrap(),
+            ProjectRole::Viewer
+        );
+        assert_eq!(
+            "developer".parse::<ProjectRole>().unwrap(),
+            ProjectRole::Developer
+        );
         assert_eq!("admin".parse::<ProjectRole>().unwrap(), ProjectRole::Admin);
         assert_eq!("owner".parse::<ProjectRole>().unwrap(), ProjectRole::Owner);
         assert!("invalid".parse::<ProjectRole>().is_err());

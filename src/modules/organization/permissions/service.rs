@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use super::role::OrgRole;
 use crate::modules::organization::members::entities::organization_member::{
-    Entity as OrganizationMemberEntity, Column as MemberColumn,
+    Column as MemberColumn, Entity as OrganizationMemberEntity,
 };
 use crate::shared::error::AppError;
 
@@ -43,7 +43,9 @@ impl OrgPermissionsService {
 
         let role = Self::resolve_org_role(db, org_id, user_id)
             .await?
-            .ok_or_else(|| AppError::Forbidden("You are not a member of this organization".to_string()))?;
+            .ok_or_else(|| {
+                AppError::Forbidden("You are not a member of this organization".to_string())
+            })?;
 
         if role < min_role {
             return Err(AppError::Forbidden(format!(
@@ -58,7 +60,8 @@ impl OrgPermissionsService {
     pub fn enforce_rename_permission(role: OrgRole) -> Result<(), AppError> {
         if role != OrgRole::Owner {
             return Err(AppError::Forbidden(
-                "Access denied. Only the Organization Owner can rename an organization.".to_string(),
+                "Access denied. Only the Organization Owner can rename an organization."
+                    .to_string(),
             ));
         }
         Ok(())
@@ -67,7 +70,8 @@ impl OrgPermissionsService {
     pub fn enforce_delete_permission(role: OrgRole, is_system_admin: bool) -> Result<(), AppError> {
         if !is_system_admin && role != OrgRole::Owner {
             return Err(AppError::Forbidden(
-                "Access denied. Only the Organization Owner can delete an organization.".to_string(),
+                "Access denied. Only the Organization Owner can delete an organization."
+                    .to_string(),
             ));
         }
         Ok(())
@@ -97,7 +101,10 @@ mod tests {
         let db = setup_mock_db();
         let org_id = Uuid::new_v4();
         let user_id = Uuid::new_v4();
-        let role = OrgPermissionsService::verify_org_role(&db, org_id, user_id, OrgRole::Owner, true).await.unwrap();
+        let role =
+            OrgPermissionsService::verify_org_role(&db, org_id, user_id, OrgRole::Owner, true)
+                .await
+                .unwrap();
         assert_eq!(role, OrgRole::Owner);
     }
 

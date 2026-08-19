@@ -2,11 +2,11 @@ use chrono::Utc;
 use sea_orm::*;
 use uuid::Uuid;
 
+use super::super::permissions::role::ProjectRole;
+use super::super::permissions::service::ProjectPermissionsService;
 use super::dto::{CreateProjectRequest, ProjectQuery, ProjectResponse, UpdateProjectRequest};
 use super::entities::project::ActiveModel as ProjectActiveModel;
 use super::repository::ProjectsRepository;
-use super::super::permissions::role::ProjectRole;
-use super::super::permissions::service::ProjectPermissionsService;
 use crate::modules::organization::permissions::role::OrgRole;
 use crate::modules::organization::permissions::service::OrgPermissionsService;
 use crate::shared::error::AppError;
@@ -71,7 +71,8 @@ impl ProjectsService {
     ) -> Result<Vec<ProjectResponse>, AppError> {
         let projects = if let Some(org_id) = query.organization_id {
             if !is_system_admin {
-                let role = OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
+                let role =
+                    OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
                 if role.is_none() {
                     return Err(AppError::Forbidden(
                         "You are not a member of this organization".to_string(),
@@ -83,7 +84,10 @@ impl ProjectsService {
             vec![]
         };
 
-        Ok(projects.into_iter().map(ProjectResponse::from_model).collect())
+        Ok(projects
+            .into_iter()
+            .map(ProjectResponse::from_model)
+            .collect())
     }
 
     pub async fn get_project(
@@ -140,7 +144,9 @@ impl ProjectsService {
 
         if let Some(new_name) = req.name {
             let org_id = active_model.organization_id.clone().unwrap();
-            if let Some(existing) = ProjectsRepository::find_by_org_and_name(db, org_id, &new_name).await? {
+            if let Some(existing) =
+                ProjectsRepository::find_by_org_and_name(db, org_id, &new_name).await?
+            {
                 if existing.id != project_id {
                     return Err(AppError::Conflict(format!(
                         "Project with name '{}' already exists in this organization",
@@ -185,10 +191,13 @@ impl ProjectsService {
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
 
         if !is_system_admin && project.owner_id != requester_id {
-            let org_role = OrgPermissionsService::resolve_org_role(db, project.organization_id, requester_id).await?;
+            let org_role =
+                OrgPermissionsService::resolve_org_role(db, project.organization_id, requester_id)
+                    .await?;
             if org_role != Some(OrgRole::Owner) {
                 return Err(AppError::Forbidden(
-                    "Only the Project Owner or Organization Owner can delete this project".to_string(),
+                    "Only the Project Owner or Organization Owner can delete this project"
+                        .to_string(),
                 ));
             }
         }

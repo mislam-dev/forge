@@ -5,7 +5,8 @@ use axum::{
 use uuid::Uuid;
 
 use super::dto::{
-    AssignProjectMemberRequest, AssignProjectTeamRequest, ProjectMemberResponse, ProjectTeamResponse,
+    AssignProjectMemberRequest, AssignProjectTeamRequest, ProjectMemberResponse,
+    ProjectTeamResponse,
 };
 use super::service::ProjectAssignmentsService;
 use crate::app::state::AppState;
@@ -20,8 +21,13 @@ pub async fn assign_member(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<AssignProjectMemberRequest>,
 ) -> Result<ApiResponse<ProjectMemberResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let member = ProjectAssignmentsService::assign_member(&state.db, claims.sub, is_admin, id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let member =
+        ProjectAssignmentsService::assign_member(&state.db, claims.sub, is_admin, id, payload)
+            .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -34,8 +40,12 @@ pub async fn list_members(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<ProjectMemberResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let members = ProjectAssignmentsService::list_members(&state.db, claims.sub, is_admin, id).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let members =
+        ProjectAssignmentsService::list_members(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -48,7 +58,10 @@ pub async fn remove_member(
     claims: JwtClaims,
     Path((id, user_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     ProjectAssignmentsService::remove_member(&state.db, claims.sub, is_admin, id, user_id).await?;
 
     Ok(ApiResponse::new()
@@ -62,8 +75,12 @@ pub async fn assign_team(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<AssignProjectTeamRequest>,
 ) -> Result<ApiResponse<ProjectTeamResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let team = ProjectAssignmentsService::assign_team(&state.db, claims.sub, is_admin, id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let team = ProjectAssignmentsService::assign_team(&state.db, claims.sub, is_admin, id, payload)
+        .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -76,7 +93,10 @@ pub async fn list_teams(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<ProjectTeamResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let teams = ProjectAssignmentsService::list_teams(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()
@@ -90,7 +110,10 @@ pub async fn remove_team(
     claims: JwtClaims,
     Path((id, team_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     ProjectAssignmentsService::remove_team(&state.db, claims.sub, is_admin, id, team_id).await?;
 
     Ok(ApiResponse::new()

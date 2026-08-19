@@ -1,7 +1,6 @@
 use axum::{
-    middleware,
+    Router, middleware,
     routing::{get, post},
-    Router,
 };
 
 use super::handlers;
@@ -10,7 +9,10 @@ use crate::modules::auth::token::JwtClaims;
 
 pub fn projects_core_router() -> Router<AppState> {
     Router::new()
-        .route("/", post(handlers::create_project).get(handlers::list_projects))
+        .route(
+            "/",
+            post(handlers::create_project).get(handlers::list_projects),
+        )
         .route(
             "/{id}",
             get(handlers::get_project)

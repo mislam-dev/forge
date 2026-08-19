@@ -28,4 +28,3 @@ mod tests {
         let _router = auth_router();
     }
 }
-

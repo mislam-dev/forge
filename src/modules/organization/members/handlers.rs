@@ -26,8 +26,13 @@ pub async fn invite(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<InviteMemberRequest>,
 ) -> Result<ApiResponse<InvitationResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res = OrganizationMembersService::invite_member(&state.db, id, claims.sub, is_admin, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let res =
+        OrganizationMembersService::invite_member(&state.db, id, claims.sub, is_admin, payload)
+            .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -40,8 +45,12 @@ pub async fn list_invitations(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<InvitationResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res = OrganizationMembersService::list_invitations(&state.db, id, claims.sub, is_admin).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let res =
+        OrganizationMembersService::list_invitations(&state.db, id, claims.sub, is_admin).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -67,7 +76,10 @@ pub async fn list_members(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<MemberResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let res = OrganizationMembersService::list_members(&state.db, id, claims.sub, is_admin).await?;
 
     Ok(ApiResponse::new()
@@ -82,7 +94,10 @@ pub async fn update_member(
     Path(params): Path<OrgMemberPathParams>,
     JsonValidate(payload): JsonValidate<UpdateMemberRoleRequest>,
 ) -> Result<ApiResponse<MemberResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let res = OrganizationMembersService::update_member_role(
         &state.db,
         params.id,
@@ -104,7 +119,10 @@ pub async fn remove_member(
     claims: JwtClaims,
     Path(params): Path<OrgMemberPathParams>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     OrganizationMembersService::remove_member(
         &state.db,
         params.id,

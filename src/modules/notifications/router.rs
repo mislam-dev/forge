@@ -1,7 +1,6 @@
 use axum::{
-    middleware,
+    Router, middleware,
     routing::{get, patch, post},
-    Router,
 };
 
 use super::handlers;
@@ -9,10 +8,8 @@ use crate::app::state::AppState;
 use crate::modules::auth::token::JwtClaims;
 
 pub fn notifications_router() -> Router<AppState> {
-    let internal_routes = Router::new().route(
-        "/internal",
-        post(handlers::create_notification_internal),
-    );
+    let internal_routes =
+        Router::new().route("/internal", post(handlers::create_notification_internal));
 
     let protected_routes = Router::new()
         .route("/", get(handlers::list_notifications))

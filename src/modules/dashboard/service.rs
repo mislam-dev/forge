@@ -1,9 +1,7 @@
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::dto::{
-    OrgDashboardResponse, SystemDashboardResponse, UserDashboardResponse,
-};
+use super::dto::{OrgDashboardResponse, SystemDashboardResponse, UserDashboardResponse};
 use crate::modules::organization::members::repository::OrganizationMembersRepository;
 use crate::modules::organization::orgs::repository::OrganizationRepository;
 use crate::modules::organization::permissions::role::OrgRole;
@@ -106,7 +104,8 @@ mod tests {
     #[tokio::test]
     async fn test_get_org_dashboard_not_found() {
         let db = setup_mock_db();
-        let result = DashboardService::get_org_dashboard(&db, Uuid::new_v4(), false, Uuid::new_v4()).await;
+        let result =
+            DashboardService::get_org_dashboard(&db, Uuid::new_v4(), false, Uuid::new_v4()).await;
         assert!(result.is_err());
     }
 

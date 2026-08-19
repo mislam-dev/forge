@@ -47,7 +47,9 @@ impl PermissionsService {
     ) -> Result<PermissionResponseDto, AppError> {
         let perm = PermissionsRepository::find_by_value(db, &dto.value).await?;
         if perm.is_some() {
-            return Err(AppError::BadRequest("Permission already exists!".to_string()));
+            return Err(AppError::BadRequest(
+                "Permission already exists!".to_string(),
+            ));
         }
 
         let perm = PermissionsRepository::create(db, dto).await?;
@@ -109,4 +111,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-

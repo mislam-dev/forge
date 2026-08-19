@@ -62,10 +62,7 @@ impl ProjectEnvironmentVariablesRepository {
         active_model.update(db).await.map_err(AppError::from)
     }
 
-    pub async fn delete_env_var<C: ConnectionTrait>(
-        db: &C,
-        id: Uuid,
-    ) -> Result<u64, AppError> {
+    pub async fn delete_env_var<C: ConnectionTrait>(db: &C, id: Uuid) -> Result<u64, AppError> {
         let res = EnvVarEntity::delete_by_id(id).exec(db).await?;
         Ok(res.rows_affected)
     }

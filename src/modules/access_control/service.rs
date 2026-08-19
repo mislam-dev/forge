@@ -1,5 +1,5 @@
-use std::collections::HashSet;
 use sea_orm::DatabaseConnection;
+use std::collections::HashSet;
 use uuid::Uuid;
 
 use super::role_permissions::repository::RolePermissionsRepository;
@@ -56,4 +56,3 @@ mod tests {
         assert!(perms.is_err());
     }
 }
-

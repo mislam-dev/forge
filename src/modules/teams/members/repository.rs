@@ -5,7 +5,9 @@ use super::entities::team_member::{
     ActiveModel as TeamMemberActiveModel, Column as TeamMemberColumn, Entity as TeamMemberEntity,
     Model as TeamMemberModel,
 };
-use crate::modules::users::entities::users::{Column as UserColumn, Entity as UserEntity, Model as UserModel};
+use crate::modules::users::entities::users::{
+    Column as UserColumn, Entity as UserEntity, Model as UserModel,
+};
 use crate::shared::error::AppError;
 
 pub struct TeamMembersRepository;

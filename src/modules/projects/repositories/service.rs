@@ -2,12 +2,12 @@ use chrono::Utc;
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::dto::{ConnectRepositoryRequest, RepositoryResponse, UpdateRepositoryRequest};
-use super::entities::project_repository::ActiveModel as RepositoryActiveModel;
-use super::repository::ProjectRepositoriesRepository;
 use super::super::permissions::role::ProjectRole;
 use super::super::permissions::service::ProjectPermissionsService;
 use super::super::projects::repository::ProjectsRepository;
+use super::dto::{ConnectRepositoryRequest, RepositoryResponse, UpdateRepositoryRequest};
+use super::entities::project_repository::ActiveModel as RepositoryActiveModel;
+use super::repository::ProjectRepositoriesRepository;
 use crate::shared::error::AppError;
 
 pub struct ProjectRepositoriesService;
@@ -60,13 +60,16 @@ impl ProjectRepositoriesService {
             repository_url: Set(req.repository_url),
             auth_type: Set(auth_type),
             access_token_encrypted: Set(encrypted_token),
-            default_branch: Set(Some(req.default_branch.unwrap_or_else(|| "main".to_string()))),
+            default_branch: Set(Some(
+                req.default_branch.unwrap_or_else(|| "main".to_string()),
+            )),
             status: Set(Some("connected".to_string())),
             created_at: Set(now),
             updated_at: Set(now),
         };
 
-        let repository = ProjectRepositoriesRepository::connect_repository(db, active_model).await?;
+        let repository =
+            ProjectRepositoriesRepository::connect_repository(db, active_model).await?;
         Ok(RepositoryResponse::from_model(repository))
     }
 
@@ -94,7 +97,9 @@ impl ProjectRepositoriesService {
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("No repository connected to this project".to_string()))?;
+            .ok_or_else(|| {
+                AppError::NotFound("No repository connected to this project".to_string())
+            })?;
 
         Ok(RepositoryResponse::from_model(repo))
     }
@@ -124,7 +129,9 @@ impl ProjectRepositoriesService {
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("No repository connected to this project".to_string()))?;
+            .ok_or_else(|| {
+                AppError::NotFound("No repository connected to this project".to_string())
+            })?;
 
         let mut active_model: RepositoryActiveModel = repo.into();
         let now = Utc::now().into();
@@ -185,14 +192,22 @@ mod tests {
     #[tokio::test]
     async fn test_get_repository_not_found() {
         let db = setup_mock_db();
-        let result = ProjectRepositoriesService::get_repository(&db, Uuid::new_v4(), false, Uuid::new_v4()).await;
+        let result =
+            ProjectRepositoriesService::get_repository(&db, Uuid::new_v4(), false, Uuid::new_v4())
+                .await;
         assert!(result.is_err());
     }
 
     #[tokio::test]
     async fn test_disconnect_repository_not_found() {
         let db = setup_mock_db();
-        let result = ProjectRepositoriesService::disconnect_repository(&db, Uuid::new_v4(), false, Uuid::new_v4()).await;
+        let result = ProjectRepositoriesService::disconnect_repository(
+            &db,
+            Uuid::new_v4(),
+            false,
+            Uuid::new_v4(),
+        )
+        .await;
         assert!(result.is_err());
     }
 }

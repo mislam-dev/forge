@@ -147,7 +147,11 @@ async fn test_update_team_member_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(&format!("/api/teams/{}/members/{}", Uuid::new_v4(), Uuid::new_v4()))
+        .uri(&format!(
+            "/api/teams/{}/members/{}",
+            Uuid::new_v4(),
+            Uuid::new_v4()
+        ))
         .method("PUT")
         .header("Content-Type", "application/json")
         .body(Body::from(r#"{"role": "admin"}"#))
@@ -164,7 +168,11 @@ async fn test_remove_team_member_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(&format!("/api/teams/{}/members/{}", Uuid::new_v4(), Uuid::new_v4()))
+        .uri(&format!(
+            "/api/teams/{}/members/{}",
+            Uuid::new_v4(),
+            Uuid::new_v4()
+        ))
         .method("DELETE")
         .body(Body::empty())
         .unwrap();
@@ -177,7 +185,9 @@ async fn test_remove_team_member_unauthorized_without_jwt() {
 async fn test_list_teams_authorized_with_jwt() {
     let config = setup_test_config();
     let state = AppState::mock(config);
-    let app = create_app(state.clone()).await.expect("App creation failed");
+    let app = create_app(state.clone())
+        .await
+        .expect("App creation failed");
 
     let user_id = Uuid::new_v4();
     let token = AuthTokenService::access(JwtPayload {
@@ -196,5 +206,8 @@ async fn test_list_teams_authorized_with_jwt() {
         .unwrap();
 
     let response = app.oneshot(req).await.unwrap();
-    assert!(response.status() == StatusCode::OK || response.status() == StatusCode::INTERNAL_SERVER_ERROR);
+    assert!(
+        response.status() == StatusCode::OK
+            || response.status() == StatusCode::INTERNAL_SERVER_ERROR
+    );
 }

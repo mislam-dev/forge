@@ -1,7 +1,6 @@
 use axum::{
-    middleware,
+    Router, middleware,
     routing::{post, put},
-    Router,
 };
 
 use super::handlers;

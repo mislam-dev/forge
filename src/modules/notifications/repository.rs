@@ -3,8 +3,8 @@ use uuid::Uuid;
 
 use super::dto::NotificationQuery;
 use super::entities::notification::{
-    ActiveModel as NotificationActiveModel, Column as NotificationColumn, Entity as NotificationEntity,
-    Model as NotificationModel,
+    ActiveModel as NotificationActiveModel, Column as NotificationColumn,
+    Entity as NotificationEntity, Model as NotificationModel,
 };
 use crate::shared::error::AppError;
 use crate::shared::pagination::PaginatedResponse;

@@ -5,9 +5,7 @@ use super::orgs::router::orgs_router;
 use crate::app::state::AppState;
 
 pub fn organization_router() -> Router<AppState> {
-    Router::new()
-        .merge(orgs_router())
-        .merge(members_router())
+    Router::new().merge(orgs_router()).merge(members_router())
 }
 
 #[cfg(test)]

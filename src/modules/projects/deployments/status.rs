@@ -99,9 +99,18 @@ mod tests {
 
     #[test]
     fn test_deployment_status_parsing() {
-        assert_eq!("Queued".parse::<DeploymentStatus>().unwrap(), DeploymentStatus::Queued);
-        assert_eq!("Running".parse::<DeploymentStatus>().unwrap(), DeploymentStatus::Running);
-        assert_eq!("Failed".parse::<DeploymentStatus>().unwrap(), DeploymentStatus::Failed);
+        assert_eq!(
+            "Queued".parse::<DeploymentStatus>().unwrap(),
+            DeploymentStatus::Queued
+        );
+        assert_eq!(
+            "Running".parse::<DeploymentStatus>().unwrap(),
+            DeploymentStatus::Running
+        );
+        assert_eq!(
+            "Failed".parse::<DeploymentStatus>().unwrap(),
+            DeploymentStatus::Failed
+        );
         assert!("invalid".parse::<DeploymentStatus>().is_err());
     }
 }

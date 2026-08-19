@@ -1,14 +1,14 @@
 use axum::{
     extract::{Path, Query, State},
-    http::{header, HeaderMap, StatusCode},
+    http::{HeaderMap, StatusCode, header},
     response::{
-        sse::{Event, Sse},
         IntoResponse, Response,
+        sse::{Event, Sse},
     },
 };
-use tokio_stream::{self as stream, Stream};
 use std::convert::Infallible;
 use std::time::Duration;
+use tokio_stream::{self as stream, Stream};
 use uuid::Uuid;
 
 use super::dto::{BuildLogResponse, LogSearchQuery};
@@ -23,8 +23,12 @@ pub async fn get_logs(
     claims: JwtClaims,
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<BuildLogResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let logs = BuildLogsService::get_logs(&state.db, claims.sub, is_admin, id, deployment_id).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let logs =
+        BuildLogsService::get_logs(&state.db, claims.sub, is_admin, id, deployment_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -37,8 +41,12 @@ pub async fn stream_logs(
     claims: JwtClaims,
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<Sse<impl Stream<Item = Result<Event, Infallible>>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let logs_response = BuildLogsService::get_logs(&state.db, claims.sub, is_admin, id, deployment_id).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let logs_response =
+        BuildLogsService::get_logs(&state.db, claims.sub, is_admin, id, deployment_id).await?;
 
     let events: Vec<Result<Event, Infallible>> = logs_response
         .logs
@@ -51,7 +59,8 @@ pub async fn stream_logs(
 
     let stream = stream::iter(events);
 
-    Ok(Sse::new(stream).keep_alive(axum::response::sse::KeepAlive::new().interval(Duration::from_secs(15))))
+    Ok(Sse::new(stream)
+        .keep_alive(axum::response::sse::KeepAlive::new().interval(Duration::from_secs(15))))
 }
 
 pub async fn download_logs(
@@ -59,8 +68,12 @@ pub async fn download_logs(
     claims: JwtClaims,
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<Response, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let text = BuildLogsService::download_logs(&state.db, claims.sub, is_admin, id, deployment_id).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let text =
+        BuildLogsService::download_logs(&state.db, claims.sub, is_admin, id, deployment_id).await?;
 
     let mut headers = HeaderMap::new();
     headers.insert(
@@ -83,8 +96,13 @@ pub async fn search_logs(
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
     Query(query): Query<LogSearchQuery>,
 ) -> Result<ApiResponse<BuildLogResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let logs = BuildLogsService::search_logs(&state.db, claims.sub, is_admin, id, deployment_id, query).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let logs =
+        BuildLogsService::search_logs(&state.db, claims.sub, is_admin, id, deployment_id, query)
+            .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)

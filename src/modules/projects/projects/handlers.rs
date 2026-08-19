@@ -17,7 +17,10 @@ pub async fn create_project(
     claims: JwtClaims,
     JsonValidate(payload): JsonValidate<CreateProjectRequest>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let project = ProjectsService::create_project(&state.db, claims.sub, is_admin, payload).await?;
 
     Ok(ApiResponse::new()
@@ -31,7 +34,10 @@ pub async fn list_projects(
     claims: JwtClaims,
     Query(query): Query<ProjectQuery>,
 ) -> Result<ApiResponse<Vec<ProjectResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let projects = ProjectsService::list_projects(&state.db, claims.sub, is_admin, query).await?;
 
     Ok(ApiResponse::new()
@@ -45,7 +51,10 @@ pub async fn get_project(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let project = ProjectsService::get_project(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()
@@ -60,8 +69,12 @@ pub async fn update_project(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<UpdateProjectRequest>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let project = ProjectsService::update_project(&state.db, claims.sub, is_admin, id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let project =
+        ProjectsService::update_project(&state.db, claims.sub, is_admin, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -74,7 +87,10 @@ pub async fn delete_project(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     ProjectsService::delete_project(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()

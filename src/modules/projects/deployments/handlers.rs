@@ -5,7 +5,8 @@ use axum::{
 use uuid::Uuid;
 
 use super::dto::{
-    DeploymentHistoryQuery, DeploymentResponse, TriggerDeploymentRequest, UpdateDeploymentStatusRequest,
+    DeploymentHistoryQuery, DeploymentResponse, TriggerDeploymentRequest,
+    UpdateDeploymentStatusRequest,
 };
 use super::service::DeploymentsService;
 use crate::app::state::AppState;
@@ -21,8 +22,13 @@ pub async fn trigger_deployment(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<TriggerDeploymentRequest>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let deployment = DeploymentsService::trigger_deployment(&state.db, claims.sub, is_admin, id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let deployment =
+        DeploymentsService::trigger_deployment(&state.db, claims.sub, is_admin, id, payload)
+            .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -36,8 +42,12 @@ pub async fn list_deployments(
     Path(id): Path<Uuid>,
     Query(query): Query<DeploymentHistoryQuery>,
 ) -> Result<ApiResponse<PaginatedResponse<DeploymentResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let paginated = DeploymentsService::list_deployments(&state.db, claims.sub, is_admin, id, query).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let paginated =
+        DeploymentsService::list_deployments(&state.db, claims.sub, is_admin, id, query).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -50,8 +60,13 @@ pub async fn get_deployment(
     claims: JwtClaims,
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let deployment = DeploymentsService::get_deployment(&state.db, claims.sub, is_admin, id, deployment_id).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let deployment =
+        DeploymentsService::get_deployment(&state.db, claims.sub, is_admin, id, deployment_id)
+            .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -90,8 +105,12 @@ pub async fn redeploy(
     claims: JwtClaims,
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let deployment = DeploymentsService::redeploy(&state.db, claims.sub, is_admin, id, deployment_id).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let deployment =
+        DeploymentsService::redeploy(&state.db, claims.sub, is_admin, id, deployment_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -104,7 +123,10 @@ pub async fn rollback(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let deployment = DeploymentsService::rollback(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()

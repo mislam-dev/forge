@@ -29,7 +29,14 @@ impl OrganizationMembersService {
             .await?
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
 
-        OrgPermissionsService::verify_org_role(db, org_id, requester_id, OrgRole::Admin, is_system_admin).await?;
+        OrgPermissionsService::verify_org_role(
+            db,
+            org_id,
+            requester_id,
+            OrgRole::Admin,
+            is_system_admin,
+        )
+        .await?;
 
         let role: OrgRole = req.role.parse().map_err(AppError::BadRequest)?;
 
@@ -41,18 +48,33 @@ impl OrganizationMembersService {
                 .ok_or_else(|| AppError::NotFound("Target user not found".to_string()))?;
             user.email
         } else {
-            return Err(AppError::BadRequest("Either email or user_id must be provided".to_string()));
+            return Err(AppError::BadRequest(
+                "Either email or user_id must be provided".to_string(),
+            ));
         };
 
-        if let Some(user) = OrganizationMembersRepository::find_user_by_email(db, &target_email).await? {
-            if OrganizationMembersRepository::find_member(db, org_id, user.id).await?.is_some() {
-                return Err(AppError::Conflict("User is already a member of this organization".to_string()));
+        if let Some(user) =
+            OrganizationMembersRepository::find_user_by_email(db, &target_email).await?
+        {
+            if OrganizationMembersRepository::find_member(db, org_id, user.id)
+                .await?
+                .is_some()
+            {
+                return Err(AppError::Conflict(
+                    "User is already a member of this organization".to_string(),
+                ));
             }
         }
 
-        let pending_invites = OrganizationMembersRepository::find_pending_invitations(db, org_id).await?;
-        if pending_invites.iter().any(|i| i.email.eq_ignore_ascii_case(&target_email)) {
-            return Err(AppError::Conflict("A pending invitation already exists for this email".to_string()));
+        let pending_invites =
+            OrganizationMembersRepository::find_pending_invitations(db, org_id).await?;
+        if pending_invites
+            .iter()
+            .any(|i| i.email.eq_ignore_ascii_case(&target_email))
+        {
+            return Err(AppError::Conflict(
+                "A pending invitation already exists for this email".to_string(),
+            ));
         }
 
         let token = format!("tok_{}", Uuid::new_v4().simple());
@@ -71,7 +93,8 @@ impl OrganizationMembersService {
             updated_at: Set(now.into()),
         };
 
-        let created_invite = OrganizationMembersRepository::create_invitation(db, invitation_active).await?;
+        let created_invite =
+            OrganizationMembersRepository::create_invitation(db, invitation_active).await?;
         Ok(InvitationResponse::from_model(created_invite))
     }
 
@@ -85,20 +108,29 @@ impl OrganizationMembersService {
             .ok_or_else(|| AppError::NotFound("Invalid or expired invitation token".to_string()))?;
 
         if invite.status != "pending" {
-            return Err(AppError::BadRequest("Invitation has already been used or cancelled".to_string()));
+            return Err(AppError::BadRequest(
+                "Invitation has already been used or cancelled".to_string(),
+            ));
         }
 
         let now = Utc::now();
         if invite.expires_at.with_timezone(&Utc) < now {
-            return Err(AppError::BadRequest("Invitation token has expired".to_string()));
+            return Err(AppError::BadRequest(
+                "Invitation token has expired".to_string(),
+            ));
         }
 
         let user = OrganizationMembersRepository::find_user_by_id(db, user_id)
             .await?
             .ok_or_else(|| AppError::NotFound("User not found".to_string()))?;
 
-        if OrganizationMembersRepository::find_member(db, invite.organization_id, user_id).await?.is_some() {
-            return Err(AppError::Conflict("User is already a member of this organization".to_string()));
+        if OrganizationMembersRepository::find_member(db, invite.organization_id, user_id)
+            .await?
+            .is_some()
+        {
+            return Err(AppError::Conflict(
+                "User is already a member of this organization".to_string(),
+            ));
         }
 
         let member_active = MemberActiveModel {
@@ -127,9 +159,17 @@ impl OrganizationMembersService {
             .await?
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
 
-        OrgPermissionsService::verify_org_role(db, org_id, requester_id, OrgRole::Viewer, is_system_admin).await?;
+        OrgPermissionsService::verify_org_role(
+            db,
+            org_id,
+            requester_id,
+            OrgRole::Viewer,
+            is_system_admin,
+        )
+        .await?;
 
-        let members_with_users = OrganizationMembersRepository::find_members_by_org_id(db, org_id).await?;
+        let members_with_users =
+            OrganizationMembersRepository::find_members_by_org_id(db, org_id).await?;
 
         let mut res = Vec::with_capacity(members_with_users.len());
         for (m, u) in members_with_users {
@@ -150,10 +190,20 @@ impl OrganizationMembersService {
             .await?
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
 
-        OrgPermissionsService::verify_org_role(db, org_id, requester_id, OrgRole::Admin, is_system_admin).await?;
+        OrgPermissionsService::verify_org_role(
+            db,
+            org_id,
+            requester_id,
+            OrgRole::Admin,
+            is_system_admin,
+        )
+        .await?;
 
         let invites = OrganizationMembersRepository::find_pending_invitations(db, org_id).await?;
-        Ok(invites.into_iter().map(InvitationResponse::from_model).collect())
+        Ok(invites
+            .into_iter()
+            .map(InvitationResponse::from_model)
+            .collect())
     }
 
     pub async fn update_member_role(
@@ -166,7 +216,14 @@ impl OrganizationMembersService {
     ) -> Result<MemberResponse, AppError> {
         req.validate().map_err(AppError::from)?;
 
-        let requester_role = OrgPermissionsService::verify_org_role(db, org_id, requester_id, OrgRole::Admin, is_system_admin).await?;
+        let requester_role = OrgPermissionsService::verify_org_role(
+            db,
+            org_id,
+            requester_id,
+            OrgRole::Admin,
+            is_system_admin,
+        )
+        .await?;
         let new_role: OrgRole = req.role.parse().map_err(AppError::BadRequest)?;
 
         let target_member = OrganizationMembersRepository::find_member(db, org_id, target_user_id)
@@ -176,13 +233,17 @@ impl OrganizationMembersService {
         let target_role: OrgRole = target_member.role.parse().unwrap_or(OrgRole::Viewer);
 
         if !is_system_admin && requester_role == OrgRole::Admin && target_role == OrgRole::Owner {
-            return Err(AppError::Forbidden("Admin cannot modify the Organization Owner role".to_string()));
+            return Err(AppError::Forbidden(
+                "Admin cannot modify the Organization Owner role".to_string(),
+            ));
         }
 
         if target_role == OrgRole::Owner && new_role != OrgRole::Owner {
             let owner_count = OrganizationMembersRepository::count_owners(db, org_id).await?;
             if owner_count <= 1 {
-                return Err(AppError::Conflict("Cannot demote the sole Owner of an organization".to_string()));
+                return Err(AppError::Conflict(
+                    "Cannot demote the sole Owner of an organization".to_string(),
+                ));
             }
         }
 
@@ -190,7 +251,8 @@ impl OrganizationMembersService {
         active.role = Set(new_role.as_str().to_string());
         let updated = OrganizationMembersRepository::update_member(db, active).await?;
 
-        let target_user = OrganizationMembersRepository::find_user_by_id(db, target_user_id).await?;
+        let target_user =
+            OrganizationMembersRepository::find_user_by_id(db, target_user_id).await?;
         let email = target_user.map(|u| u.email);
 
         Ok(MemberResponse::from_model(updated, email))
@@ -203,7 +265,14 @@ impl OrganizationMembersService {
         requester_id: Uuid,
         is_system_admin: bool,
     ) -> Result<(), AppError> {
-        let requester_role = OrgPermissionsService::verify_org_role(db, org_id, requester_id, OrgRole::Admin, is_system_admin).await?;
+        let requester_role = OrgPermissionsService::verify_org_role(
+            db,
+            org_id,
+            requester_id,
+            OrgRole::Admin,
+            is_system_admin,
+        )
+        .await?;
 
         let target_member = OrganizationMembersRepository::find_member(db, org_id, target_user_id)
             .await?
@@ -212,13 +281,17 @@ impl OrganizationMembersService {
         let target_role: OrgRole = target_member.role.parse().unwrap_or(OrgRole::Viewer);
 
         if !is_system_admin && requester_role == OrgRole::Admin && target_role == OrgRole::Owner {
-            return Err(AppError::Forbidden("Admin cannot remove the Organization Owner".to_string()));
+            return Err(AppError::Forbidden(
+                "Admin cannot remove the Organization Owner".to_string(),
+            ));
         }
 
         if target_role == OrgRole::Owner {
             let owner_count = OrganizationMembersRepository::count_owners(db, org_id).await?;
             if owner_count <= 1 {
-                return Err(AppError::Conflict("Cannot remove the sole Owner of an organization".to_string()));
+                return Err(AppError::Conflict(
+                    "Cannot remove the sole Owner of an organization".to_string(),
+                ));
             }
         }
 
@@ -240,7 +313,8 @@ mod tests {
     async fn test_accept_invitation_invalid_token() {
         let db = setup_mock_db();
         let user_id = Uuid::new_v4();
-        let result = OrganizationMembersService::accept_invitation(&db, "invalid_tok", user_id).await;
+        let result =
+            OrganizationMembersService::accept_invitation(&db, "invalid_tok", user_id).await;
         assert!(result.is_err());
     }
 

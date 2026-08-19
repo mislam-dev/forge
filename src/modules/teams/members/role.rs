@@ -52,7 +52,10 @@ mod tests {
     #[test]
     fn test_team_role_from_str() {
         assert_eq!("viewer".parse::<TeamRole>().unwrap(), TeamRole::Viewer);
-        assert_eq!("developer".parse::<TeamRole>().unwrap(), TeamRole::Developer);
+        assert_eq!(
+            "developer".parse::<TeamRole>().unwrap(),
+            TeamRole::Developer
+        );
         assert_eq!("editor".parse::<TeamRole>().unwrap(), TeamRole::Developer);
         assert_eq!("admin".parse::<TeamRole>().unwrap(), TeamRole::Admin);
         assert!("invalid".parse::<TeamRole>().is_err());

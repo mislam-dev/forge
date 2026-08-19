@@ -1,11 +1,15 @@
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct CreateProjectRequest {
     pub organization_id: Uuid,
-    #[validate(length(min = 2, max = 255, message = "Project name must be between 2 and 255 characters"))]
+    #[validate(length(
+        min = 2,
+        max = 255,
+        message = "Project name must be between 2 and 255 characters"
+    ))]
     pub name: String,
     pub description: Option<String>,
     #[validate(length(min = 1, message = "project_type is required"))]

@@ -1,7 +1,4 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-};
+use axum::{extract::State, http::StatusCode};
 
 use super::dto::{DetailedHealthResponse, HealthProbeResponse};
 use super::service::HealthService;
@@ -32,7 +29,10 @@ pub async fn check_health_details(
     State(state): State<AppState>,
     claims: JwtClaims,
 ) -> Result<ApiResponse<DetailedHealthResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let details = HealthService::check_health_details(&state.db, claims.sub, is_admin).await?;
 
     Ok(ApiResponse::new()
@@ -48,6 +48,9 @@ mod tests {
     #[test]
     fn test_health_status_code_mapping() {
         assert_eq!(StatusCode::OK, StatusCode::OK);
-        assert_eq!(StatusCode::SERVICE_UNAVAILABLE, StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(
+            StatusCode::SERVICE_UNAVAILABLE,
+            StatusCode::SERVICE_UNAVAILABLE
+        );
     }
 }

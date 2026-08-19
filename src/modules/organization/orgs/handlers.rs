@@ -18,8 +18,12 @@ pub async fn create(
     claims: JwtClaims,
     JsonValidate(payload): JsonValidate<CreateOrganizationRequest>,
 ) -> Result<ApiResponse<OrganizationResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res = OrganizationService::create_organization(&state.db, claims.sub, is_admin, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let res =
+        OrganizationService::create_organization(&state.db, claims.sub, is_admin, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -31,7 +35,10 @@ pub async fn list(
     State(state): State<AppState>,
     claims: JwtClaims,
 ) -> Result<ApiResponse<Vec<OrganizationResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let res = OrganizationService::get_user_organizations(&state.db, claims.sub, is_admin).await?;
 
     Ok(ApiResponse::new()
@@ -45,8 +52,12 @@ pub async fn show(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<OrganizationResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res = OrganizationService::get_organization_by_id(&state.db, id, claims.sub, is_admin).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let res =
+        OrganizationService::get_organization_by_id(&state.db, id, claims.sub, is_admin).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -60,8 +71,13 @@ pub async fn update(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<UpdateOrganizationRequest>,
 ) -> Result<ApiResponse<OrganizationResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res = OrganizationService::update_organization(&state.db, id, claims.sub, is_admin, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let res =
+        OrganizationService::update_organization(&state.db, id, claims.sub, is_admin, payload)
+            .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -74,7 +90,10 @@ pub async fn remove(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     OrganizationService::delete_organization(&state.db, id, claims.sub, is_admin).await?;
 
     Ok(ApiResponse::new()

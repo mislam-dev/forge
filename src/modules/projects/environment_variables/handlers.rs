@@ -4,7 +4,9 @@ use axum::{
 };
 use uuid::Uuid;
 
-use super::dto::{BulkCreateEnvVarRequest, CreateEnvVarRequest, EnvVarQuery, EnvVarResponse, UpdateEnvVarRequest};
+use super::dto::{
+    BulkCreateEnvVarRequest, CreateEnvVarRequest, EnvVarQuery, EnvVarResponse, UpdateEnvVarRequest,
+};
 use super::service::ProjectEnvironmentVariablesService;
 use crate::app::state::AppState;
 use crate::modules::auth::token::JwtClaims;
@@ -18,8 +20,14 @@ pub async fn create_env_var(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<CreateEnvVarRequest>,
 ) -> Result<ApiResponse<EnvVarResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let env_var = ProjectEnvironmentVariablesService::create_env_var(&state.db, claims.sub, is_admin, id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let env_var = ProjectEnvironmentVariablesService::create_env_var(
+        &state.db, claims.sub, is_admin, id, payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -33,8 +41,14 @@ pub async fn list_env_vars(
     Path(id): Path<Uuid>,
     Query(query): Query<EnvVarQuery>,
 ) -> Result<ApiResponse<Vec<EnvVarResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let env_vars = ProjectEnvironmentVariablesService::list_env_vars(&state.db, claims.sub, is_admin, id, query).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let env_vars = ProjectEnvironmentVariablesService::list_env_vars(
+        &state.db, claims.sub, is_admin, id, query,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -48,8 +62,14 @@ pub async fn update_env_var(
     Path((id, env_id)): Path<(Uuid, Uuid)>,
     JsonValidate(payload): JsonValidate<UpdateEnvVarRequest>,
 ) -> Result<ApiResponse<EnvVarResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let env_var = ProjectEnvironmentVariablesService::update_env_var(&state.db, claims.sub, is_admin, id, env_id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let env_var = ProjectEnvironmentVariablesService::update_env_var(
+        &state.db, claims.sub, is_admin, id, env_id, payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -62,8 +82,12 @@ pub async fn delete_env_var(
     claims: JwtClaims,
     Path((id, env_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    ProjectEnvironmentVariablesService::delete_env_var(&state.db, claims.sub, is_admin, id, env_id).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    ProjectEnvironmentVariablesService::delete_env_var(&state.db, claims.sub, is_admin, id, env_id)
+        .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -76,8 +100,14 @@ pub async fn bulk_create_env_vars(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<BulkCreateEnvVarRequest>,
 ) -> Result<ApiResponse<Vec<EnvVarResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let env_vars = ProjectEnvironmentVariablesService::bulk_create_env_vars(&state.db, claims.sub, is_admin, id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let env_vars = ProjectEnvironmentVariablesService::bulk_create_env_vars(
+        &state.db, claims.sub, is_admin, id, payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)

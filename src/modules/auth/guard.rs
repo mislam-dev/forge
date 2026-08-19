@@ -33,9 +33,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::modules::auth::token::JwtPayload;
     use axum::extract::FromRequestParts;
     use axum::http::Request;
-    use crate::modules::auth::token::JwtPayload;
     use uuid::Uuid;
 
     fn setup_env() {
@@ -68,7 +68,9 @@ mod tests {
         let result = JwtClaims::from_request_parts(&mut parts, &()).await;
         assert!(result.is_err());
         match result {
-            Err(AppError::Unauthorized(msg)) => assert_eq!(msg, "Invalid Authorization header format"),
+            Err(AppError::Unauthorized(msg)) => {
+                assert_eq!(msg, "Invalid Authorization header format")
+            }
             _ => panic!("Expected Unauthorized error"),
         }
     }
@@ -91,9 +93,10 @@ mod tests {
             .unwrap();
         let (mut parts, _) = req.into_parts();
 
-        let claims = JwtClaims::from_request_parts(&mut parts, &()).await.unwrap();
+        let claims = JwtClaims::from_request_parts(&mut parts, &())
+            .await
+            .unwrap();
         assert_eq!(claims.sub, user_id);
         assert_eq!(claims.email, "guard@example.com");
     }
 }
-

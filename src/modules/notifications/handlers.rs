@@ -20,7 +20,8 @@ pub async fn list_notifications(
     claims: JwtClaims,
     Query(query): Query<NotificationQuery>,
 ) -> Result<ApiResponse<PaginatedResponse<NotificationResponse>>, AppError> {
-    let paginated = NotificationsService::list_user_notifications(&state.db, claims.sub, query).await?;
+    let paginated =
+        NotificationsService::list_user_notifications(&state.db, claims.sub, query).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -61,7 +62,10 @@ pub async fn mark_all_as_read(
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
-        .message(format!("All notifications marked as read ({} updated).", count))
+        .message(format!(
+            "All notifications marked as read ({} updated).",
+            count
+        ))
         .body(None))
 }
 

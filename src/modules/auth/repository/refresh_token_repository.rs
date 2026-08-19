@@ -74,4 +74,3 @@ mod tests {
         assert_eq!(dto.expires_at, 604800);
     }
 }
-

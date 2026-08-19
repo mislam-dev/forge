@@ -18,8 +18,12 @@ pub async fn add_member(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<AddTeamMemberRequest>,
 ) -> Result<ApiResponse<TeamMemberResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let member = TeamMembersService::add_member(&state.db, claims.sub, is_admin, id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let member =
+        TeamMembersService::add_member(&state.db, claims.sub, is_admin, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -32,7 +36,10 @@ pub async fn list_members(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<TeamMemberResponse>>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let members = TeamMembersService::list_members(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()
@@ -47,8 +54,14 @@ pub async fn update_member(
     Path((id, user_id)): Path<(Uuid, Uuid)>,
     JsonValidate(payload): JsonValidate<UpdateTeamMemberRoleRequest>,
 ) -> Result<ApiResponse<TeamMemberResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let member = TeamMembersService::update_member_role(&state.db, claims.sub, is_admin, id, user_id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let member = TeamMembersService::update_member_role(
+        &state.db, claims.sub, is_admin, id, user_id, payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -61,7 +74,10 @@ pub async fn remove_member(
     claims: JwtClaims,
     Path((id, user_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     TeamMembersService::remove_member(&state.db, claims.sub, is_admin, id, user_id).await?;
 
     Ok(ApiResponse::new()

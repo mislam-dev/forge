@@ -416,4 +416,3 @@ async fn test_verify_email_invalid_token() {
     let json: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
     assert_eq!(json["message"], "Invalid or expired verification token");
 }
-

@@ -29,11 +29,18 @@ impl OrganizationService {
         };
 
         if slug.is_empty() {
-            return Err(AppError::BadRequest("Invalid organization name or slug".to_string()));
+            return Err(AppError::BadRequest(
+                "Invalid organization name or slug".to_string(),
+            ));
         }
 
-        if OrganizationRepository::find_by_slug(db, &slug).await?.is_some() {
-            return Err(AppError::Conflict("An organization with this slug already exists".to_string()));
+        if OrganizationRepository::find_by_slug(db, &slug)
+            .await?
+            .is_some()
+        {
+            return Err(AppError::Conflict(
+                "An organization with this slug already exists".to_string(),
+            ));
         }
 
         let owner_user_id = if is_admin {
@@ -69,7 +76,10 @@ impl OrganizationService {
 
         txn.commit().await?;
 
-        Ok(OrganizationResponse::from_model(created_org, Some(owner_user_id)))
+        Ok(OrganizationResponse::from_model(
+            created_org,
+            Some(owner_user_id),
+        ))
     }
 
     pub async fn get_user_organizations(
@@ -103,7 +113,9 @@ impl OrganizationService {
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
 
         if !is_admin {
-            let _role = OrgPermissionsService::verify_org_role(db, id, user_id, OrgRole::Viewer, is_admin).await?;
+            let _role =
+                OrgPermissionsService::verify_org_role(db, id, user_id, OrgRole::Viewer, is_admin)
+                    .await?;
         }
 
         let owner_id = OrganizationRepository::find_owner_id(db, org.id).await?;
@@ -123,7 +135,9 @@ impl OrganizationService {
             .await?
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
 
-        let role = OrgPermissionsService::verify_org_role(db, id, user_id, OrgRole::Admin, is_admin).await?;
+        let role =
+            OrgPermissionsService::verify_org_role(db, id, user_id, OrgRole::Admin, is_admin)
+                .await?;
 
         let mut active: OrganizationActiveModel = org.into();
         let now = Utc::now().into();
@@ -144,7 +158,9 @@ impl OrganizationService {
                 let existing = OrganizationRepository::find_by_slug(db, &slugified).await?;
                 if let Some(other) = existing {
                     if other.id != id {
-                        return Err(AppError::Conflict("An organization with this slug already exists".to_string()));
+                        return Err(AppError::Conflict(
+                            "An organization with this slug already exists".to_string(),
+                        ));
                     }
                 }
                 active.slug = Set(slugified);
@@ -175,7 +191,9 @@ impl OrganizationService {
             .await?
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
 
-        let role = OrgPermissionsService::verify_org_role(db, id, user_id, OrgRole::Owner, is_admin).await?;
+        let role =
+            OrgPermissionsService::verify_org_role(db, id, user_id, OrgRole::Owner, is_admin)
+                .await?;
         OrgPermissionsService::enforce_delete_permission(role, is_admin)?;
 
         OrganizationRepository::delete(db, id).await?;
@@ -206,8 +224,14 @@ mod tests {
     #[test]
     fn test_slugify() {
         assert_eq!(OrganizationService::slugify("Acme Corp!"), "acme-corp");
-        assert_eq!(OrganizationService::slugify("  My---Cool--Org  "), "my-cool-org");
-        assert_eq!(OrganizationService::slugify("FORGE_PLATFORM"), "forge-platform");
+        assert_eq!(
+            OrganizationService::slugify("  My---Cool--Org  "),
+            "my-cool-org"
+        );
+        assert_eq!(
+            OrganizationService::slugify("FORGE_PLATFORM"),
+            "forge-platform"
+        );
     }
 
     #[tokio::test]

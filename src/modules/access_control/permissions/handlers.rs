@@ -107,7 +107,8 @@ mod tests {
             value: Some("update-user".to_string()),
             descriptions: None,
         };
-        let result = PermissionsHandlers::update(State(state), Path(id), JsonValidate(payload)).await;
+        let result =
+            PermissionsHandlers::update(State(state), Path(id), JsonValidate(payload)).await;
         assert!(result.is_err());
     }
 
@@ -119,4 +120,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-

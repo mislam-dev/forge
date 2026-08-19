@@ -33,4 +33,3 @@ impl AppState {
         Self::from_parts(db, config)
     }
 }
-

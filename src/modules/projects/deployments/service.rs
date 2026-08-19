@@ -2,16 +2,17 @@ use chrono::Utc;
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::dto::{
-    DeploymentHistoryQuery, DeploymentResponse, TriggerDeploymentRequest, UpdateDeploymentStatusRequest,
-};
-use super::entities::deployment::ActiveModel as DeploymentActiveModel;
-use super::repository::DeploymentsRepository;
-use super::status::DeploymentStatus;
 use super::super::permissions::role::ProjectRole;
 use super::super::permissions::service::ProjectPermissionsService;
 use super::super::projects::repository::ProjectsRepository;
 use super::super::repositories::repository::ProjectRepositoriesRepository;
+use super::dto::{
+    DeploymentHistoryQuery, DeploymentResponse, TriggerDeploymentRequest,
+    UpdateDeploymentStatusRequest,
+};
+use super::entities::deployment::ActiveModel as DeploymentActiveModel;
+use super::repository::DeploymentsRepository;
+use super::status::DeploymentStatus;
 use crate::config::AppConfig;
 use crate::shared::error::AppError;
 use crate::shared::pagination::PaginatedResponse;
@@ -44,7 +45,9 @@ impl DeploymentsService {
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
             .await?
-            .ok_or_else(|| AppError::BadRequest("No repository connected to this project".to_string()))?;
+            .ok_or_else(|| {
+                AppError::BadRequest("No repository connected to this project".to_string())
+            })?;
 
         if (DeploymentsRepository::find_running_by_project_id(db, project_id).await?).is_some() {
             return Err(AppError::Conflict(
@@ -158,7 +161,9 @@ impl DeploymentsService {
         deployment_id: Uuid,
         req: UpdateDeploymentStatusRequest,
     ) -> Result<DeploymentResponse, AppError> {
-        if service_token != config.secrets.master_encryption_key.as_str() && service_token != "internal_service_token" {
+        if service_token != config.secrets.master_encryption_key.as_str()
+            && service_token != "internal_service_token"
+        {
             return Err(AppError::Unauthorized(
                 "Invalid internal service token".to_string(),
             ));
@@ -168,7 +173,8 @@ impl DeploymentsService {
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
-        let current_status: DeploymentStatus = deployment.status.parse().map_err(AppError::BadRequest)?;
+        let current_status: DeploymentStatus =
+            deployment.status.parse().map_err(AppError::BadRequest)?;
         let target_status: DeploymentStatus = req.status.parse().map_err(AppError::BadRequest)?;
 
         if !current_status.can_transition_to(target_status) {
@@ -209,7 +215,9 @@ impl DeploymentsService {
             .ok_or_else(|| AppError::NotFound("Referenced deployment not found".to_string()))?;
 
         if deployment.project_id != project_id {
-            return Err(AppError::NotFound("Deployment not found in this project".to_string()));
+            return Err(AppError::NotFound(
+                "Deployment not found in this project".to_string(),
+            ));
         }
 
         let status: DeploymentStatus = deployment.status.parse().map_err(AppError::BadRequest)?;
@@ -256,7 +264,9 @@ impl DeploymentsService {
 
         let last_success = DeploymentsRepository::find_last_success_by_project_id(db, project_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("No successful deployment found to roll back to".to_string()))?;
+            .ok_or_else(|| {
+                AppError::NotFound("No successful deployment found to roll back to".to_string())
+            })?;
 
         Self::trigger_deployment(
             db,
@@ -283,7 +293,14 @@ mod tests {
     #[tokio::test]
     async fn test_get_deployment_not_found() {
         let db = setup_mock_db();
-        let result = DeploymentsService::get_deployment(&db, Uuid::new_v4(), false, Uuid::new_v4(), Uuid::new_v4()).await;
+        let result = DeploymentsService::get_deployment(
+            &db,
+            Uuid::new_v4(),
+            false,
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+        )
+        .await;
         assert!(result.is_err());
     }
 

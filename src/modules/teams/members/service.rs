@@ -33,24 +33,29 @@ impl TeamMembersService {
         // Check requester permissions (Org Admin/Owner, Team Admin, or System Admin)
         if !is_system_admin {
             let is_allowed = {
-                let org_role = OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
+                let org_role =
+                    OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
                 let is_org_admin = matches!(org_role, Some(OrgRole::Admin) | Some(OrgRole::Owner));
 
-                let team_member = TeamMembersRepository::find_member(db, team_id, requester_id).await?;
-                let is_team_admin = matches!(team_member.as_ref().map(|m| m.role.as_str()), Some("admin"));
+                let team_member =
+                    TeamMembersRepository::find_member(db, team_id, requester_id).await?;
+                let is_team_admin =
+                    matches!(team_member.as_ref().map(|m| m.role.as_str()), Some("admin"));
 
                 is_org_admin || is_team_admin
             };
 
             if !is_allowed {
                 return Err(AppError::Forbidden(
-                    "Only Organization Admins/Owners or Team Admins can add members to a team".to_string(),
+                    "Only Organization Admins/Owners or Team Admins can add members to a team"
+                        .to_string(),
                 ));
             }
         }
 
         // Verify target user is a member of the parent organization!
-        let target_org_role = OrgPermissionsService::resolve_org_role(db, org_id, req.user_id).await?;
+        let target_org_role =
+            OrgPermissionsService::resolve_org_role(db, org_id, req.user_id).await?;
         if target_org_role.is_none() {
             return Err(AppError::BadRequest(
                 "Target user is not a member of the parent organization".to_string(),
@@ -93,8 +98,10 @@ impl TeamMembersService {
 
         if !is_system_admin {
             if let Some(org_id) = team.organization_id {
-                let org_role = OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
-                let team_member = TeamMembersRepository::find_member(db, team_id, requester_id).await?;
+                let org_role =
+                    OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
+                let team_member =
+                    TeamMembersRepository::find_member(db, team_id, requester_id).await?;
 
                 if org_role.is_none() && team_member.is_none() {
                     return Err(AppError::Forbidden(
@@ -104,7 +111,8 @@ impl TeamMembersService {
             }
         }
 
-        let members_with_users = TeamMembersRepository::find_members_by_team_id(db, team_id).await?;
+        let members_with_users =
+            TeamMembersRepository::find_members_by_team_id(db, team_id).await?;
         let mut responses = Vec::with_capacity(members_with_users.len());
 
         for (member, user) in members_with_users {
@@ -128,11 +136,14 @@ impl TeamMembersService {
 
         if !is_system_admin {
             let is_allowed = if let Some(org_id) = team.organization_id {
-                let org_role = OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
+                let org_role =
+                    OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
                 let is_org_admin = matches!(org_role, Some(OrgRole::Admin) | Some(OrgRole::Owner));
 
-                let team_member = TeamMembersRepository::find_member(db, team_id, requester_id).await?;
-                let is_team_admin = matches!(team_member.as_ref().map(|m| m.role.as_str()), Some("admin"));
+                let team_member =
+                    TeamMembersRepository::find_member(db, team_id, requester_id).await?;
+                let is_team_admin =
+                    matches!(team_member.as_ref().map(|m| m.role.as_str()), Some("admin"));
 
                 is_org_admin || is_team_admin
             } else {
@@ -141,7 +152,8 @@ impl TeamMembersService {
 
             if !is_allowed {
                 return Err(AppError::Forbidden(
-                    "Only Organization Admins/Owners or Team Admins can update team member roles".to_string(),
+                    "Only Organization Admins/Owners or Team Admins can update team member roles"
+                        .to_string(),
                 ));
             }
         }
@@ -174,11 +186,14 @@ impl TeamMembersService {
 
         if !is_system_admin {
             let is_allowed = if let Some(org_id) = team.organization_id {
-                let org_role = OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
+                let org_role =
+                    OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
                 let is_org_admin = matches!(org_role, Some(OrgRole::Admin) | Some(OrgRole::Owner));
 
-                let team_member = TeamMembersRepository::find_member(db, team_id, requester_id).await?;
-                let is_team_admin = matches!(team_member.as_ref().map(|m| m.role.as_str()), Some("admin"));
+                let team_member =
+                    TeamMembersRepository::find_member(db, team_id, requester_id).await?;
+                let is_team_admin =
+                    matches!(team_member.as_ref().map(|m| m.role.as_str()), Some("admin"));
 
                 is_org_admin || is_team_admin
             } else {
@@ -187,7 +202,8 @@ impl TeamMembersService {
 
             if !is_allowed {
                 return Err(AppError::Forbidden(
-                    "Only Organization Admins/Owners or Team Admins can remove team members".to_string(),
+                    "Only Organization Admins/Owners or Team Admins can remove team members"
+                        .to_string(),
                 ));
             }
         }
@@ -225,7 +241,9 @@ mod tests {
         let team_id = Uuid::new_v4();
         let requester_id = Uuid::new_v4();
         let target_user_id = Uuid::new_v4();
-        let result = TeamMembersService::remove_member(&db, requester_id, false, team_id, target_user_id).await;
+        let result =
+            TeamMembersService::remove_member(&db, requester_id, false, team_id, target_user_id)
+                .await;
         assert!(result.is_err());
     }
 }

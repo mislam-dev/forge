@@ -18,8 +18,14 @@ pub async fn connect_repository(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<ConnectRepositoryRequest>,
 ) -> Result<ApiResponse<RepositoryResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let repository = ProjectRepositoriesService::connect_repository(&state.db, claims.sub, is_admin, id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let repository = ProjectRepositoriesService::connect_repository(
+        &state.db, claims.sub, is_admin, id, payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -32,8 +38,12 @@ pub async fn get_repository(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<RepositoryResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let repository = ProjectRepositoriesService::get_repository(&state.db, claims.sub, is_admin, id).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let repository =
+        ProjectRepositoriesService::get_repository(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -47,8 +57,13 @@ pub async fn update_repository(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<UpdateRepositoryRequest>,
 ) -> Result<ApiResponse<RepositoryResponse>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let repository = ProjectRepositoriesService::update_repository(&state.db, claims.sub, is_admin, id, payload).await?;
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let repository =
+        ProjectRepositoriesService::update_repository(&state.db, claims.sub, is_admin, id, payload)
+            .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -61,7 +76,10 @@ pub async fn disconnect_repository(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims.role.iter().any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims
+        .role
+        .iter()
+        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     ProjectRepositoriesService::disconnect_repository(&state.db, claims.sub, is_admin, id).await?;
 
     Ok(ApiResponse::new()

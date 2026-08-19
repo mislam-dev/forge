@@ -2,15 +2,19 @@ use sea_orm::*;
 use uuid::Uuid;
 
 use super::entities::project_member::{
-    ActiveModel as ProjectMemberActiveModel, Column as ProjectMemberColumn, Entity as ProjectMemberEntity,
-    Model as ProjectMemberModel,
+    ActiveModel as ProjectMemberActiveModel, Column as ProjectMemberColumn,
+    Entity as ProjectMemberEntity, Model as ProjectMemberModel,
 };
 use super::entities::project_team::{
-    ActiveModel as ProjectTeamActiveModel, Column as ProjectTeamColumn, Entity as ProjectTeamEntity,
-    Model as ProjectTeamModel,
+    ActiveModel as ProjectTeamActiveModel, Column as ProjectTeamColumn,
+    Entity as ProjectTeamEntity, Model as ProjectTeamModel,
 };
-use crate::modules::teams::teams::entities::team::{Column as TeamColumn, Entity as TeamEntity, Model as TeamModel};
-use crate::modules::users::entities::users::{Column as UserColumn, Entity as UserEntity, Model as UserModel};
+use crate::modules::teams::teams::entities::team::{
+    Column as TeamColumn, Entity as TeamEntity, Model as TeamModel,
+};
+use crate::modules::users::entities::users::{
+    Column as UserColumn, Entity as UserEntity, Model as UserModel,
+};
 use crate::shared::error::AppError;
 
 pub struct ProjectAssignmentsRepository;
@@ -152,14 +156,16 @@ mod tests {
     #[tokio::test]
     async fn test_find_member_empty_db() {
         let db = setup_mock_db();
-        let result = ProjectAssignmentsRepository::find_member(&db, Uuid::new_v4(), Uuid::new_v4()).await;
+        let result =
+            ProjectAssignmentsRepository::find_member(&db, Uuid::new_v4(), Uuid::new_v4()).await;
         assert!(result.is_err());
     }
 
     #[tokio::test]
     async fn test_find_team_empty_db() {
         let db = setup_mock_db();
-        let result = ProjectAssignmentsRepository::find_team(&db, Uuid::new_v4(), Uuid::new_v4()).await;
+        let result =
+            ProjectAssignmentsRepository::find_team(&db, Uuid::new_v4(), Uuid::new_v4()).await;
         assert!(result.is_err());
     }
 }
