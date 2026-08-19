@@ -50,7 +50,7 @@
 
 | Infrastructure | Status | Progress | Priority | Started | Completed |
 |----------------|--------|----------|----------|---------|-----------|
-| Database & Migrations | In Progress | 75% | P0 | 2026-08-13 | — |
+| Database & Migrations | In Progress | 85% | P0 | 2026-08-13 | — |
 | Redis | Not Started | 0% | P0 | — | — |
 | RabbitMQ | Not Started | 0% | P1 | — | — |
 | Grafana Loki — Logging | Not Started | 0% | P1 | — | — |
@@ -63,15 +63,17 @@
 
 | Field | Value |
 |-------|-------|
-| Current Module | 02 — Authentication & 04 — Users |
-| Current Task | Connecting Auth handlers to router, adding Redis session revocation cache & writing module integration tests |
-| Status | In Progress |
-| Started | 2026-08-17 |
+| Current Module | 05 — Organizations, 06 — Organization Members & 07 — Organization Permissions |
+| Current Task | Module & submodule implementation completed |
+| Status | Completed |
+| Started | 2026-08-19 |
 | Expected Completion | 2026-08-19 |
 
 ---
 
 ## Completed Work
+
+- **2026-08-19:** Implemented Organization module (`src/modules/organization/`) with submodules `orgs`, `members`, and `permissions`. Added `organization_invitations` table migration, description and logo columns migration to `organizations`, SeaORM entity models, DTOs, repositories, services (`OrganizationService`, `OrganizationMembersService`, `OrgPermissionsService`), handlers, router wiring under `/api/organizations`, sole-owner demotion/removal protection, and 9/9 passing integration tests in `tests/organization_tests.rs`.
 
 - **2026-08-19:** Implemented User Profile sub-module (`src/modules/users/profile/`), including entity models, `Gender` enum, request/response DTOs, `UserProfileRepository`, `UserProfileService`, handlers (`get_profile`, `update_profile`, `delete_profile`), router wiring, default profile auto-creation on user registration, and 6/6 passing integration tests (`tests/user_profile_tests.rs`).
 
