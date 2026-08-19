@@ -12,9 +12,9 @@
 | Metric | Value |
 |--------|-------|
 | Overall Status | In Progress |
-| Overall Progress | ~35% |
+| Overall Progress | ~40% |
 | Current Phase | Phase 1 — Core Modules |
-| Current Module | 02 — Authentication (Completed), 03 — Access Control (Completed) & 04 — Users (In Progress - 80%) |
+| Current Module | 02 — Authentication (Completed), 03 — Access Control (Completed) & 04 — Users & User Profile (Completed) |
 | Last Updated | 2026-08-19 |
 
 ---
@@ -26,7 +26,7 @@
 | 01 — Foundation & Project Setup | Completed | 100% | P0 | 2026-08-13 | 2026-08-16 |
 | 02 — Authentication | Completed | 100% | P0 | 2026-08-17 | 2026-08-17 |
 | 03 — Access Control (RBAC) | Completed | 100% | P0 | 2026-08-17 | 2026-08-19 |
-| 04 — Users & User Profile | In Progress | 80% | P0 | 2026-08-17 | — |
+| 04 — Users & User Profile | Completed | 100% | P0 | 2026-08-17 | 2026-08-19 |
 | 05 — Organizations | Not Started | 0% | P1 | — | — |
 | 06 — Organization Members | Not Started | 0% | P1 | — | — |
 | 07 — Organization Permissions | Not Started | 0% | P1 | — | — |
@@ -72,6 +72,8 @@
 ---
 
 ## Completed Work
+
+- **2026-08-19:** Implemented User Profile sub-module (`src/modules/users/profile/`), including entity models, `Gender` enum, request/response DTOs, `UserProfileRepository`, `UserProfileService`, handlers (`get_profile`, `update_profile`, `delete_profile`), router wiring, default profile auto-creation on user registration, and 6/6 passing integration tests (`tests/user_profile_tests.rs`).
 
 - **2026-08-19:** Implemented Access Control (RBAC) module (`src/modules/access_control/`), including roles, permissions, user roles, role permissions, and service permission resolution (`AccessControlService::resolve_user_permissions`), router wiring, and verified full test suite (`tests/access_control_tests.rs`, 6 passing integration test cases).
 
@@ -126,7 +128,7 @@ Active ADRs governing implementation:
 |------|--------|-------|
 | Unit Tests | Completed | 14 unit tests passing (AppConfig, AppError, ApiResponse, PaginatedResponse) |
 | Integration Tests | Completed | 5 integration tests passing (Router, 404 handler, x-request-id, CORS) |
-| API Tests | In Progress | Module-level tests for Auth (11 tests), RBAC (6 tests passing), and Users in progress |
+| API Tests | In Progress | Module-level tests for Auth (11 tests), RBAC (6 tests), and User Profile (6 tests passing) |
 | E2E Tests | Not Started | |
 | Security Tests | Not Started | |
 | Load Tests | Not Started | |
@@ -154,6 +156,7 @@ Active ADRs governing implementation:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-08-19 | Completed Module 04 — Users & User Profile sub-module implementation (100%) and added 6 integration tests | Backend Architecture Team |
 | 2026-08-19 | Updated Module 03 — Access Control (RBAC) status to Completed (100%) following verification of module code and passing integration test suite | Backend Architecture Team |
 | 2026-08-17 | Assessed and updated progress tracker for Authentication (75%) and Users (80%) core logic implementation | Backend Architecture Team |
 | 2026-08-17 | Evaluated and verified all 20 SeaORM database migrations; updated database infrastructure plan to 75% | Backend Architecture Team |

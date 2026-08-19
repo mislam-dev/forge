@@ -17,6 +17,9 @@ pub enum AppError {
     #[error("Authentication Error: {0}")]
     Unauthorized(String),
 
+    #[error("Forbidden: {0}")]
+    Forbidden(String),
+
     #[error("Validation Error: {0}")]
     Validation(#[from] ValidationErrors),
 
@@ -91,6 +94,14 @@ impl IntoResponse for AppError {
                 }));
 
                 (StatusCode::UNAUTHORIZED, body).into_response()
+            }
+            AppError::Forbidden(msg) => {
+                tracing::warn!(message = %msg, "Forbidden request");
+                let body = Json(json!({
+                  "message": msg,
+                }));
+
+                (StatusCode::FORBIDDEN, body).into_response()
             }
             AppError::NotFound(msg) => {
                 tracing::warn!(message = %msg, "Resource not found");
