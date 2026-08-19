@@ -80,9 +80,9 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 | 15 | Build Worker | [Plan](./modules/15-build-worker.md) | Completed | P1 | Deployments, Env Vars |
 | 16 | Live Build Logs | [Plan](./modules/16-live-build-logs.md) | Completed | P2 | Build Worker, RabbitMQ, Loki |
 | 17 | Deployment History | [Plan](./modules/17-deployment-history.md) | Completed | P2 | Deployments |
-| 18 | Notifications | [Plan](./modules/18-notifications.md) | Not Started | P2 | Users, RabbitMQ |
-| 19 | Dashboard | [Plan](./modules/19-dashboard.md) | Not Started | P2 | Projects, Deployments, Orgs |
-| 20 | Health & Observability | [Plan](./modules/20-health.md) | Not Started | P0 | Foundation |
+| 18 | Notifications | [Plan](./modules/18-notifications.md) | Completed | P2 | Users, RabbitMQ |
+| 19 | Dashboard | [Plan](./modules/19-dashboard.md) | Completed | P2 | Projects, Deployments, Orgs |
+| 20 | Health & Observability | [Plan](./modules/20-health.md) | Completed | P0 | Foundation |
 
 ---
 

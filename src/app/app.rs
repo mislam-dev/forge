@@ -1,13 +1,16 @@
 use crate::app::{middleware::cors_middleware, state::AppState};
 use crate::modules::access_control::router::access_control_router;
 use crate::modules::auth::router::auth_router;
+use crate::modules::dashboard::router::dashboard_router;
+use crate::modules::health::router::health_router;
+use crate::modules::notifications::router::notifications_router;
 use crate::modules::organization::router::organization_router;
 use crate::modules::projects::router::projects_router;
 use crate::modules::teams::router::teams_router;
 use crate::modules::users::router::user_router;
 use crate::shared::logger::logging_middleware;
 use crate::shared::response::ApiResponse;
-use axum::{Router, http::StatusCode, middleware, routing::get};
+use axum::{http::StatusCode, middleware, routing::get, Router};
 use std::time::Duration;
 use tower_http::timeout::TimeoutLayer;
 
@@ -20,6 +23,10 @@ pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::erro
         .nest("/api/organizations", organization_router())
         .nest("/api/teams", teams_router())
         .nest("/api/projects", projects_router())
+        .nest("/api/notifications", notifications_router())
+        .nest("/api/dashboard", dashboard_router())
+        .nest("/api/health", health_router())
+        .nest("/health", health_router())
         .fallback(not_found_handler)
         .layer(cors_middleware())
         .layer(TimeoutLayer::with_status_code(

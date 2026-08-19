@@ -1,7 +1,9 @@
 pub mod access_control;
 pub mod auth;
+pub mod dashboard;
+pub mod health;
+pub mod notifications;
 pub mod organization;
 pub mod projects;
 pub mod teams;
 pub mod users;
-

@@ -69,6 +69,28 @@ impl OrganizationMembersRepository {
             .map_err(AppError::from)
     }
 
+    pub async fn count_members(
+        db: &DatabaseConnection,
+        org_id: Uuid,
+    ) -> Result<u64, AppError> {
+        MemberEntity::find()
+            .filter(MemberColumn::OrganizationId.eq(org_id))
+            .count(db)
+            .await
+            .map_err(AppError::from)
+    }
+
+    pub async fn find_by_user_id(
+        db: &DatabaseConnection,
+        user_id: Uuid,
+    ) -> Result<Vec<MemberModel>, AppError> {
+        MemberEntity::find()
+            .filter(MemberColumn::UserId.eq(user_id))
+            .all(db)
+            .await
+            .map_err(AppError::from)
+    }
+
     pub async fn add_member(
         db: &DatabaseConnection,
         active_model: MemberActiveModel,

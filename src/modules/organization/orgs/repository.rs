@@ -113,6 +113,15 @@ impl OrganizationRepository {
 
         Ok(owner_member.map(|m| m.user_id))
     }
+
+    pub async fn count_all(
+        db: &DatabaseConnection,
+    ) -> Result<u64, AppError> {
+        OrganizationEntity::find()
+            .count(db)
+            .await
+            .map_err(AppError::from)
+    }
 }
 
 #[cfg(test)]
