@@ -70,7 +70,7 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 | 05 | Organizations | [Plan](./modules/05-organizations.md) | Completed | P1 | Users |
 | 06 | Organization Members | [Plan](./modules/06-org-members.md) | Completed | P1 | Organizations |
 | 07 | Organization Permissions | [Plan](./modules/07-org-permissions.md) | Completed | P1 | Org Members |
-| 08 | Teams | [Plan](./modules/08-teams.md) | Not Started | P1 | Organizations |
+| 08 | Teams | [Plan](./modules/08-teams.md) | Completed | P1 | Organizations |
 | 09 | Projects | [Plan](./modules/09-projects.md) | Not Started | P1 | Organizations |
 | 10 | Repository | [Plan](./modules/10-repository.md) | Not Started | P1 | Projects |
 | 11 | Environment Variables | [Plan](./modules/11-environment-variables.md) | Not Started | P1 | Projects |

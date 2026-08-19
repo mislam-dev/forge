@@ -12,9 +12,9 @@
 | Metric | Value |
 |--------|-------|
 | Overall Status | In Progress |
-| Overall Progress | ~55% |
+| Overall Progress | ~60% |
 | Current Phase | Phase 2 — Organization & Project Layer |
-| Current Module | 05 — Organizations (Completed), 06 — Organization Members (Completed) & 07 — Organization Permissions (Completed) |
+| Current Module | 08 — Teams (Completed) |
 | Last Updated | 2026-08-19 |
 
 ---
@@ -30,7 +30,7 @@
 | 05 — Organizations | Completed | 100% | P1 | 2026-08-19 | 2026-08-19 |
 | 06 — Organization Members | Completed | 100% | P1 | 2026-08-19 | 2026-08-19 |
 | 07 — Organization Permissions | Completed | 100% | P1 | 2026-08-19 | 2026-08-19 |
-| 08 — Teams | Not Started | 0% | P1 | — | — |
+| 08 — Teams | Completed | 100% | P1 | 2026-08-19 | 2026-08-19 |
 | 09 — Projects | Not Started | 0% | P1 | — | — |
 | 10 — Repository | Not Started | 0% | P1 | — | — |
 | 11 — Environment Variables | Not Started | 0% | P1 | — | — |
@@ -72,6 +72,8 @@
 ---
 
 ## Completed Work
+
+- **2026-08-19:** Implemented Teams module (`src/modules/teams/`) with submodules `teams` and `members`. Added `m20260819_000003_add_role_to_team_members` migration, SeaORM entity models (`team`, `team_member`), `TeamRole` enum (`admin`, `developer`, `viewer`), DTOs, repositories, services (`TeamsService`, `TeamMembersService`), handlers, router wiring under `/api/teams`, org membership validation, and 10/10 passing integration tests in `tests/teams_tests.rs`. Added unit test suites to all 14 team module files (163 unit tests + 55 integration tests passing across full codebase).
 
 - **2026-08-19:** Implemented Organizations, Organization Members, and Organization Permissions modules (`src/modules/organization/`) with submodules `orgs`, `members`, and `permissions`. Added `organization_invitations` table migration, description and logo columns migration to `organizations`, SeaORM entity models, DTOs, repositories, services (`OrganizationService`, `OrganizationMembersService`, `OrgPermissionsService`), handlers, router wiring under `/api/organizations`, sole-owner demotion/removal protection, and 9/9 passing integration tests in `tests/organization_tests.rs`. Added unit test suites to all 14 organization files (138 unit tests + 45 integration tests passing across full codebase).
 
@@ -128,8 +130,8 @@ Active ADRs governing implementation:
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Unit Tests | Completed | 138 unit tests passing across all core modules |
-| Integration Tests | Completed | 45 integration tests passing (Auth: 19, RBAC: 6, Profile: 6, Foundation: 5, Organizations: 9) |
+| Unit Tests | Completed | 163 unit tests passing across all core modules |
+| Integration Tests | Completed | 55 integration tests passing (Auth: 19, RBAC: 6, Profile: 6, Foundation: 5, Organizations: 9, Teams: 10) |
 | API Tests | Completed | Full API test suite passing across all routes |
 | E2E Tests | Not Started | |
 | Security Tests | Not Started | |
