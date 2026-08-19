@@ -71,11 +71,11 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 | 06 | Organization Members | [Plan](./modules/06-org-members.md) | Completed | P1 | Organizations |
 | 07 | Organization Permissions | [Plan](./modules/07-org-permissions.md) | Completed | P1 | Org Members |
 | 08 | Teams | [Plan](./modules/08-teams.md) | Completed | P1 | Organizations |
-| 09 | Projects | [Plan](./modules/09-projects.md) | Not Started | P1 | Organizations |
-| 10 | Repository | [Plan](./modules/10-repository.md) | Not Started | P1 | Projects |
-| 11 | Environment Variables | [Plan](./modules/11-environment-variables.md) | Not Started | P1 | Projects |
-| 12 | Project Assignments | [Plan](./modules/12-project-assignments.md) | Not Started | P1 | Projects, Teams |
-| 13 | Project Permissions | [Plan](./modules/13-project-permissions.md) | Not Started | P1 | Project Assignments, Org Permissions |
+| 09 | Projects | [Plan](./modules/09-projects.md) | Completed | P1 | Organizations |
+| 10 | Repository | [Plan](./modules/10-repository.md) | Completed | P1 | Projects |
+| 11 | Environment Variables | [Plan](./modules/11-environment-variables.md) | Completed | P1 | Projects |
+| 12 | Project Assignments | [Plan](./modules/12-project-assignments.md) | Completed | P1 | Projects, Teams |
+| 13 | Project Permissions | [Plan](./modules/13-project-permissions.md) | Completed | P1 | Project Assignments, Org Permissions |
 | 14 | Deployments | [Plan](./modules/14-deployments.md) | Not Started | P1 | Projects, RabbitMQ |
 | 15 | Build Worker | [Plan](./modules/15-build-worker.md) | Not Started | P1 | Deployments, Env Vars |
 | 16 | Live Build Logs | [Plan](./modules/16-live-build-logs.md) | Not Started | P2 | Build Worker, RabbitMQ, Loki |
