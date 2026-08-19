@@ -29,6 +29,9 @@ pub enum AppError {
     #[error("Bad Request: {0}")]
     BadRequest(String),
 
+    #[error("Conflict: {0}")]
+    Conflict(String),
+
     #[error("Internal Server Error: {0}")]
     InternalServerError(String),
 }
@@ -118,6 +121,14 @@ impl IntoResponse for AppError {
                 }));
 
                 (StatusCode::BAD_REQUEST, body).into_response()
+            }
+            AppError::Conflict(msg) => {
+                tracing::warn!(message = %msg, "Conflict resource state");
+                let body = Json(json!({
+                  "message": msg,
+                }));
+
+                (StatusCode::CONFLICT, body).into_response()
             }
             AppError::InternalServerError(msg) => {
                 tracing::error!(message = %msg, "Internal server error");
