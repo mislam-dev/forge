@@ -92,12 +92,12 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 
 | Plan | Status | Priority |
 |------|--------|----------|
-| [Database & Migrations](./infrastructure/database.md) | In Progress | P0 |
+| [Database & Migrations](./infrastructure/database.md) | Completed | P0 |
 | [Redis](./infrastructure/redis.md) | Not Started | P0 |
 | [RabbitMQ](./infrastructure/rabbitmq.md) | Not Started | P1 |
 | [Grafana Loki — Logging](./infrastructure/loki.md) | Not Started | P1 |
-| [Encryption](./infrastructure/encryption.md) | Not Started | P0 |
-| [Testing Infrastructure](./infrastructure/testing.md) | Not Started | P0 |
+| [Encryption](./infrastructure/encryption.md) | Completed | P0 |
+| [Testing Infrastructure](./infrastructure/testing.md) | Completed | P0 |
 
 ---
 
