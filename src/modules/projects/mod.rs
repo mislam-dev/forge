@@ -1,5 +1,8 @@
 pub mod assignments;
+pub mod build_worker;
+pub mod deployments;
 pub mod environment_variables;
+pub mod logs;
 pub mod permissions;
 pub mod projects;
 pub mod repositories;
@@ -8,6 +11,7 @@ pub mod service;
 
 pub use router::projects_router;
 pub use service::{
-    ProjectAssignmentsService, ProjectEnvironmentVariablesService, ProjectPermissionsService,
-    ProjectRepositoriesService, ProjectsService,
+    BuildLogsService, BuildWorkerService, DeploymentsService, ProjectAssignmentsService,
+    ProjectEnvironmentVariablesService, ProjectPermissionsService, ProjectRepositoriesService,
+    ProjectsService,
 };

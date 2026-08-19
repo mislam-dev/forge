@@ -76,10 +76,10 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 | 11 | Environment Variables | [Plan](./modules/11-environment-variables.md) | Completed | P1 | Projects |
 | 12 | Project Assignments | [Plan](./modules/12-project-assignments.md) | Completed | P1 | Projects, Teams |
 | 13 | Project Permissions | [Plan](./modules/13-project-permissions.md) | Completed | P1 | Project Assignments, Org Permissions |
-| 14 | Deployments | [Plan](./modules/14-deployments.md) | Not Started | P1 | Projects, RabbitMQ |
-| 15 | Build Worker | [Plan](./modules/15-build-worker.md) | Not Started | P1 | Deployments, Env Vars |
-| 16 | Live Build Logs | [Plan](./modules/16-live-build-logs.md) | Not Started | P2 | Build Worker, RabbitMQ, Loki |
-| 17 | Deployment History | [Plan](./modules/17-deployment-history.md) | Not Started | P2 | Deployments |
+| 14 | Deployments | [Plan](./modules/14-deployments.md) | Completed | P1 | Projects, RabbitMQ |
+| 15 | Build Worker | [Plan](./modules/15-build-worker.md) | Completed | P1 | Deployments, Env Vars |
+| 16 | Live Build Logs | [Plan](./modules/16-live-build-logs.md) | Completed | P2 | Build Worker, RabbitMQ, Loki |
+| 17 | Deployment History | [Plan](./modules/17-deployment-history.md) | Completed | P2 | Deployments |
 | 18 | Notifications | [Plan](./modules/18-notifications.md) | Not Started | P2 | Users, RabbitMQ |
 | 19 | Dashboard | [Plan](./modules/19-dashboard.md) | Not Started | P2 | Projects, Deployments, Orgs |
 | 20 | Health & Observability | [Plan](./modules/20-health.md) | Not Started | P0 | Foundation |
