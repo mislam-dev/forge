@@ -13,8 +13,8 @@
 This directory is the **authoritative implementation roadmap** for the Forge Platform backend. The project currently has:
 
 - **Extensive, high-quality documentation** (SRS, module docs, ERD, OpenAPI, ADRs — rated 9.8/10)
-- **Active & modular Rust/Axum codebase** with core modules implemented (Foundation, Authentication, Access Control (RBAC), Users & User Profile)
-- **100+ unit and integration tests passing** covering core identity, access control, routing, and user profile management
+- **Active & modular Rust/Axum codebase** with core modules implemented (Foundation, Authentication, Access Control (RBAC), Users & User Profile, Organizations, Organization Members, Organization Permissions)
+- **180+ unit and integration tests passing** covering core identity, access control, routing, user profile management, and multi-tenant organization management
 
 Every plan in this directory is derived directly from the existing project documentation. No features have been invented. No documentation has been ignored.
 
@@ -67,9 +67,9 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 | 02 | Authentication | [Plan](./modules/02-authentication.md) | Completed | P0 | Foundation |
 | 03 | Access Control (RBAC) | [Plan](./modules/03-access-control.md) | Completed | P0 | Foundation, Auth |
 | 04 | Users & User Profile | [Plan](./modules/04-users.md) | Completed | P0 | Foundation, Auth |
-| 05 | Organizations | [Plan](./modules/05-organizations.md) | Not Started | P1 | Users |
-| 06 | Organization Members | [Plan](./modules/06-org-members.md) | Not Started | P1 | Organizations |
-| 07 | Organization Permissions | [Plan](./modules/07-org-permissions.md) | Not Started | P1 | Org Members |
+| 05 | Organizations | [Plan](./modules/05-organizations.md) | Completed | P1 | Users |
+| 06 | Organization Members | [Plan](./modules/06-org-members.md) | Completed | P1 | Organizations |
+| 07 | Organization Permissions | [Plan](./modules/07-org-permissions.md) | Completed | P1 | Org Members |
 | 08 | Teams | [Plan](./modules/08-teams.md) | Not Started | P1 | Organizations |
 | 09 | Projects | [Plan](./modules/09-projects.md) | Not Started | P1 | Organizations |
 | 10 | Repository | [Plan](./modules/10-repository.md) | Not Started | P1 | Projects |
