@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "info"
     };
 
-    logger::init_tracing(log_filter);
+    let _guard = logger::init_tracing(log_filter);
 
     tracing::info!("Starting appplication.....");
     let app_state = AppState::new().await?;

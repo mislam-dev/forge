@@ -28,6 +28,7 @@ tokio = { version = "1.53.1", features = ["full"] }
 tokio-stream = "0.1"
 tower-http = { version = "0.7.0", features = ["cors", "request-id", "timeout", "trace", "util"] }
 tracing = "0.1.44"
+tracing-appender = "0.2.5"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
 uuid = { version = "1.24.1", features = ["serde", "v4"] }

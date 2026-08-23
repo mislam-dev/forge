@@ -1,19 +1,30 @@
 use axum::{extract::Request, http::HeaderValue, middleware::Next, response::Response};
 use std::time::Instant;
 use tracing::{Instrument, error, info};
-use tracing_subscriber::{EnvFilter, fmt};
+use tracing_appender::{non_blocking::WorkerGuard, rolling};
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 use uuid::Uuid;
 
-pub fn init_tracing(rust_log: &str) {
+pub fn init_tracing(rust_log: &str) -> WorkerGuard {
     let filter = EnvFilter::try_new(rust_log).unwrap_or_else(|_| EnvFilter::new("info"));
 
-    fmt()
-        .json()
-        .with_env_filter(filter)
-        .with_target(true)
-        .with_current_span(true)
-        .with_span_list(true)
+    let file_appender = rolling::daily("logs", "forge.log");
+    let (non_blocking_writer, guard) = tracing_appender::non_blocking(file_appender);
+
+    tracing_subscriber::registry()
+        .with(filter)
+        .with(fmt::layer().with_target(true).pretty())
+        .with(
+            fmt::layer()
+                .json()
+                .with_target(true)
+                .with_current_span(true)
+                .with_span_list(true)
+                .with_writer(non_blocking_writer),
+        )
         .init();
+
+    guard
 }
 
 const REQUEST_ID_HEADER: &str = "x-request-id";
@@ -44,8 +55,6 @@ pub async fn logging_middleware(mut req: Request, next: Next) -> Response {
     let start = Instant::now();
 
     async move {
-        info!("request.started");
-
         let mut response = next.run(req).await;
 
         let latency_ms = start.elapsed().as_millis();
