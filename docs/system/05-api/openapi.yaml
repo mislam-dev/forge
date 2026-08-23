@@ -370,19 +370,22 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /access-control/permission:
+  /access-control/permissions:
     get:
-      operationId: access_control_permission_get
+      operationId: access_control_permissions_get
       tags:
         - Access Control
       summary: "List system permissions"
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
       responses:
         '200':
           description: "Permissions list"
     post:
-      operationId: access_control_permission_post
+      operationId: access_control_permissions_post
       tags:
         - Access Control
       summary: "Create a system permission"
@@ -402,9 +405,9 @@ paths:
         '201':
           description: "Permission created"
 
-  /access-control/permission/{id}:
+  /access-control/permissions/{id}:
     put:
-      operationId: access_control_permission_id_put
+      operationId: access_control_permissions_id_put
       tags:
         - Access Control
       summary: "Update system permission"
@@ -422,7 +425,7 @@ paths:
         '200':
           description: "Permission updated"
     delete:
-      operationId: access_control_permission_id_delete
+      operationId: access_control_permissions_id_delete
       tags:
         - Access Control
       summary: "Delete system permission"
@@ -2073,7 +2076,73 @@ components:
         format: uuid
       example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
 
+    PageQueryParam:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+      description: "Page number for pagination (defaults to 1)"
+
+    PerPageQueryParam:
+      name: per_page
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+      description: "Number of items per page (defaults to 10)"
+
   schemas:
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        total_pages:
+          type: integer
+          example: 10
+
+    PaginatedResponse:
+      type: object
+      required:
+        - data
+        - page
+        - per_page
+        - total
+        - total_pages
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        total_pages:
+          type: integer
+          example: 10
     RegisterRequest:
       type: object
       required:

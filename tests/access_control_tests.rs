@@ -26,7 +26,7 @@ async fn test_roles_endpoint_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/access-control/roles")
+        .uri("/api/v1/access-control/roles")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -51,7 +51,7 @@ async fn test_roles_endpoint_authorized_with_valid_jwt() {
     .unwrap();
 
     let req = Request::builder()
-        .uri("/api/access-control/roles")
+        .uri("/api/v1/access-control/roles")
         .method("GET")
         .header("Authorization", format!("Bearer {}", token))
         .body(Body::empty())
@@ -72,7 +72,7 @@ async fn test_permissions_endpoint_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/access-control/permission")
+        .uri("/api/v1/access-control/permissions")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -88,7 +88,7 @@ async fn test_role_permissions_endpoint_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/access-control/roles/permissions/assign")
+        .uri("/api/v1/access-control/roles/permissions/assign")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from("{}"))
@@ -105,7 +105,7 @@ async fn test_user_roles_endpoint_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/access-control/role/assign")
+        .uri("/api/v1/access-control/role/assign")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from("{}"))
@@ -122,7 +122,7 @@ async fn test_user_permissions_endpoint_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/access-control/users/permission/assign")
+        .uri("/api/v1/access-control/users/permission/assign")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from("{}"))

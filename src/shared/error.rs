@@ -167,7 +167,7 @@ mod tests {
 
         let body_bytes = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let json: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
-        assert_eq!(json["message"], "Invalid or expired JWT token");
+        assert_eq!(json["message"], "Unauthorized");
     }
 
     #[tokio::test]

@@ -128,10 +128,10 @@ All endpoints require `System Admin` role.
 
 | Method | Endpoint | Description | Response |
 |--------|----------|-------------|----------|
-| GET | `/access-control/permission` | List all permissions | 200 paginated list |
-| POST | `/access-control/permission` | Create a permission | 201 permission |
-| PUT | `/access-control/permission/:id` | Update a permission | 200 permission |
-| DELETE | `/access-control/permission/:id` | Delete a permission | 200 success |
+| GET | `/access-control/permissions` | List all permissions | 200 paginated list |
+| POST | `/access-control/permissions` | Create a permission | 201 permission |
+| PUT | `/access-control/permissions/:id` | Update a permission | 200 permission |
+| DELETE | `/access-control/permissions/:id` | Delete a permission | 200 success |
 
 ### Role-Permission Mapping
 

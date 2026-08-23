@@ -5,7 +5,7 @@ fn default_page() -> u64 {
 }
 
 fn default_per_page() -> u64 {
-    20
+    10
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -60,7 +60,7 @@ mod tests {
     fn test_pagination_params_defaults() {
         let params: PaginationParams = serde_json::from_str("{}").unwrap();
         assert_eq!(params.page, 1);
-        assert_eq!(params.per_page, 20);
+        assert_eq!(params.per_page, 10);
     }
 
     #[test]

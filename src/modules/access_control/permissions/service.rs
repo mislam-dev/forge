@@ -3,17 +3,24 @@ use super::dto::{
     response::PermissionResponseDto,
 };
 use super::repository::PermissionsRepository;
-use crate::shared::error::AppError;
+use crate::shared::{
+    error::AppError,
+    pagination::{PaginatedResponse, PaginationParams},
+};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
 pub struct PermissionsService;
 
 impl PermissionsService {
-    pub async fn find(db: &DatabaseConnection) -> Result<Vec<PermissionResponseDto>, AppError> {
-        let perms = PermissionsRepository::find(db).await?;
+    pub async fn find(
+        db: &DatabaseConnection,
+        params: PaginationParams,
+    ) -> Result<PaginatedResponse<PermissionResponseDto>, AppError> {
+        let data = PermissionsRepository::find(db, &params).await?;
 
-        let perms_data = perms
+        let perms_data = data
+            .data
             .into_iter()
             .map(|c| PermissionResponseDto {
                 id: c.id.to_string(),
@@ -23,7 +30,13 @@ impl PermissionsService {
             })
             .collect::<Vec<PermissionResponseDto>>();
 
-        Ok(perms_data)
+        Ok(PaginatedResponse {
+            data: perms_data,
+            page: data.page,
+            per_page: data.per_page,
+            total: data.total,
+            total_pages: data.total_pages,
+        })
     }
 
     pub async fn find_by_id(
@@ -47,9 +60,7 @@ impl PermissionsService {
     ) -> Result<PermissionResponseDto, AppError> {
         let perm = PermissionsRepository::find_by_value(db, &dto.value).await?;
         if perm.is_some() {
-            return Err(AppError::BadRequest(
-                "Permission already exists!".to_string(),
-            ));
+            return Err(AppError::Conflict("Permission already exists!".to_string()));
         }
 
         let perm = PermissionsRepository::create(db, dto).await?;
@@ -67,6 +78,12 @@ impl PermissionsService {
         id: Uuid,
         perm_data: PermissionUpdateDto,
     ) -> Result<PermissionResponseDto, AppError> {
+        if let Some(value) = &perm_data.value {
+            let perm = PermissionsRepository::find_by_value(db, value).await?;
+            if perm.is_some() && perm.unwrap().id != id {
+                return Err(AppError::Conflict("Permission already exists!".to_string()));
+            }
+        }
         let perm = PermissionsRepository::update(db, id, perm_data).await?;
 
         Ok(PermissionResponseDto {

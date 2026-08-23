@@ -10,7 +10,7 @@ use crate::app::state::AppState;
 pub fn access_control_router() -> Router<AppState> {
     Router::new()
         .nest("/roles", roles_router())
-        .nest("/permission", permissions_router())
+        .nest("/permissions", permissions_router())
         .nest("/roles/permissions", role_permissions_router())
         .nest("/role", user_roles_router())
         .nest("/users", user_permissions_router())

@@ -3,11 +3,16 @@ use super::dto::{
     response::PermissionResponseDto,
 };
 use super::service::PermissionsService;
-use crate::app::state::AppState;
-use crate::shared::{error::AppError, utils::IdParams, validation::JsonValidate};
+use crate::shared::{
+    error::AppError,
+    pagination::{PaginatedResponse, PaginationParams},
+    utils::IdParams,
+    validation::JsonValidate,
+};
+use crate::{app::state::AppState, shared::response::ApiResponse};
 use axum::{
-    Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
+    http::StatusCode,
 };
 
 pub struct PermissionsHandlers;
@@ -15,43 +20,59 @@ pub struct PermissionsHandlers;
 impl PermissionsHandlers {
     pub async fn list(
         State(state): State<AppState>,
-    ) -> Result<Json<Vec<PermissionResponseDto>>, AppError> {
-        let perms = PermissionsService::find(&state.db).await?;
-        Ok(Json(perms))
+        Query(params): Query<PaginationParams>,
+    ) -> Result<ApiResponse<PaginatedResponse<PermissionResponseDto>>, AppError> {
+        let perms = PermissionsService::find(&state.db, params).await?;
+        Ok(ApiResponse::new()
+            .message("Permissions fetch successfully".to_string())
+            .status(StatusCode::OK)
+            .body(Some(perms)))
     }
 
     pub async fn show(
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
-    ) -> Result<Json<PermissionResponseDto>, AppError> {
+    ) -> Result<ApiResponse<PermissionResponseDto>, AppError> {
         let perm = PermissionsService::find_by_id(&state.db, id.0).await?;
-        Ok(Json(perm))
+        Ok(ApiResponse::new()
+            .message("Permissions fetch successfully".to_string())
+            .status(StatusCode::OK)
+            .body(Some(perm)))
     }
 
     pub async fn add(
         State(state): State<AppState>,
         JsonValidate(payload): JsonValidate<PermissionCreateDto>,
-    ) -> Result<Json<PermissionResponseDto>, AppError> {
+    ) -> Result<ApiResponse<PermissionResponseDto>, AppError> {
         let perm = PermissionsService::create(&state.db, payload).await?;
-        Ok(Json(perm))
+        Ok(ApiResponse::new()
+            .message("Permissions created successfully".to_string())
+            .status(StatusCode::CREATED)
+            .body(Some(perm)))
     }
 
     pub async fn update(
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
         JsonValidate(payload): JsonValidate<PermissionUpdateDto>,
-    ) -> Result<Json<PermissionResponseDto>, AppError> {
+    ) -> Result<ApiResponse<PermissionResponseDto>, AppError> {
         let perm = PermissionsService::update(&state.db, id.0, payload).await?;
-        Ok(Json(perm))
+        Ok(ApiResponse::new()
+            .message("Permissions updated successfully".to_string())
+            .status(StatusCode::OK)
+            .body(Some(perm)))
     }
 
     pub async fn remove(
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
-    ) -> Result<(), AppError> {
+    ) -> Result<ApiResponse<()>, AppError> {
         let _ = PermissionsService::remove(&state.db, id.0).await?;
 
-        Ok(())
+        Ok(ApiResponse::new()
+            .message("Permissions deleted successfully".to_string())
+            .status(StatusCode::NO_CONTENT)
+            .body(None))
     }
 }
 
@@ -74,7 +95,14 @@ mod tests {
     #[tokio::test]
     async fn test_list_handler() {
         let state = setup_mock_state();
-        let result = PermissionsHandlers::list(State(state)).await;
+        let result = PermissionsHandlers::list(
+            State(state),
+            Query(PaginationParams {
+                page: 1,
+                per_page: 10,
+            }),
+        )
+        .await;
         assert!(result.is_ok() || result.is_err());
     }
 

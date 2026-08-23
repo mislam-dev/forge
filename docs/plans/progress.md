@@ -165,6 +165,7 @@ Active ADRs governing implementation:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-08-23 | Updated Permissions sub-module with paginated listing, standardized `ApiResponse` envelope, conflict error handling, route pluralization (`/permissions`), and updated tests & OpenAPI documentation | Backend Architecture Team |
 | 2026-08-19 | Completed Modules 14, 15, 16, and 17 (Deployments, Build Worker, Live Build Logs, Deployment History) with full unit & integration tests (295 passing tests) | Backend Architecture Team |
 | 2026-08-19 | Completed Modules 09, 10, 11, 12, and 13 (Projects, Repository, Environment Variables, Assignments, Permissions) with full unit & integration tests (269 passing tests) | Backend Architecture Team |
 | 2026-08-19 | Completed Module 08 (Teams & Team Members) with full unit & integration tests (218 passing tests) | Backend Architecture Team |
