@@ -2,6 +2,7 @@ use crate::app::{middleware::cors_middleware, state::AppState};
 use crate::modules::access_control::router::access_control_router;
 use crate::modules::auth::router::auth_router;
 use crate::modules::dashboard::router::dashboard_router;
+use crate::modules::docs::router::docs_router;
 use crate::modules::health::router::health_router;
 use crate::modules::notifications::router::notifications_router;
 use crate::modules::organization::router::organization_router;
@@ -27,6 +28,7 @@ pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::erro
         .nest("/api/dashboard", dashboard_router())
         .nest("/api/health", health_router())
         .nest("/health", health_router())
+        .merge(docs_router())
         .fallback(not_found_handler)
         .layer(cors_middleware())
         .layer(TimeoutLayer::with_status_code(
