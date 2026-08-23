@@ -30,13 +30,13 @@ impl AuthService {
     ) -> Result<LoginResponseDto, AppError> {
         let user = UserService::find_by_email_with_password(db, &dto.email)
             .await
-            .map_err(|_| AppError::BadRequest("Invalid Credentials".to_string()))?;
+            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
         let is_valid = PasswordService::verify(&user.password, &dto.password)
             .await
-            .map_err(|_| AppError::BadRequest("Invalid credentials".to_string()))?;
+            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
 
         if !is_valid {
-            return Err(AppError::BadRequest("Invalid credentials".to_string()));
+            return Err(AppError::Unauthorized("Invalid credentials".to_string()));
         }
 
         // todo fetch user roles and permissions
@@ -45,17 +45,11 @@ impl AuthService {
             email: user.email.clone(),
             permissions: vec![],
             role: vec![],
-        })
-        .map_err(|_| {
-            AppError::InternalServerError("Failed to generate access token".to_string())
         })?;
 
         let refresh_token = AuthTokenService::refresh(RefreshTokenPayload {
             user_id: user.id,
             email: user.email.clone(),
-        })
-        .map_err(|_| {
-            AppError::InternalServerError("Failed to generate refresh token".to_string())
         })?;
 
         RefreshTokenRepository::save_refresh_token(
@@ -63,13 +57,10 @@ impl AuthService {
             RefreshToken {
                 token: refresh_token.clone(),
                 user_id: user.id,
-                expires_at: 7, // todo update proper value
+                expires_at: (chrono::Utc::now() + chrono::Duration::days(7)).into(),
             },
         )
-        .await
-        .map_err(|_| {
-            AppError::InternalServerError("Failed to store refresh token on the db".to_string())
-        })?;
+        .await?;
 
         // todo: store access_token with expiration in redis
 
@@ -87,13 +78,12 @@ impl AuthService {
         let user = UserService::create(
             db,
             CreateUserDto {
-                username: dto.username,
+                name: dto.name,
                 email: dto.email.clone(),
                 password: dto.password,
             },
         )
-        .await
-        .map_err(|_| AppError::BadRequest("Failed to create user".to_string()))?;
+        .await?;
 
         Ok(RegisterResponseDto {
             id: user.id,
@@ -119,50 +109,39 @@ impl AuthService {
         dto: RefreshTokenDto,
     ) -> Result<RefreshTokenResponseDto, AppError> {
         let token_decode = AuthTokenService::verify(&dto.refresh_token)
-            .map_err(|_| AppError::Unauthorized("Invalid token".to_string()))?;
+            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
+
+        let _token = RefreshTokenRepository::fetch_refresh_token(db, &dto.refresh_token)
+            .await
+            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
 
         let user = UserService::find_one(db, token_decode.sub)
             .await
-            .map_err(|_| AppError::Unauthorized("Invalid token".to_string()))?;
+            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
 
         let access_token = AuthTokenService::access(JwtPayload {
             user_id: user.id,
             email: user.email.clone(),
             permissions: vec![],
             role: vec![],
-        })
-        .map_err(|_| {
-            AppError::InternalServerError("Failed to generate access token".to_string())
         })?;
 
         let refresh_token = AuthTokenService::refresh(RefreshTokenPayload {
             user_id: user.id,
             email: user.email.clone(),
-        })
-        .map_err(|_| {
-            AppError::InternalServerError("Failed to generate refresh token".to_string())
         })?;
 
-        RefreshTokenRepository::remove_tokens_by_user_id(db, user.id)
-            .await
-            .map_err(|_| {
-                AppError::InternalServerError(
-                    "Failed to remove refresh tokens from the db".to_string(),
-                )
-            })?;
+        RefreshTokenRepository::remove_tokens_by_user_id(db, user.id).await?;
 
         RefreshTokenRepository::save_refresh_token(
             db,
             RefreshToken {
                 token: refresh_token.clone(),
                 user_id: user.id,
-                expires_at: 4,
+                expires_at: (chrono::Utc::now() + chrono::Duration::days(7)).into(),
             },
         )
-        .await
-        .map_err(|_| {
-            AppError::InternalServerError("Failed to store refresh token on the db".to_string())
-        })?;
+        .await?;
 
         Ok(RefreshTokenResponseDto {
             access_token,
@@ -319,7 +298,7 @@ mod tests {
     async fn test_register_failed_creation() {
         let db = setup_mock_db();
         let dto = RegisterUserDto {
-            username: "newuser".to_string(),
+            name: "newuser".to_string(),
             email: "newuser@example.com".to_string(),
             password: "Password123!".to_string(),
         };

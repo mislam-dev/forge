@@ -86,14 +86,14 @@ impl IntoResponse for AppError {
                     "message": "Validation failed",
                     "errors": err_map // e.g., { "email": ["Invalid email format"], "password": ["Too short"] }
                 }));
-                tracing::warn!(details = ?err_map, "Request validation failed");
+                tracing::error!(details = ?err_map, "Request validation failed");
                 (StatusCode::BAD_REQUEST, body).into_response()
             }
 
             AppError::Unauthorized(msg) => {
                 tracing::warn!(message = %msg, "Unauthorized request");
                 let body = Json(json!({
-                  "message": msg,
+                  "message": "Unauthorized",
                 }));
 
                 (StatusCode::UNAUTHORIZED, body).into_response()

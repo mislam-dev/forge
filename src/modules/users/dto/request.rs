@@ -3,8 +3,8 @@ use validator::Validate;
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct CreateUserDto {
-    #[validate(length(min = 1, message = "Username is required"))]
-    pub username: String,
+    #[validate(length(min = 1, message = "Name is required"))]
+    pub name: String,
 
     #[validate(
         length(min = 1, message = "Email is required"),

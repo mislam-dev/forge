@@ -117,7 +117,7 @@ mod tests {
     async fn test_register_handler() {
         let state = setup_mock_state();
         let payload = RegisterUserDto {
-            username: "testuser".to_string(),
+            name: "testuser".to_string(),
             email: "testuser@example.com".to_string(),
             password: "Password123!".to_string(),
         };

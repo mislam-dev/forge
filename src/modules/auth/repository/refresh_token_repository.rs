@@ -13,7 +13,7 @@ pub struct RefreshTokenRepository;
 pub struct RefreshToken {
     pub token: String,
     pub user_id: Uuid,
-    pub expires_at: i64,
+    pub expires_at: chrono::DateTime<chrono::FixedOffset>,
 }
 
 impl RefreshTokenRepository {
@@ -24,9 +24,10 @@ impl RefreshTokenRepository {
         let new_refresh_token = RefreshActiveModel {
             token: Set(dto.token),
             user_id: Set(dto.user_id),
-            // expires_at: Set(dto.expires_at),
+            expires_at: Set(dto.expires_at),
             ..Default::default()
         };
+
         new_refresh_token
             .insert(db)
             .await
@@ -64,13 +65,14 @@ mod tests {
     #[test]
     fn test_refresh_token_struct_creation() {
         let user_id = Uuid::new_v4();
+        let now = chrono::Utc::now().into();
         let dto = RefreshToken {
             token: "refresh_token_sample".to_string(),
             user_id,
-            expires_at: 604800,
+            expires_at: now,
         };
         assert_eq!(dto.token, "refresh_token_sample");
         assert_eq!(dto.user_id, user_id);
-        assert_eq!(dto.expires_at, 604800);
+        assert_eq!(dto.expires_at, now);
     }
 }

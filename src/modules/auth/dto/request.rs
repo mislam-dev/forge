@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Default)]
+#[serde(default)]
 pub struct RegisterUserDto {
-    #[validate(length(min = 1, message = "Username is required"))]
-    pub username: String,
+    #[validate(length(min = 1, message = "Name is required"))]
+    pub name: String,
 
     #[validate(
         length(min = 1, message = "Email is required"),
@@ -16,7 +17,8 @@ pub struct RegisterUserDto {
     pub password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Default)]
+#[serde(default)]
 pub struct LoginUserDto {
     #[validate(length(min = 1, message = "Email is required"))]
     pub email: String,
@@ -25,19 +27,22 @@ pub struct LoginUserDto {
     pub password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Default)]
+#[serde(default)]
 pub struct RefreshTokenDto {
     #[validate(length(min = 1, message = "Refresh token is required"))]
     pub refresh_token: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Default)]
+#[serde(default)]
 pub struct ForgotPasswordDto {
     #[validate(length(min = 1, message = "Email is required"))]
     pub email: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Default)]
+#[serde(default)]
 pub struct ResetPasswordDto {
     #[validate(length(min = 1, message = "Reset token is required"))]
     pub token: String,
@@ -49,7 +54,8 @@ pub struct ResetPasswordDto {
     pub confirm_password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Default)]
+#[serde(default)]
 pub struct VerifyEmailDto {
     #[validate(length(min = 1, message = "Verification token is required"))]
     pub token: String,

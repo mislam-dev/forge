@@ -1,4 +1,4 @@
-use crate::shared::error::AppError;
+use crate::{config::AppConfig, shared::error::AppError};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{Header, TokenData};
 use serde::{Deserialize, Serialize};
@@ -47,23 +47,25 @@ impl AuthTokenService {
     }
 
     pub fn access(data: JwtPayload) -> Result<String, AppError> {
-        let secret = std::env::var("JWT_SECRET")
-            .map_err(|_| AppError::Config("JWT_SECRET must be set in .env".to_string()))?;
+        let config = AppConfig::load().unwrap();
+        let secret = &config.secrets.jwt_secret;
 
         let now = Utc::now();
-        let exp: usize = (now + Duration::hours(24)).timestamp() as usize;
-        let a = Self::create(data, exp, secret).map_err(|_| {
+        let exp: usize =
+            (now + Duration::seconds(config.secrets.jwt_expiry_seconds)).timestamp() as usize;
+        let token = Self::create(data, exp, secret.to_string()).map_err(|_| {
             AppError::InternalServerError("Failed to generate access_token".to_string())
         })?;
 
-        Ok(a)
+        Ok(token)
     }
     pub fn refresh(data: RefreshTokenPayload) -> Result<String, AppError> {
-        let secret = std::env::var("JWT_SECRET")
-            .map_err(|_| AppError::Config("JWT_SECRET must be set in .env".to_string()))?;
+        let config = AppConfig::load().unwrap();
+        let secret = &config.secrets.jwt_secret;
 
         let now = Utc::now();
-        let exp: usize = (now + Duration::days(7)).timestamp() as usize;
+        let exp: usize =
+            (now + Duration::days(config.secrets.refresh_token_expiry_days)).timestamp() as usize;
         let a = Self::create(
             JwtPayload {
                 user_id: data.user_id,
@@ -72,7 +74,7 @@ impl AuthTokenService {
                 permissions: vec![],
             },
             exp,
-            secret,
+            secret.to_string(),
         )
         .map_err(|_| {
             AppError::InternalServerError("Failed to generate refresh_token".to_string())
@@ -82,8 +84,8 @@ impl AuthTokenService {
     }
 
     pub fn verify(token: &str) -> Result<JwtClaims, AppError> {
-        let secret = std::env::var("JWT_SECRET")
-            .map_err(|_| AppError::Config("JWT_SECRET must be set in .env".to_string()))?;
+        let config = AppConfig::load().unwrap();
+        let secret = &config.secrets.jwt_secret;
 
         let token_data: TokenData<JwtClaims> = jsonwebtoken::decode(
             token,

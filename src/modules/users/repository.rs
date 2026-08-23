@@ -45,7 +45,7 @@ impl UserRepository {
         let new_user = UsersActiveModel {
             email: Set(dto.email),
             password_hash: Set(hash_p),
-            name: Set(dto.username),
+            name: Set(dto.name),
             ..Default::default()
         };
         new_user.insert(db).await.map_err(AppError::Database)

@@ -3,6 +3,7 @@ use dotenvy::dotenv;
 use std::{
     env as EnvConfig,
     net::{IpAddr, Ipv4Addr},
+    str::FromStr,
 };
 
 #[derive(Debug, Clone)]
@@ -17,8 +18,8 @@ pub struct InfraConnectionUrls {
 pub struct Secrets {
     pub jwt_secret: String,
     pub master_encryption_key: String,
-    pub jwt_expiry_seconds: u32,        // default 3600
-    pub refresh_token_expiry_days: u16, // default 7
+    pub jwt_expiry_seconds: i64,        // default 3600
+    pub refresh_token_expiry_days: i64, // default 7
 }
 
 #[derive(Debug, Clone)]
@@ -98,12 +99,12 @@ impl AppConfig {
         let jwt_secret = EnvConfig::var("JWT_SECRET")
             .map_err(|_| "JWT_SECRET must be set in the environment!")?;
 
-        let jwt_expiry_seconds: u32 = EnvConfig::var("JWT_EXPIRY_SECONDS")
+        let jwt_expiry_seconds: i64 = EnvConfig::var("JWT_EXPIRY_SECONDS")
             .ok()
             .and_then(|value| value.parse().ok())
             .unwrap_or(3600);
 
-        let refresh_token_expiry_days: u16 = EnvConfig::var("REFRESH_TOKEN_EXPIRY_DAYS")
+        let refresh_token_expiry_days: i64 = EnvConfig::var("REFRESH_TOKEN_EXPIRY_DAYS")
             .ok()
             .and_then(|v| v.parse().ok())
             .unwrap_or(7);

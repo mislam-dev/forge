@@ -1,4 +1,5 @@
 use super::repository::UserRepository;
+use crate::modules::users::profile::repository::UserProfileRepository;
 use crate::{
     modules::users::dto::{
         request::{CreateUserDto, UpdateUserDto},
@@ -44,13 +45,13 @@ impl UserService {
         let find = UserRepository::find_by_email_with_password(db, &dto.email).await?;
 
         if find.is_some() {
-            return Err(AppError::BadRequest("User already exists".to_string()));
+            return Err(AppError::Conflict("User already exists".to_string()));
         }
 
         let user = UserRepository::create(db, dto).await?;
 
         // Auto-create default profile for new user
-        let _ = crate::modules::users::profile::repository::UserProfileRepository::create_default_profile(db, user.id).await;
+        let _ = UserProfileRepository::create_default_profile(db, user.id).await;
 
         // todo: generate email verification token
         // todo: send verification token
