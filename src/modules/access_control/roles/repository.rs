@@ -46,7 +46,7 @@ impl RoleRepository {
         let active_model = RoleActiveModel {
             key: Set(dto.key),
             value: Set(dto.value),
-            description: Set(dto.descriptions),
+            description: Set(dto.description),
             ..Default::default()
         };
         active_model.insert(db).await.map_err(AppError::Database)
@@ -71,7 +71,7 @@ impl RoleRepository {
             active_role.value = Set(value);
         }
 
-        if let Some(descriptions) = role_data.descriptions {
+        if let Some(descriptions) = role_data.description {
             active_role.description = Set(Some(descriptions));
         }
 

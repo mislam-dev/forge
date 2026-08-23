@@ -44,7 +44,7 @@ impl UserRolesService {
                 id: r.id.to_string(),
                 key: r.key,
                 value: r.value,
-                descriptions: r.description,
+                description: r.description,
             })
             .collect())
     }

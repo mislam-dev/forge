@@ -335,7 +335,7 @@ paths:
           $ref: '#/components/responses/Conflict'
 
   /access-control/roles/{id}:
-    put:
+    patch:
       operationId: access_control_roles_id_put
       tags:
         - Access Control

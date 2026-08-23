@@ -5,5 +5,5 @@ pub struct RoleResponseDto {
     pub id: String,
     pub key: String,
     pub value: String,
-    pub descriptions: Option<String>,
+    pub description: Option<String>,
 }

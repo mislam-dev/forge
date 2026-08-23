@@ -9,7 +9,7 @@ pub struct RoleCreateDto {
     #[validate(length(min = 1, message = "Role value is required."))]
     pub value: String,
 
-    pub descriptions: Option<String>,
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -20,5 +20,5 @@ pub struct RoleUpdateDto {
     #[validate(length(min = 1, message = "Role value is required."))]
     pub value: Option<String>,
 
-    pub descriptions: Option<String>,
+    pub description: Option<String>,
 }

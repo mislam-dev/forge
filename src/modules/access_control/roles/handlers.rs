@@ -4,54 +4,67 @@ use crate::modules::access_control::roles::dto::{
     response::RoleResponseDto,
 };
 use crate::modules::access_control::roles::service::RolesService;
+use crate::shared::response::ApiResponse;
 use crate::shared::{error::AppError, utils::IdParams, validation::JsonValidate};
-use axum::{
-    Json,
-    extract::{Path, State},
-};
+use axum::extract::{Path, State};
+use axum::http::StatusCode;
 
 pub struct RolesHandlers;
 
 impl RolesHandlers {
     pub async fn list(
         State(state): State<AppState>,
-    ) -> Result<Json<Vec<RoleResponseDto>>, AppError> {
-        let users = RolesService::find(&state.db).await?;
-        Ok(Json(users))
+    ) -> Result<ApiResponse<Vec<RoleResponseDto>>, AppError> {
+        let roles = RolesService::find(&state.db).await?;
+        Ok(ApiResponse::new()
+            .status(StatusCode::OK)
+            .message("Roles fetched successfully".to_string())
+            .body(Some(roles)))
     }
 
     pub async fn show(
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
-    ) -> Result<Json<RoleResponseDto>, AppError> {
-        let user = RolesService::find_by_id(&state.db, id.0).await?;
-        Ok(Json(user))
+    ) -> Result<ApiResponse<RoleResponseDto>, AppError> {
+        let role = RolesService::find_by_id(&state.db, id.0).await?;
+        Ok(ApiResponse::new()
+            .status(StatusCode::OK)
+            .message("Role fetched successfully".to_string())
+            .body(Some(role)))
     }
 
     pub async fn add(
         State(state): State<AppState>,
         JsonValidate(payload): JsonValidate<RoleCreateDto>,
-    ) -> Result<Json<RoleResponseDto>, AppError> {
-        let user = RolesService::create(&state.db, payload).await?;
-        Ok(Json(user))
+    ) -> Result<ApiResponse<RoleResponseDto>, AppError> {
+        let role = RolesService::create(&state.db, payload).await?;
+        Ok(ApiResponse::new()
+            .status(StatusCode::CREATED)
+            .message("Role created successfully".to_string())
+            .body(Some(role)))
     }
 
     pub async fn update(
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
         JsonValidate(payload): JsonValidate<RoleUpdateDto>,
-    ) -> Result<Json<RoleResponseDto>, AppError> {
-        let user = RolesService::update(&state.db, id.0, payload).await?;
-        Ok(Json(user))
+    ) -> Result<ApiResponse<RoleResponseDto>, AppError> {
+        let role = RolesService::update(&state.db, id.0, payload).await?;
+        Ok(ApiResponse::new()
+            .status(StatusCode::OK)
+            .message("Role updated successfully".to_string())
+            .body(Some(role)))
     }
 
     pub async fn remove(
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
-    ) -> Result<(), AppError> {
+    ) -> Result<ApiResponse<()>, AppError> {
         let _ = RolesService::remove(&state.db, id.0).await?;
-
-        Ok(())
+        Ok(ApiResponse::new()
+            .status(StatusCode::OK)
+            .message("Role deleted successfully".to_string())
+            .body(None))
     }
 }
 
@@ -93,7 +106,7 @@ mod tests {
         let payload = RoleCreateDto {
             key: "Admin".to_string(),
             value: "admin".to_string(),
-            descriptions: Some("System Admin".to_string()),
+            description: Some("System Admin".to_string()),
         };
         let result = RolesHandlers::add(State(state), JsonValidate(payload)).await;
         assert!(result.is_err());
@@ -106,7 +119,7 @@ mod tests {
         let payload = RoleUpdateDto {
             key: Some("Updated Admin".to_string()),
             value: Some("updated_admin".to_string()),
-            descriptions: None,
+            description: None,
         };
         let result = RolesHandlers::update(State(state), Path(id), JsonValidate(payload)).await;
         assert!(result.is_err());

@@ -19,7 +19,7 @@ impl RolesService {
                 id: c.id.to_string(),
                 key: c.key,
                 value: c.value,
-                descriptions: c.description,
+                description: c.description,
             })
             .collect::<Vec<RoleResponseDto>>();
 
@@ -37,7 +37,7 @@ impl RolesService {
             id: role.id.to_string(),
             key: role.key,
             value: role.value,
-            descriptions: role.description,
+            description: role.description,
         })
     }
 
@@ -47,7 +47,7 @@ impl RolesService {
     ) -> Result<RoleResponseDto, AppError> {
         let role = RoleRepository::find_by_value(db, &dto.value).await?;
         if role.is_some() {
-            return Err(AppError::BadRequest("Role already exists!".to_string()));
+            return Err(AppError::Conflict("Role already exists!".to_string()));
         }
 
         let role = RoleRepository::create(db, dto).await?;
@@ -56,7 +56,7 @@ impl RolesService {
             id: role.id.to_string(),
             key: role.key,
             value: role.value,
-            descriptions: role.description,
+            description: role.description,
         })
     }
 
@@ -71,7 +71,7 @@ impl RolesService {
             id: role.id.to_string(),
             key: role.key,
             value: role.value,
-            descriptions: role.description,
+            description: role.description,
         })
     }
 
@@ -103,7 +103,7 @@ mod tests {
         let dto = RoleCreateDto {
             key: "Admin".to_string(),
             value: "admin".to_string(),
-            descriptions: None,
+            description: None,
         };
         let result = RolesService::create(&db, dto).await;
         assert!(result.is_err());
