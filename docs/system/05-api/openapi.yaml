@@ -19,9 +19,26 @@ servers:
 tags:
   - name: Authentication
     description: "User registration, login, logout, profile identity, and token refresh"
-  - name: Access Control
-    description: "System roles, permissions, and privilege assignments (System Admin)"
+  - name: "Access Control: Roles"
+    description: "System role definitions and management (System Admin)"
+  - name: "Access Control: Permissions"
+    description: "Atomic system permissions management (System Admin)"
+  - name: "Access Control: Role Permissions"
+    description: "Mapping permissions to system roles (System Admin)"
+  - name: "Access Control: User Roles"
+    description: "Assigning and removing system roles for users (System Admin)"
+  - name: "Access Control: User Permissions"
+    description: "Direct user permission overrides and assignments (System Admin)"
   - name: Users
+
+x-tagGroups:
+  - name: Access Control
+    tags:
+      - "Access Control: Roles"
+      - "Access Control: Permissions"
+      - "Access Control: Role Permissions"
+      - "Access Control: User Roles"
+      - "Access Control: User Permissions"
     description: "User management and account profile configuration"
   - name: Notifications
     description: "In-app user event notifications"
@@ -291,7 +308,7 @@ paths:
     get:
       operationId: access_control_roles_get
       tags:
-        - Access Control
+        - "Access Control: Roles"
       summary: "List all system roles"
       security:
         - bearerAuth: []
@@ -314,7 +331,7 @@ paths:
     post:
       operationId: access_control_roles_post
       tags:
-        - Access Control
+        - "Access Control: Roles"
       summary: "Create a system role"
       security:
         - bearerAuth: []
@@ -338,7 +355,7 @@ paths:
     put:
       operationId: access_control_roles_id_put
       tags:
-        - Access Control
+        - "Access Control: Roles"
       summary: "Update a system role"
       security:
         - bearerAuth: []
@@ -358,7 +375,7 @@ paths:
     delete:
       operationId: access_control_roles_id_delete
       tags:
-        - Access Control
+        - "Access Control: Roles"
       summary: "Delete a system role"
       security:
         - bearerAuth: []
@@ -374,7 +391,7 @@ paths:
     get:
       operationId: access_control_permissions_get
       tags:
-        - Access Control
+        - "Access Control: Permissions"
       summary: "List system permissions"
       security:
         - bearerAuth: []
@@ -387,7 +404,7 @@ paths:
     post:
       operationId: access_control_permissions_post
       tags:
-        - Access Control
+        - "Access Control: Permissions"
       summary: "Create a system permission"
       security:
         - bearerAuth: []
@@ -409,7 +426,7 @@ paths:
     put:
       operationId: access_control_permissions_id_put
       tags:
-        - Access Control
+        - "Access Control: Permissions"
       summary: "Update system permission"
       security:
         - bearerAuth: []
@@ -427,7 +444,7 @@ paths:
     delete:
       operationId: access_control_permissions_id_delete
       tags:
-        - Access Control
+        - "Access Control: Permissions"
       summary: "Delete system permission"
       security:
         - bearerAuth: []
@@ -441,7 +458,7 @@ paths:
     post:
       operationId: access_control_roles_permissions_assign_post
       tags:
-        - Access Control
+        - "Access Control: Role Permissions"
       summary: "Assign permissions to a role"
       security:
         - bearerAuth: []
@@ -475,7 +492,7 @@ paths:
     post:
       operationId: access_control_roles_permissions_remove_post
       tags:
-        - Access Control
+        - "Access Control: Role Permissions"
       summary: "Remove permissions from a role"
       security:
         - bearerAuth: []
@@ -505,7 +522,7 @@ paths:
     get:
       operationId: access_control_roles_permissions_role_id_get
       tags:
-        - Access Control
+        - "Access Control: Role Permissions"
       summary: "Get permissions assigned to a role"
       security:
         - bearerAuth: []
@@ -524,7 +541,7 @@ paths:
     post:
       operationId: access_control_role_assign_post
       tags:
-        - Access Control
+        - "Access Control: User Roles"
       summary: "Assign system roles to a user"
       security:
         - bearerAuth: []
@@ -558,7 +575,7 @@ paths:
     post:
       operationId: access_control_role_remove_post
       tags:
-        - Access Control
+        - "Access Control: User Roles"
       summary: "Remove system roles from a user"
       security:
         - bearerAuth: []
@@ -588,7 +605,7 @@ paths:
     post:
       operationId: access_control_users_permission_assign_post
       tags:
-        - Access Control
+        - "Access Control: User Permissions"
       summary: "Assign direct permissions to a user"
       security:
         - bearerAuth: []
@@ -618,7 +635,7 @@ paths:
     post:
       operationId: access_control_users_permission_remove_post
       tags:
-        - Access Control
+        - "Access Control: User Permissions"
       summary: "Remove direct permissions from a user"
       security:
         - bearerAuth: []
@@ -648,7 +665,7 @@ paths:
     get:
       operationId: access_control_users_permissions_user_id_get
       tags:
-        - Access Control
+        - "Access Control: User Permissions"
       summary: "Get direct permissions assigned to a user"
       security:
         - bearerAuth: []

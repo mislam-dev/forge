@@ -1,16 +1,14 @@
-use axum::{
-    http::header,
-    response::IntoResponse,
-    routing::get,
-    Router,
-};
-use utoipa_swagger_ui::{Config, SwaggerUi, Url};
 use crate::app::state::AppState;
+use axum::{Router, http::header, response::IntoResponse, routing::get};
+use utoipa_swagger_ui::{Config, SwaggerUi, Url};
 
-const OPENAPI_SPEC: &str = include_str!("./openapi.yaml");
+const OPENAPI_SPEC: &str = include_str!("../../../docs/system/05-api/openapi.yaml");
 
 async fn openapi_yaml_handler() -> impl IntoResponse {
-    ([(header::CONTENT_TYPE, "application/x-yaml; charset=utf-8")], OPENAPI_SPEC)
+    (
+        [(header::CONTENT_TYPE, "application/x-yaml; charset=utf-8")],
+        OPENAPI_SPEC,
+    )
 }
 
 pub fn docs_router() -> Router<AppState> {
