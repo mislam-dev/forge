@@ -1,8 +1,9 @@
 use axum::{extract::Request, http::HeaderValue, middleware::Next, response::Response};
-use std::time::Instant;
+use std::{process, time::Instant};
 use tracing::{Instrument, error, info};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use url::Url;
 use uuid::Uuid;
 
 pub fn init_tracing(rust_log: &str) -> WorkerGuard {
@@ -10,6 +11,8 @@ pub fn init_tracing(rust_log: &str) -> WorkerGuard {
 
     let file_appender = rolling::daily("logs", "forge.log");
     let (non_blocking_writer, guard) = tracing_appender::non_blocking(file_appender);
+
+    let loki = init_loki().ok();
 
     tracing_subscriber::registry()
         .with(filter)
@@ -22,9 +25,22 @@ pub fn init_tracing(rust_log: &str) -> WorkerGuard {
                 .with_span_list(true)
                 .with_writer(non_blocking_writer),
         )
+        .with(loki)
         .init();
 
     guard
+}
+
+fn init_loki() -> Result<tracing_loki::Layer, tracing_loki::Error> {
+    let (layer, task) = tracing_loki::builder()
+        .label("app", "forge")?
+        .label("env", "development")?
+        .extra_field("pid", format!("{}", process::id()))?
+        .build_url(Url::parse("http://127.0.0.1:3100").unwrap())?;
+
+    tokio::spawn(task);
+
+    Ok(layer)
 }
 
 const REQUEST_ID_HEADER: &str = "x-request-id";

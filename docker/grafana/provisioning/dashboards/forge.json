@@ -1,0 +1,245 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": { "list": [] },
+  "description": "Forge Backend - Request Logs & Metrics",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "loki", "uid": "ForgeLoki" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "title": "Total Requests",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "sum(count_over_time({app=\"forge\"} | json | message=\"request.completed\" [1h]))",
+          "legendFormat": "Total"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "red", "mode": "fixed" }
+        }
+      },
+      "title": "Total Errors",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "sum(count_over_time({app=\"forge\"} | json | level=\"ERROR\" [1h]))",
+          "legendFormat": "Errors"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "green", "mode": "fixed" }
+        }
+      },
+      "title": "Requests / min",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "sum(rate({app=\"forge\"} | json | message=\"request.completed\" [1m]))",
+          "legendFormat": "req/min"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "orange", "mode": "fixed" }
+        }
+      },
+      "title": "Slow Requests (>500ms)",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "sum(count_over_time({app=\"forge\"} | json | latency_ms > 500 [1h]))",
+          "legendFormat": "Slow"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 },
+      "id": 5,
+      "title": "Request Rate Over Time",
+      "type": "timeseries",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "sum(rate({app=\"forge\"} | json | message=\"request.completed\" [1m]))",
+          "legendFormat": "All Requests"
+        },
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "sum(rate({app=\"forge\"} | json | level=\"ERROR\" [1m]))",
+          "legendFormat": "Errors"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 6,
+      "title": "Top Requested Paths",
+      "type": "barchart",
+      "targets": [
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "sum by (path) (count_over_time({app=\"forge\"} | json | message=\"request.completed\" [1h]))",
+          "legendFormat": "{{path}}"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 7,
+      "title": "Requests by Method",
+      "type": "piechart",
+      "targets": [
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "sum by (method) (count_over_time({app=\"forge\"} | json | message=\"request.completed\" [1h]))",
+          "legendFormat": "{{method}}"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
+      "id": 8,
+      "title": "Live Error Logs",
+      "type": "logs",
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "{app=\"forge\"} | json | level=\"ERROR\"",
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 30 },
+      "id": 9,
+      "title": "All Logs",
+      "type": "logs",
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki",  "uid": "ForgeLoki" },
+          "expr": "{app=\"forge\"} | json",
+          "legendFormat": ""
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["forge", "backend", "rust"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Forge Backend",
+  "uid": "forge-dashboard",
+  "version": 1
+}
