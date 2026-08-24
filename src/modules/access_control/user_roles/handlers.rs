@@ -2,11 +2,11 @@ use super::dto::request::{AssignUserRolesDto, RemoveUserRolesDto};
 use super::service::UserRolesService;
 use crate::app::state::AppState;
 use crate::modules::access_control::roles::dto::response::RoleResponseDto;
+use crate::modules::access_control::user_roles::dto::response::UserRoleResponse;
+use crate::shared::response::ApiResponse;
 use crate::shared::{error::AppError, utils::IdParams, validation::JsonValidate};
-use axum::{
-    Json,
-    extract::{Path, State},
-};
+use axum::extract::{Path, State};
+use axum::http::StatusCode;
 
 pub struct UserRolesHandlers;
 
@@ -14,23 +14,33 @@ impl UserRolesHandlers {
     pub async fn assign(
         State(state): State<AppState>,
         JsonValidate(payload): JsonValidate<AssignUserRolesDto>,
-    ) -> Result<(), AppError> {
-        UserRolesService::assign(&state.db, payload).await
+    ) -> Result<ApiResponse<Vec<UserRoleResponse>>, AppError> {
+        let data = UserRolesService::assign(&state.db, payload).await?;
+
+        Ok(ApiResponse::new()
+            .message("Roles assigned successfully!".to_string())
+            .status(StatusCode::CREATED)
+            .body(Some(data)))
     }
 
     pub async fn remove(
         State(state): State<AppState>,
         JsonValidate(payload): JsonValidate<RemoveUserRolesDto>,
-    ) -> Result<(), AppError> {
-        UserRolesService::remove(&state.db, payload).await
+    ) -> Result<ApiResponse<()>, AppError> {
+        UserRolesService::remove(&state.db, payload).await?;
+
+        Ok(ApiResponse::new().status(StatusCode::NO_CONTENT))
     }
 
     pub async fn show(
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
-    ) -> Result<Json<Vec<RoleResponseDto>>, AppError> {
-        let roles = UserRolesService::find_roles_by_user_id(&state.db, id.0).await?;
-        Ok(Json(roles))
+    ) -> Result<ApiResponse<Vec<RoleResponseDto>>, AppError> {
+        let data = UserRolesService::find_roles_by_user_id(&state.db, id.0).await?;
+        Ok(ApiResponse::new()
+            .message("Roles fetched successfully!".to_string())
+            .status(StatusCode::OK)
+            .body(Some(data)))
     }
 }
 

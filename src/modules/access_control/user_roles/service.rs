@@ -1,6 +1,7 @@
 use super::dto::request::{AssignUserRolesDto, RemoveUserRolesDto};
 use super::repository::UserRolesRepository;
 use crate::modules::access_control::roles::dto::response::RoleResponseDto;
+use crate::modules::access_control::user_roles::dto::response::UserRoleResponse;
 use crate::modules::users::repository::UserRepository;
 use crate::shared::error::AppError;
 use sea_orm::DatabaseConnection;
@@ -9,13 +10,23 @@ use uuid::Uuid;
 pub struct UserRolesService;
 
 impl UserRolesService {
-    pub async fn assign(db: &DatabaseConnection, dto: AssignUserRolesDto) -> Result<(), AppError> {
+    pub async fn assign(
+        db: &DatabaseConnection,
+        dto: AssignUserRolesDto,
+    ) -> Result<Vec<UserRoleResponse>, AppError> {
         let user = UserRepository::find_by_id(db, dto.user_id).await?;
         if user.is_none() {
             return Err(AppError::NotFound("User not found!".to_string()));
         }
 
-        UserRolesRepository::assign(db, dto.user_id, dto.role_ids).await
+        let roles = UserRolesRepository::assign(db, dto.user_id, dto.role_ids).await?;
+        Ok(roles
+            .into_iter()
+            .map(|r| UserRoleResponse {
+                role_id: r.role_id,
+                user_id: r.user_id,
+            })
+            .collect())
     }
 
     pub async fn remove(db: &DatabaseConnection, dto: RemoveUserRolesDto) -> Result<(), AppError> {

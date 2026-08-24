@@ -1,5 +1,6 @@
 use super::entities::user_roles::{
     ActiveModel as UserRoleActiveModel, Column as UserRoleColumn, Entity as UserRoleEntity,
+    Model as UserRoleModel,
 };
 use crate::modules::access_control::roles::entities::roles::{
     Column as RoleColumn, Entity as RoleEntity, Model as RoleModel,
@@ -18,15 +19,20 @@ impl UserRolesRepository {
         db: &DatabaseConnection,
         user_id: Uuid,
         role_ids: Vec<Uuid>,
-    ) -> Result<(), AppError> {
+    ) -> Result<Vec<UserRoleModel>, AppError> {
+        let mut data: Vec<UserRoleModel> = vec![];
         for role_id in role_ids {
+            if let Ok(_) = Self::find_entry(db, user_id, role_id).await {
+                continue;
+            }
             let active_model = UserRoleActiveModel {
                 user_id: Set(user_id),
                 role_id: Set(role_id),
             };
-            let _ = active_model.insert(db).await;
+            let d = active_model.insert(db).await?;
+            data.push(d);
         }
-        Ok(())
+        Ok(data)
     }
 
     pub async fn remove(
@@ -68,6 +74,22 @@ impl UserRolesRepository {
             .all(db)
             .await
             .map_err(AppError::Database)
+    }
+    pub async fn find_entry(
+        db: &DatabaseConnection,
+        user_id: Uuid,
+        role_id: Uuid,
+    ) -> Result<UserRoleModel, AppError> {
+        let user_role = UserRoleEntity::find()
+            .filter(UserRoleColumn::UserId.eq(user_id))
+            .filter(UserRoleColumn::RoleId.eq(role_id))
+            .one(db)
+            .await
+            .map_err(AppError::Database)?;
+        if user_role.is_none() {
+            return Err(AppError::NotFound("Resource not found!".to_string()));
+        }
+        Ok(user_role.unwrap())
     }
 }
 
