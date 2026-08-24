@@ -306,7 +306,7 @@ paths:
 
   /access-control/roles:
     get:
-      operationId: access_control_roles_get
+      operationId: access_control_roles_list
       tags:
         - "Access Control: Roles"
       summary: "List all system roles"
@@ -314,22 +314,17 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: "Roles list"
+          description: "List of system roles retrieved successfully"
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/RoleSchema'
+                $ref: '#/components/schemas/ApiResponseRoleList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
     post:
-      operationId: access_control_roles_post
+      operationId: access_control_roles_create
       tags:
         - "Access Control: Roles"
       summary: "Create a system role"
@@ -340,20 +335,52 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RoleInput'
+              $ref: '#/components/schemas/RoleCreateInput'
             example:
-              key: "Developer"
-              value: "developer"
-              description: "Standard developer role"
+              key: "System Admin"
+              value: "admin"
+              description: "Full system administrative access"
       responses:
         '201':
-          description: "Role created"
+          description: "Role created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRoleSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
 
   /access-control/roles/{id}:
-    put:
-      operationId: access_control_roles_id_put
+    get:
+      operationId: access_control_roles_show
+      tags:
+        - "Access Control: Roles"
+      summary: "Get a system role by ID"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "Role retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRoleSingle'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: access_control_roles_update
       tags:
         - "Access Control: Roles"
       summary: "Update a system role"
@@ -366,14 +393,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RoleInput'
+              $ref: '#/components/schemas/RoleUpdateInput'
+            example:
+              key: "Updated Admin"
+              value: "updated_admin"
       responses:
         '200':
-          description: "Role updated"
+          description: "Role updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRoleSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
-      operationId: access_control_roles_id_delete
+      operationId: access_control_roles_remove
       tags:
         - "Access Control: Roles"
       summary: "Delete a system role"
@@ -383,16 +423,24 @@ paths:
         - $ref: '#/components/parameters/PathId'
       responses:
         '200':
-          description: "Role deleted"
+          description: "Role deleted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseNull'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
 
   /access-control/permissions:
     get:
-      operationId: access_control_permissions_get
+      operationId: access_control_permissions_list
       tags:
         - "Access Control: Permissions"
-      summary: "List system permissions"
+      summary: "List system permissions (paginated)"
       security:
         - bearerAuth: []
       parameters:
@@ -400,9 +448,17 @@ paths:
         - $ref: '#/components/parameters/PerPageQueryParam'
       responses:
         '200':
-          description: "Permissions list"
+          description: "Paginated list of system permissions retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePaginatedPermissions'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
-      operationId: access_control_permissions_post
+      operationId: access_control_permissions_create
       tags:
         - "Access Control: Permissions"
       summary: "Create a system permission"
@@ -413,18 +469,52 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PermissionInput'
+              $ref: '#/components/schemas/PermissionCreateInput'
             example:
               key: "Create User"
               value: "create-user"
-              description: "Ability to create new users"
+              descriptions: "Ability to create new users"
       responses:
         '201':
-          description: "Permission created"
+          description: "Permission created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePermissionSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
 
   /access-control/permissions/{id}:
-    put:
-      operationId: access_control_permissions_id_put
+    get:
+      operationId: access_control_permissions_show
+      tags:
+        - "Access Control: Permissions"
+      summary: "Get a system permission by ID"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "Permission retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePermissionSingle'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: access_control_permissions_update
       tags:
         - "Access Control: Permissions"
       summary: "Update system permission"
@@ -437,12 +527,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PermissionInput'
+              $ref: '#/components/schemas/PermissionUpdateInput'
+            example:
+              key: "Update User"
+              value: "update-user"
       responses:
         '200':
-          description: "Permission updated"
+          description: "Permission updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePermissionSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
     delete:
-      operationId: access_control_permissions_id_delete
+      operationId: access_control_permissions_remove
       tags:
         - "Access Control: Permissions"
       summary: "Delete system permission"
@@ -451,12 +556,18 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PathId'
       responses:
-        '200':
-          description: "Permission deleted"
+        '204':
+          description: "Permission deleted successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /access-control/roles/permissions/assign:
     post:
-      operationId: access_control_roles_permissions_assign_post
+      operationId: access_control_roles_permissions_assign
       tags:
         - "Access Control: Role Permissions"
       summary: "Assign permissions to a role"
@@ -467,30 +578,28 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - role_id
-                - permission_ids
-              properties:
-                role_id:
-                  type: string
-                  format: uuid
-                permission_ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/AssignRolePermissionsInput'
             example:
               role_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
               permission_ids:
                 - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
       responses:
-        '200':
-          description: "Permissions assigned to role"
+        '201':
+          description: "Permissions assigned to role successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRolePermissionsList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /access-control/roles/permissions/remove:
     post:
-      operationId: access_control_roles_permissions_remove_post
+      operationId: access_control_roles_permissions_remove
       tags:
         - "Access Control: Role Permissions"
       summary: "Remove permissions from a role"
@@ -501,45 +610,50 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - role_id
-                - permission_ids
-              properties:
-                role_id:
-                  type: string
-                  format: uuid
-                permission_ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/RemoveRolePermissionsInput'
+            example:
+              role_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+              permission_ids:
+                - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
       responses:
-        '200':
-          description: "Permissions removed from role"
+        '204':
+          description: "Permissions removed from role successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
-  /access-control/roles/permissions/{role_id}:
+  /access-control/roles/permissions/{id}:
     get:
-      operationId: access_control_roles_permissions_role_id_get
+      operationId: access_control_roles_permissions_show
       tags:
         - "Access Control: Role Permissions"
-      summary: "Get permissions assigned to a role"
+      summary: "Get permissions assigned to a role (paginated)"
       security:
         - bearerAuth: []
       parameters:
-        - name: role_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
       responses:
         '200':
-          description: "Role permissions list"
+          description: "Role permissions list retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePaginatedPermissions'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /access-control/role/assign:
     post:
-      operationId: access_control_role_assign_post
+      operationId: access_control_user_roles_assign
       tags:
         - "Access Control: User Roles"
       summary: "Assign system roles to a user"
@@ -550,30 +664,28 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - user_id
-                - role_ids
-              properties:
-                user_id:
-                  type: string
-                  format: uuid
-                role_ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/AssignUserRolesInput'
             example:
               user_id: "456e7890-e89b-12d3-a456-426614174000"
               role_ids:
                 - "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
       responses:
-        '200':
-          description: "Roles assigned to user"
+        '201':
+          description: "Roles assigned to user successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserRolesList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /access-control/role/remove:
     post:
-      operationId: access_control_role_remove_post
+      operationId: access_control_user_roles_remove
       tags:
         - "Access Control: User Roles"
       summary: "Remove system roles from a user"
@@ -584,26 +696,48 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - user_id
-                - role_ids
-              properties:
-                user_id:
-                  type: string
-                  format: uuid
-                role_ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/RemoveUserRolesInput'
+            example:
+              user_id: "456e7890-e89b-12d3-a456-426614174000"
+              role_ids:
+                - "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+      responses:
+        '204':
+          description: "Roles removed from user successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /access-control/role/user/{id}:
+    get:
+      operationId: access_control_user_roles_show
+      tags:
+        - "Access Control: User Roles"
+      summary: "Get system roles assigned to a user"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
       responses:
         '200':
-          description: "Roles removed from user"
+          description: "User system roles retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRoleList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /access-control/users/permission/assign:
     post:
-      operationId: access_control_users_permission_assign_post
+      operationId: access_control_user_permissions_assign
       tags:
         - "Access Control: User Permissions"
       summary: "Assign direct permissions to a user"
@@ -614,26 +748,28 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - user_id
-                - permission_ids
-              properties:
-                user_id:
-                  type: string
-                  format: uuid
-                permission_ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/AssignUserPermissionsInput'
+            example:
+              user_id: "456e7890-e89b-12d3-a456-426614174000"
+              permission_ids:
+                - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
       responses:
-        '200':
-          description: "Direct permissions assigned to user"
+        '201':
+          description: "Direct permissions assigned to user successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserPermissionsList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /access-control/users/permission/remove:
     post:
-      operationId: access_control_users_permission_remove_post
+      operationId: access_control_user_permissions_remove
       tags:
         - "Access Control: User Permissions"
       summary: "Remove direct permissions from a user"
@@ -644,41 +780,44 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - user_id
-                - permission_ids
-              properties:
-                user_id:
-                  type: string
-                  format: uuid
-                permission_ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/RemoveUserPermissionsInput'
+            example:
+              user_id: "456e7890-e89b-12d3-a456-426614174000"
+              permission_ids:
+                - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
       responses:
-        '200':
-          description: "Direct permissions removed from user"
+        '204':
+          description: "Direct permissions removed from user successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
-  /access-control/users/permissions/{user_id}:
+  /access-control/users/permissions/{id}:
     get:
-      operationId: access_control_users_permissions_user_id_get
+      operationId: access_control_user_permissions_show
       tags:
         - "Access Control: User Permissions"
       summary: "Get direct permissions assigned to a user"
       security:
         - bearerAuth: []
       parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/PathId'
       responses:
         '200':
-          description: "User direct permissions list"
+          description: "User direct permissions list retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePermissionList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /users:
     get:
@@ -2245,7 +2384,30 @@ components:
         confirm_password:
           type: string
 
-    RoleInput:
+    ApiResponseEnvelope:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          nullable: true
+
+    ApiResponseNull:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          nullable: true
+          default: null
+
+    RoleCreateInput:
       type: object
       required:
         - key
@@ -2253,25 +2415,80 @@ components:
       properties:
         key:
           type: string
+          example: "System Admin"
         value:
           type: string
+          example: "admin"
         description:
           type: string
+          nullable: true
+          example: "Full system administrative access"
 
-    RoleSchema:
+    RoleUpdateInput:
       type: object
+      properties:
+        key:
+          type: string
+          nullable: true
+          example: "System Administrator"
+        value:
+          type: string
+          nullable: true
+          example: "sysadmin"
+        description:
+          type: string
+          nullable: true
+          example: "Updated description"
+
+    RoleResponseDto:
+      type: object
+      required:
+        - id
+        - key
+        - value
       properties:
         id:
           type: string
           format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
         key:
           type: string
+          example: "System Admin"
         value:
           type: string
+          example: "admin"
         description:
           type: string
+          nullable: true
+          example: "Full system administrative access"
 
-    PermissionInput:
+    ApiResponseRoleSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Role fetched successfully"
+        data:
+          $ref: '#/components/schemas/RoleResponseDto'
+
+    ApiResponseRoleList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Roles fetched successfully"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleResponseDto'
+
+    PermissionCreateInput:
       type: object
       required:
         - key
@@ -2279,10 +2496,320 @@ components:
       properties:
         key:
           type: string
+          example: "Create User"
         value:
           type: string
-        description:
+          example: "create-user"
+        descriptions:
           type: string
+          nullable: true
+          example: "Ability to create new users"
+
+    PermissionUpdateInput:
+      type: object
+      properties:
+        key:
+          type: string
+          nullable: true
+          example: "Update User"
+        value:
+          type: string
+          nullable: true
+          example: "update-user"
+        descriptions:
+          type: string
+          nullable: true
+          example: "Ability to update existing users"
+
+    PermissionResponseDto:
+      type: object
+      required:
+        - id
+        - key
+        - value
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+        key:
+          type: string
+          example: "Create User"
+        value:
+          type: string
+          example: "create-user"
+        descriptions:
+          type: string
+          nullable: true
+          example: "Ability to create new users"
+
+    ApiResponsePermissionSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions fetch successfully"
+        data:
+          $ref: '#/components/schemas/PermissionResponseDto'
+
+    ApiResponsePermissionList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions fetched successfully!"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionResponseDto'
+
+    PaginatedPermissionResponse:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+        - data
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 45
+        total_pages:
+          type: integer
+          example: 5
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionResponseDto'
+
+    ApiResponsePaginatedPermissions:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions fetch successfully"
+        data:
+          $ref: '#/components/schemas/PaginatedPermissionResponse'
+
+    AssignRolePermissionsInput:
+      type: object
+      required:
+        - role_id
+        - permission_ids
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    RemoveRolePermissionsInput:
+      type: object
+      required:
+        - role_id
+        - permission_ids
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    RolePermissionsResponse:
+      type: object
+      required:
+        - role_id
+        - permission_id
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        permission_id:
+          type: string
+          format: uuid
+          example: "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    ApiResponseRolePermissionsList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions assigned to the role"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RolePermissionsResponse'
+
+    AssignUserRolesInput:
+      type: object
+      required:
+        - user_id
+        - role_ids
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        role_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    RemoveUserRolesInput:
+      type: object
+      required:
+        - user_id
+        - role_ids
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        role_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    UserRoleResponse:
+      type: object
+      required:
+        - role_id
+        - user_id
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+
+    ApiResponseUserRolesList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Roles assigned successfully!"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRoleResponse'
+
+    AssignUserPermissionsInput:
+      type: object
+      required:
+        - user_id
+        - permission_ids
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    RemoveUserPermissionsInput:
+      type: object
+      required:
+        - user_id
+        - permission_ids
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    UserPermissionResponse:
+      type: object
+      required:
+        - permission_id
+        - user_id
+      properties:
+        permission_id:
+          type: string
+          format: uuid
+          example: "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+
+    ApiResponseUserPermissionsList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions assigned successfully!"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPermissionResponse'
+
+    RoleInput:
+      $ref: '#/components/schemas/RoleCreateInput'
+
+    RoleSchema:
+      $ref: '#/components/schemas/RoleResponseDto'
+
+    PermissionInput:
+      $ref: '#/components/schemas/PermissionCreateInput'
 
     OrganizationInput:
       type: object
