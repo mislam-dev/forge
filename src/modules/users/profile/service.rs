@@ -59,15 +59,6 @@ impl UserProfileService {
         let profile = UserProfileRepository::update_profile(db, user_id, dto).await?;
         Ok(Self::map_model_to_response(profile))
     }
-
-    pub async fn delete_profile(db: &DatabaseConnection, user_id: Uuid) -> Result<(), AppError> {
-        let profile = UserProfileRepository::find_by_user_id(db, user_id).await?;
-        if profile.is_none() {
-            return Err(AppError::NotFound("Profile not found".to_string()));
-        }
-        UserProfileRepository::delete_by_user_id(db, user_id).await?;
-        Ok(())
-    }
 }
 
 #[cfg(test)]
@@ -84,14 +75,6 @@ mod tests {
         let db = setup_mock_db();
         let user_id = Uuid::new_v4();
         let result = UserProfileService::get_profile(&db, user_id).await;
-        assert!(result.is_err());
-    }
-
-    #[tokio::test]
-    async fn test_delete_profile_not_found() {
-        let db = setup_mock_db();
-        let user_id = Uuid::new_v4();
-        let result = UserProfileService::delete_profile(&db, user_id).await;
         assert!(result.is_err());
     }
 }

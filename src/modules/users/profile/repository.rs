@@ -104,14 +104,6 @@ impl UserProfileRepository {
             }
         }
     }
-
-    pub async fn delete_by_user_id(db: &DatabaseConnection, user_id: Uuid) -> Result<(), AppError> {
-        ProfileEntity::delete_many()
-            .filter(ProfileColumn::UserId.eq(user_id))
-            .exec(db)
-            .await?;
-        Ok(())
-    }
 }
 
 #[cfg(test)]
@@ -128,14 +120,6 @@ mod tests {
         let db = setup_mock_db();
         let user_id = Uuid::new_v4();
         let result = UserProfileRepository::find_by_user_id(&db, user_id).await;
-        assert!(result.is_err());
-    }
-
-    #[tokio::test]
-    async fn test_delete_by_user_id_empty_db() {
-        let db = setup_mock_db();
-        let user_id = Uuid::new_v4();
-        let result = UserProfileRepository::delete_by_user_id(&db, user_id).await;
         assert!(result.is_err());
     }
 }

@@ -3,6 +3,7 @@ use super::entities::users::{
     ActiveModel as UsersActiveModel, Column as UserColumn, Entity as UsersEntity,
     Model as UserModel,
 };
+use crate::shared::pagination::{PaginatedResponse, PaginationParams};
 use crate::{
     modules::users::{
         dto::request::{CreateUserDto, UpdateUserDto},
@@ -10,21 +11,38 @@ use crate::{
     },
     shared::error::AppError,
 };
-use sea_orm::DatabaseConnection;
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DeleteResult, EntityTrait,
     QueryFilter,
 };
+use sea_orm::{DatabaseConnection, PaginatorTrait, QueryOrder};
 use uuid::Uuid;
 
 pub struct UserRepository;
 
 impl UserRepository {
-    pub async fn find(db: &DatabaseConnection) -> Result<Vec<UserModel>, AppError> {
-        UsersEntity::find()
-            .all(db)
-            .await
-            .map_err(AppError::Database)
+    pub async fn find(
+        db: &DatabaseConnection,
+        params: &PaginationParams,
+    ) -> Result<PaginatedResponse<UserModel>, AppError> {
+        let current_page = params.page.saturating_sub(1);
+        let limit = params.per_page;
+
+        let paginator = UsersEntity::find()
+            .order_by_asc(UserColumn::CreatedAt)
+            .paginate(db, limit);
+
+        let total_pages = paginator.num_pages().await?;
+        let total_items = paginator.num_items().await?;
+        let items = paginator.fetch_page(current_page).await?;
+
+        Ok(PaginatedResponse {
+            page: params.page,
+            per_page: params.per_page,
+            total: total_items,
+            total_pages,
+            data: items,
+        })
     }
 
     pub async fn find_by_id(

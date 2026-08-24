@@ -1,16 +1,15 @@
 use axum::{
     Router, middleware,
-    routing::{delete, get, put},
+    routing::{get, put},
 };
 
-use super::handlers::{delete_profile, get_profile, update_profile};
+use super::handlers::{get_profile, update_profile};
 use crate::{app::state::AppState, modules::auth::token::JwtClaims};
 
 pub fn profile_router() -> Router<AppState> {
     Router::new()
         .route("/{id}/profile", get(get_profile))
         .route("/{id}/profile", put(update_profile))
-        .route("/{id}/profile", delete(delete_profile))
         .route_layer(middleware::from_extractor::<JwtClaims>())
 }
 

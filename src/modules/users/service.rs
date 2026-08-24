@@ -1,5 +1,6 @@
 use super::repository::UserRepository;
 use crate::modules::users::profile::repository::UserProfileRepository;
+use crate::shared::pagination::{PaginatedResponse, PaginationParams};
 use crate::{
     modules::users::dto::{
         request::{CreateUserDto, UpdateUserDto},
@@ -13,9 +14,13 @@ use uuid::Uuid;
 pub struct UserService;
 
 impl UserService {
-    pub async fn find(db: &DatabaseConnection) -> Result<Vec<UserItemResponse>, AppError> {
-        let users = UserRepository::find(db).await?;
+    pub async fn find(
+        db: &DatabaseConnection,
+        params: &PaginationParams,
+    ) -> Result<PaginatedResponse<UserItemResponse>, AppError> {
+        let users = UserRepository::find(db, &params).await?;
         let users_data = users
+            .data
             .into_iter()
             .map(|c| UserItemResponse {
                 id: c.id,
@@ -23,7 +28,14 @@ impl UserService {
                 email: c.email,
             })
             .collect::<Vec<UserItemResponse>>();
-        Ok(users_data)
+
+        Ok(PaginatedResponse {
+            page: users.page,
+            per_page: users.per_page,
+            total: users.total,
+            total_pages: users.total_pages,
+            data: users_data,
+        })
     }
 
     pub async fn find_one(db: &DatabaseConnection, id: Uuid) -> Result<UserItemResponse, AppError> {

@@ -821,30 +821,62 @@ paths:
 
   /users:
     get:
-      operationId: users_get
+      operationId: users_list
       tags:
         - Users
-      summary: "List all platform users (System Admin)"
+      summary: "List all platform users (paginated)"
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
       responses:
         '200':
-          description: "Paginated users list"
+          description: "Paginated list of users fetched successfully"
           content:
             application/json:
-              example:
-                message: "Users retrieved successfully."
-                data:
-                  - id: "456e7890-e89b-12d3-a456-426614174000"
-                    name: "Monirul Islam"
-                    email: "monirul@example.com"
-                    created_at: "2026-08-12T17:00:00Z"
+              schema:
+                $ref: '#/components/schemas/ApiResponsePaginatedUsers'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+    post:
+      operationId: users_add
+      tags:
+        - Users
+      summary: "Create a new platform user"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              name: "Monirul Islam"
+              email: "monirul@example.com"
+              password: "StrongPassword123!"
+      responses:
+        '201':
+          description: "User created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
 
   /users/{id}:
     get:
-      operationId: users_id_get
+      operationId: users_show
       tags:
         - Users
       summary: "Get user account details"
@@ -854,11 +886,17 @@ paths:
         - $ref: '#/components/parameters/PathId'
       responses:
         '200':
-          description: "User account details"
+          description: "User fetched successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserSingle'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-    put:
-      operationId: users_id_put
+    patch:
+      operationId: users_update
       tags:
         - Users
       summary: "Update user account"
@@ -871,18 +909,24 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
-                  format: email
+              $ref: '#/components/schemas/UpdateUserRequest'
+            example:
+              name: "Monirul Islam"
       responses:
         '200':
-          description: "User updated"
+          description: "User updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
     delete:
-      operationId: users_id_delete
+      operationId: users_remove
       tags:
         - Users
       summary: "Delete user account"
@@ -891,14 +935,18 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PathId'
       responses:
-        '200':
-          description: "User account deleted"
+        '204':
+          description: "User deleted successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /users/{id}/profile:
     get:
       tags:
         - Users
-      operationId: user_get_profile
+      operationId: user_profile_get
       summary: "Get user profile detail"
       security:
         - bearerAuth: []
@@ -906,15 +954,17 @@ paths:
         - $ref: '#/components/parameters/PathId'
       responses:
         '200':
-          description: "User profile details"
+          description: "User profile retrieved successfully"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProfileResponse'
+                $ref: '#/components/schemas/ApiResponseProfileSingle'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      operationId: users_id_profile_put
+      operationId: user_profile_update
       tags:
         - Users
       summary: "Update user profile"
@@ -933,15 +983,23 @@ paths:
               last_name: "Doe"
               phone: "+1234567890"
               date_of_birth: "1990-01-15"
-              gender: "Male"
+              gender: "male"
               image: "https://storage.example.com/avatars/john.png"
       responses:
         '200':
-          description: "Profile updated successfully"
+          description: "User profile updated successfully"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProfileResponse'
+                $ref: '#/components/schemas/ApiResponseProfileSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /notifications:
     get:
@@ -2345,6 +2403,104 @@ components:
             created_at:
               type: string
 
+    UserItemResponse:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          example: "Monirul Islam"
+        email:
+          type: string
+          format: email
+          example: "monirul@example.com"
+
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: "Monirul Islam"
+        email:
+          type: string
+          format: email
+          minLength: 1
+          example: "monirul@example.com"
+        password:
+          type: string
+          minLength: 8
+          example: "StrongPassword123!"
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: "Monirul Islam"
+
+    PaginatedUserResponse:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+        - data
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        total_pages:
+          type: integer
+          example: 10
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserItemResponse'
+
+    ApiResponsePaginatedUsers:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Users fetched successfully!"
+        data:
+          $ref: '#/components/schemas/PaginatedUserResponse'
+
+    ApiResponseUserSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "User fetched successfully!"
+        data:
+          $ref: '#/components/schemas/UserItemResponse'
+
     AuthTokenResponse:
       type: object
       properties:
@@ -2862,44 +3018,97 @@ components:
       properties:
         first_name:
           type: string
+          nullable: true
+          example: "Monirul"
         last_name:
           type: string
+          nullable: true
+          example: "Islam"
         phone:
           type: string
+          nullable: true
+          example: "+1234567890"
         date_of_birth:
           type: string
           format: date
+          nullable: true
+          example: "1990-01-15"
         gender:
           type: string
+          enum:
+            - male
+            - female
+            - other
+          nullable: true
+          example: "male"
         image:
           type: string
-          format: uri
+          nullable: true
+          example: "https://example.com/avatar.png"
 
     ProfileResponse:
       type: object
+      required:
+        - id
+        - user_id
+        - created_at
+        - updated_at
       properties:
         id:
           type: string
           format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
         user_id:
           type: string
           format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
         first_name:
           type: string
+          nullable: true
+          example: "Monirul"
         last_name:
           type: string
+          nullable: true
+          example: "Islam"
         phone:
           type: string
+          nullable: true
+          example: "+1234567890"
         date_of_birth:
           type: string
+          format: date
+          nullable: true
+          example: "1990-01-15"
         gender:
           type: string
+          enum:
+            - male
+            - female
+            - other
+          nullable: true
+          example: "male"
         image:
           type: string
+          nullable: true
+          example: "https://example.com/avatar.png"
         created_at:
           type: string
+          example: "2026-08-19T10:00:00Z"
         updated_at:
           type: string
+          example: "2026-08-19T10:00:00Z"
+
+    ApiResponseProfileSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "User profile retrieved successfully"
+        data:
+          $ref: '#/components/schemas/ProfileResponse'
 
     NotificationResponse:
       type: object

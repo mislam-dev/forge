@@ -44,28 +44,6 @@ pub async fn update_profile(
         .body(Some(profile)))
 }
 
-pub async fn delete_profile(
-    State(state): State<AppState>,
-    Path(id): Path<IdParams>,
-    jwt_claims: JwtClaims,
-) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = jwt_claims
-        .role
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin"));
-    if !is_admin {
-        return Err(AppError::Forbidden(
-            "Only administrators can delete user profiles".to_string(),
-        ));
-    }
-
-    UserProfileService::delete_profile(&state.db, id.0).await?;
-    Ok(ApiResponse::new()
-        .status(StatusCode::OK)
-        .message("User profile deleted successfully".to_string())
-        .body(None))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -118,22 +96,6 @@ mod tests {
             JsonValidate(payload),
         )
         .await;
-        assert!(result.is_err());
-    }
-
-    #[tokio::test]
-    async fn test_delete_profile_handler_forbidden_non_admin() {
-        let state = setup_mock_state();
-        let user_id = Uuid::new_v4();
-        let claims = JwtClaims {
-            sub: user_id,
-            email: "user@example.com".to_string(),
-            role: vec!["User".to_string()],
-            permissions: vec![],
-            iat: 100000,
-            exp: 200000,
-        };
-        let result = delete_profile(State(state), Path(IdParams(user_id)), claims).await;
         assert!(result.is_err());
     }
 }
