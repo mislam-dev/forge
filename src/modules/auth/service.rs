@@ -1,3 +1,4 @@
+use crate::modules::access_control::service::AccessControlService;
 use crate::modules::auth::dto::request::{
     ForgotPasswordDto, LoginUserDto, RefreshTokenDto, RegisterUserDto, ResetPasswordDto,
     VerifyEmailDto,
@@ -40,11 +41,13 @@ impl AuthService {
         }
 
         // todo fetch user roles and permissions
+        let permissions = AccessControlService::resolve_user_permissions(db, user.id).await?;
+        let roles = AccessControlService::get_user_roles_by_user_id(db, user.id).await?;
         let access_token = AuthTokenService::access(JwtPayload {
             user_id: user.id,
             email: user.email.clone(),
-            permissions: vec![],
-            role: vec![],
+            permissions: permissions.iter().map(|p| p.to_string()).collect(),
+            roles: roles.iter().map(|r| r.key.clone()).collect(),
         })?;
 
         let refresh_token = AuthTokenService::refresh(RefreshTokenPayload {
@@ -123,7 +126,7 @@ impl AuthService {
             user_id: user.id,
             email: user.email.clone(),
             permissions: vec![],
-            role: vec![],
+            roles: vec![],
         })?;
 
         let refresh_token = AuthTokenService::refresh(RefreshTokenPayload {
@@ -336,7 +339,7 @@ mod tests {
         let claims = JwtClaims {
             sub: Uuid::new_v4(),
             email: "nobody@example.com".to_string(),
-            role: vec![],
+            roles: vec![],
             permissions: vec![],
             iat: 100000,
             exp: 200000,

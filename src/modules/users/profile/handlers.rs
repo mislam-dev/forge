@@ -28,7 +28,7 @@ pub async fn update_profile(
     JsonValidate(payload): JsonValidate<UpdateUserProfileDto>,
 ) -> Result<ApiResponse<UserProfileResponse>, AppError> {
     let is_admin = jwt_claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin"));
     if jwt_claims.sub != id.0 && !is_admin {
@@ -76,7 +76,7 @@ mod tests {
         let claims = JwtClaims {
             sub: user_id,
             email: "user@example.com".to_string(),
-            role: vec!["User".to_string()],
+            roles: vec!["User".to_string()],
             permissions: vec![],
             iat: 100000,
             exp: 200000,

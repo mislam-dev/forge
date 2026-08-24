@@ -1,12 +1,13 @@
-use sea_orm::DatabaseConnection;
-use std::collections::HashSet;
-use uuid::Uuid;
-
 use super::role_permissions::repository::RolePermissionsRepository;
 use super::user_permissions::repository::UserPermissionsRepository;
 use super::user_roles::repository::UserRolesRepository;
+use crate::modules::access_control::roles::dto::response::RoleResponseDto;
+use crate::modules::access_control::user_roles::service::UserRolesService;
 use crate::shared::error::AppError;
 use crate::shared::pagination::PaginationParams;
+use sea_orm::DatabaseConnection;
+use std::collections::HashSet;
+use uuid::Uuid;
 
 pub struct AccessControlService;
 
@@ -44,6 +45,14 @@ impl AccessControlService {
         }
 
         Ok(permissions_set)
+    }
+    pub async fn get_user_roles_by_user_id(
+        db: &DatabaseConnection,
+        user_id: Uuid,
+    ) -> Result<Vec<RoleResponseDto>, AppError> {
+        let user_roles = UserRolesService::find_roles_by_user_id(db, user_id).await?;
+
+        Ok(user_roles)
     }
 }
 

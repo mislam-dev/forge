@@ -21,7 +21,7 @@ pub async fn create_env_var(
     JsonValidate(payload): JsonValidate<CreateEnvVarRequest>,
 ) -> Result<ApiResponse<EnvVarResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let env_var = ProjectEnvironmentVariablesService::create_env_var(
@@ -42,7 +42,7 @@ pub async fn list_env_vars(
     Query(query): Query<EnvVarQuery>,
 ) -> Result<ApiResponse<Vec<EnvVarResponse>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let env_vars = ProjectEnvironmentVariablesService::list_env_vars(
@@ -63,7 +63,7 @@ pub async fn update_env_var(
     JsonValidate(payload): JsonValidate<UpdateEnvVarRequest>,
 ) -> Result<ApiResponse<EnvVarResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let env_var = ProjectEnvironmentVariablesService::update_env_var(
@@ -83,7 +83,7 @@ pub async fn delete_env_var(
     Path((id, env_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     ProjectEnvironmentVariablesService::delete_env_var(&state.db, claims.sub, is_admin, id, env_id)
@@ -101,7 +101,7 @@ pub async fn bulk_create_env_vars(
     JsonValidate(payload): JsonValidate<BulkCreateEnvVarRequest>,
 ) -> Result<ApiResponse<Vec<EnvVarResponse>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let env_vars = ProjectEnvironmentVariablesService::bulk_create_env_vars(

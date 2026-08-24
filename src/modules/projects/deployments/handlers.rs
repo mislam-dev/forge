@@ -23,7 +23,7 @@ pub async fn trigger_deployment(
     JsonValidate(payload): JsonValidate<TriggerDeploymentRequest>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let deployment =
@@ -43,7 +43,7 @@ pub async fn list_deployments(
     Query(query): Query<DeploymentHistoryQuery>,
 ) -> Result<ApiResponse<PaginatedResponse<DeploymentResponse>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let paginated =
@@ -61,7 +61,7 @@ pub async fn get_deployment(
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let deployment =
@@ -106,7 +106,7 @@ pub async fn redeploy(
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let deployment =
@@ -124,7 +124,7 @@ pub async fn rollback(
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let deployment = DeploymentsService::rollback(&state.db, claims.sub, is_admin, id).await?;

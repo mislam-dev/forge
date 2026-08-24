@@ -68,7 +68,7 @@ fn test_auth_token_service_access_and_verify() {
     let payload = JwtPayload {
         user_id,
         email: email.clone(),
-        role: vec!["User".to_string()],
+        roles: vec!["User".to_string()],
         permissions: vec!["read:profile".to_string()],
     };
 
@@ -78,7 +78,7 @@ fn test_auth_token_service_access_and_verify() {
     let claims = AuthTokenService::verify(&token).expect("Token verification failed");
     assert_eq!(claims.sub, user_id);
     assert_eq!(claims.email, email);
-    assert_eq!(claims.role, vec!["User".to_string()]);
+    assert_eq!(claims.roles, vec!["User".to_string()]);
     assert_eq!(claims.permissions, vec!["read:profile".to_string()]);
 }
 
@@ -115,7 +115,7 @@ fn test_auth_token_service_tampered_token() {
     let token = AuthTokenService::access(JwtPayload {
         user_id,
         email: "tamper@example.com".to_string(),
-        role: vec![],
+        roles: vec![],
         permissions: vec![],
     })
     .unwrap();
@@ -166,7 +166,7 @@ async fn test_me_endpoint_authorized_with_valid_jwt() {
     let token = AuthTokenService::access(JwtPayload {
         user_id,
         email: "me@example.com".to_string(),
-        role: vec![],
+        roles: vec![],
         permissions: vec![],
     })
     .unwrap();

@@ -18,7 +18,7 @@ pub async fn create_project(
     JsonValidate(payload): JsonValidate<CreateProjectRequest>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let project = ProjectsService::create_project(&state.db, claims.sub, is_admin, payload).await?;
@@ -35,7 +35,7 @@ pub async fn list_projects(
     Query(query): Query<ProjectQuery>,
 ) -> Result<ApiResponse<Vec<ProjectResponse>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let projects = ProjectsService::list_projects(&state.db, claims.sub, is_admin, query).await?;
@@ -52,7 +52,7 @@ pub async fn get_project(
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let project = ProjectsService::get_project(&state.db, claims.sub, is_admin, id).await?;
@@ -70,7 +70,7 @@ pub async fn update_project(
     JsonValidate(payload): JsonValidate<UpdateProjectRequest>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let project =
@@ -88,7 +88,7 @@ pub async fn delete_project(
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     ProjectsService::delete_project(&state.db, claims.sub, is_admin, id).await?;

@@ -82,7 +82,7 @@ mod tests {
         let token = AuthTokenService::access(JwtPayload {
             user_id,
             email: "guard@example.com".to_string(),
-            role: vec![],
+            roles: vec![],
             permissions: vec![],
         })
         .unwrap();

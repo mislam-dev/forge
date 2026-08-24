@@ -46,7 +46,7 @@ async fn test_get_profile_authorized_with_jwt() {
     let token = AuthTokenService::access(JwtPayload {
         user_id,
         email: "user@example.com".to_string(),
-        role: vec!["User".to_string()],
+        roles: vec!["User".to_string()],
         permissions: vec![],
     })
     .unwrap();
@@ -95,7 +95,7 @@ async fn test_update_profile_forbidden_for_other_user() {
     let token = AuthTokenService::access(JwtPayload {
         user_id,
         email: "user@example.com".to_string(),
-        role: vec!["User".to_string()],
+        roles: vec!["User".to_string()],
         permissions: vec![],
     })
     .unwrap();
@@ -122,7 +122,7 @@ async fn test_delete_profile_forbidden_for_non_admin() {
     let token = AuthTokenService::access(JwtPayload {
         user_id,
         email: "user@example.com".to_string(),
-        role: vec!["User".to_string()],
+        roles: vec!["User".to_string()],
         permissions: vec![],
     })
     .unwrap();
@@ -148,7 +148,7 @@ async fn test_delete_profile_authorized_for_admin() {
     let token = AuthTokenService::access(JwtPayload {
         user_id,
         email: "admin@example.com".to_string(),
-        role: vec!["Admin".to_string()],
+        roles: vec!["Admin".to_string()],
         permissions: vec![],
     })
     .unwrap();

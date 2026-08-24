@@ -23,7 +23,7 @@ fn generate_test_token(user_id: Uuid) -> String {
     let payload = JwtPayload {
         user_id,
         email: "test@forge.dev".to_string(),
-        role: vec!["User".to_string()],
+        roles: vec!["User".to_string()],
         permissions: vec![],
     };
     AuthTokenService::access(payload).unwrap()

@@ -27,7 +27,7 @@ pub async fn invite(
     JsonValidate(payload): JsonValidate<InviteMemberRequest>,
 ) -> Result<ApiResponse<InvitationResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let res =
@@ -46,7 +46,7 @@ pub async fn list_invitations(
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<InvitationResponse>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let res =
@@ -77,7 +77,7 @@ pub async fn list_members(
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<MemberResponse>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let res = OrganizationMembersService::list_members(&state.db, id, claims.sub, is_admin).await?;
@@ -95,7 +95,7 @@ pub async fn update_member(
     JsonValidate(payload): JsonValidate<UpdateMemberRoleRequest>,
 ) -> Result<ApiResponse<MemberResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let res = OrganizationMembersService::update_member_role(
@@ -120,7 +120,7 @@ pub async fn remove_member(
     Path(params): Path<OrgMemberPathParams>,
 ) -> Result<ApiResponse<()>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     OrganizationMembersService::remove_member(

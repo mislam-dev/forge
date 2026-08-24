@@ -24,7 +24,7 @@ pub async fn get_logs(
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<BuildLogResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let logs =
@@ -42,7 +42,7 @@ pub async fn stream_logs(
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<Sse<impl Stream<Item = Result<Event, Infallible>>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let logs_response =
@@ -69,7 +69,7 @@ pub async fn download_logs(
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<Response, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let text =
@@ -97,7 +97,7 @@ pub async fn search_logs(
     Query(query): Query<LogSearchQuery>,
 ) -> Result<ApiResponse<BuildLogResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let logs =

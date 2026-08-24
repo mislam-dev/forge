@@ -193,7 +193,7 @@ async fn test_list_teams_authorized_with_jwt() {
     let token = AuthTokenService::access(JwtPayload {
         user_id,
         email: "user@example.com".to_string(),
-        role: vec!["User".to_string()],
+        roles: vec!["User".to_string()],
         permissions: vec![],
     })
     .unwrap();

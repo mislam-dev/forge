@@ -149,7 +149,7 @@ mod tests {
         let jwt_claims = JwtClaims {
             sub: Uuid::new_v4(),
             email: "user@example.com".to_string(),
-            role: vec![],
+            roles: vec![],
             permissions: vec![],
             iat: 100000,
             exp: 200000,
@@ -176,7 +176,7 @@ mod tests {
         let jwt_claims = JwtClaims {
             sub: Uuid::new_v4(),
             email: "user@example.com".to_string(),
-            role: vec![],
+            roles: vec![],
             permissions: vec![],
             iat: 100000,
             exp: 200000,

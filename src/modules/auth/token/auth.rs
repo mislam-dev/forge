@@ -8,7 +8,7 @@ use uuid::Uuid;
 pub struct JwtClaims {
     pub sub: Uuid,
     pub email: String,
-    pub role: Vec<String>,
+    pub roles: Vec<String>,
     pub permissions: Vec<String>,
     pub iat: usize,
     pub exp: usize,
@@ -17,7 +17,7 @@ pub struct JwtClaims {
 pub struct JwtPayload {
     pub user_id: Uuid,
     pub email: String,
-    pub role: Vec<String>,
+    pub roles: Vec<String>,
     pub permissions: Vec<String>,
 }
 pub struct RefreshTokenPayload {
@@ -33,7 +33,7 @@ impl AuthTokenService {
         let claims = JwtClaims {
             sub: data.user_id,
             email: data.email.to_owned(),
-            role: data.role,
+            roles: data.roles,
             permissions: data.permissions,
             exp,
             iat,
@@ -70,7 +70,7 @@ impl AuthTokenService {
             JwtPayload {
                 user_id: data.user_id,
                 email: data.email,
-                role: vec![],
+                roles: vec![],
                 permissions: vec![],
             },
             exp,
@@ -124,7 +124,7 @@ mod tests {
         let payload = JwtPayload {
             user_id,
             email: email.clone(),
-            role: vec!["Admin".to_string()],
+            roles: vec!["Admin".to_string()],
             permissions: vec!["write:users".to_string()],
         };
 
@@ -135,7 +135,7 @@ mod tests {
         let claims = AuthTokenService::verify(&token).expect("Token verification should succeed");
         assert_eq!(claims.sub, user_id);
         assert_eq!(claims.email, email);
-        assert_eq!(claims.role, vec!["Admin".to_string()]);
+        assert_eq!(claims.roles, vec!["Admin".to_string()]);
         assert_eq!(claims.permissions, vec!["write:users".to_string()]);
     }
 

@@ -45,7 +45,7 @@ async fn test_roles_endpoint_authorized_with_valid_jwt() {
     let token = AuthTokenService::access(JwtPayload {
         user_id,
         email: "admin@example.com".to_string(),
-        role: vec!["Admin".to_string()],
+        roles: vec!["Admin".to_string()],
         permissions: vec![],
     })
     .unwrap();

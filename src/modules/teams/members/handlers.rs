@@ -19,7 +19,7 @@ pub async fn add_member(
     JsonValidate(payload): JsonValidate<AddTeamMemberRequest>,
 ) -> Result<ApiResponse<TeamMemberResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let member =
@@ -37,7 +37,7 @@ pub async fn list_members(
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<TeamMemberResponse>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let members = TeamMembersService::list_members(&state.db, claims.sub, is_admin, id).await?;
@@ -55,7 +55,7 @@ pub async fn update_member(
     JsonValidate(payload): JsonValidate<UpdateTeamMemberRoleRequest>,
 ) -> Result<ApiResponse<TeamMemberResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let member = TeamMembersService::update_member_role(
@@ -75,7 +75,7 @@ pub async fn remove_member(
     Path((id, user_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     TeamMembersService::remove_member(&state.db, claims.sub, is_admin, id, user_id).await?;

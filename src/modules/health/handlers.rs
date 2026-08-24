@@ -30,7 +30,7 @@ pub async fn check_health_details(
     claims: JwtClaims,
 ) -> Result<ApiResponse<DetailedHealthResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let details = HealthService::check_health_details(&state.db, claims.sub, is_admin).await?;

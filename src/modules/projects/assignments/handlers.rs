@@ -22,7 +22,7 @@ pub async fn assign_member(
     JsonValidate(payload): JsonValidate<AssignProjectMemberRequest>,
 ) -> Result<ApiResponse<ProjectMemberResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let member =
@@ -41,7 +41,7 @@ pub async fn list_members(
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<ProjectMemberResponse>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let members =
@@ -59,7 +59,7 @@ pub async fn remove_member(
     Path((id, user_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     ProjectAssignmentsService::remove_member(&state.db, claims.sub, is_admin, id, user_id).await?;
@@ -76,7 +76,7 @@ pub async fn assign_team(
     JsonValidate(payload): JsonValidate<AssignProjectTeamRequest>,
 ) -> Result<ApiResponse<ProjectTeamResponse>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let team = ProjectAssignmentsService::assign_team(&state.db, claims.sub, is_admin, id, payload)
@@ -94,7 +94,7 @@ pub async fn list_teams(
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<ProjectTeamResponse>>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let teams = ProjectAssignmentsService::list_teams(&state.db, claims.sub, is_admin, id).await?;
@@ -111,7 +111,7 @@ pub async fn remove_team(
     Path((id, team_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
     let is_admin = claims
-        .role
+        .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     ProjectAssignmentsService::remove_team(&state.db, claims.sub, is_admin, id, team_id).await?;
