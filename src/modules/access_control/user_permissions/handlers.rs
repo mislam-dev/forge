@@ -2,11 +2,11 @@ use super::dto::request::{AssignUserPermissionsDto, RemoveUserPermissionsDto};
 use super::service::UserPermissionsService;
 use crate::app::state::AppState;
 use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
+use crate::modules::access_control::user_permissions::dto::response::UserPermissionResponse;
+use crate::shared::response::ApiResponse;
 use crate::shared::{error::AppError, utils::IdParams, validation::JsonValidate};
-use axum::{
-    Json,
-    extract::{Path, State},
-};
+use axum::extract::{Path, State};
+use axum::http::StatusCode;
 
 pub struct UserPermissionsHandlers;
 
@@ -14,23 +14,32 @@ impl UserPermissionsHandlers {
     pub async fn assign(
         State(state): State<AppState>,
         JsonValidate(payload): JsonValidate<AssignUserPermissionsDto>,
-    ) -> Result<(), AppError> {
-        UserPermissionsService::assign(&state.db, payload).await
+    ) -> Result<ApiResponse<Vec<UserPermissionResponse>>, AppError> {
+        let data = UserPermissionsService::assign(&state.db, payload).await?;
+
+        Ok(ApiResponse::new()
+            .status(StatusCode::CREATED)
+            .message("Permissions assigned successfully!".to_string())
+            .body(Some(data)))
     }
 
     pub async fn remove(
         State(state): State<AppState>,
         JsonValidate(payload): JsonValidate<RemoveUserPermissionsDto>,
-    ) -> Result<(), AppError> {
-        UserPermissionsService::remove(&state.db, payload).await
+    ) -> Result<ApiResponse<()>, AppError> {
+        UserPermissionsService::remove(&state.db, payload).await?;
+        Ok(ApiResponse::new().status(StatusCode::NO_CONTENT))
     }
 
     pub async fn show(
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
-    ) -> Result<Json<Vec<PermissionResponseDto>>, AppError> {
+    ) -> Result<ApiResponse<Vec<PermissionResponseDto>>, AppError> {
         let perms = UserPermissionsService::find_permissions_by_user_id(&state.db, id.0).await?;
-        Ok(Json(perms))
+        Ok(ApiResponse::new()
+            .message("Permissions fetched successfully!".to_string())
+            .status(StatusCode::OK)
+            .body(Some(perms)))
     }
 }
 

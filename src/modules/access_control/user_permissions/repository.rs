@@ -1,6 +1,6 @@
 use super::entities::user_permissions::{
     ActiveModel as UserPermissionActiveModel, Column as UserPermissionColumn,
-    Entity as UserPermissionEntity,
+    Entity as UserPermissionEntity, Model as UserPermissionModel,
 };
 use crate::modules::access_control::permissions::entities::permissions::{
     Column as PermissionColumn, Entity as PermissionEntity, Model as PermissionModel,
@@ -19,15 +19,21 @@ impl UserPermissionsRepository {
         db: &DatabaseConnection,
         user_id: Uuid,
         permission_ids: Vec<Uuid>,
-    ) -> Result<(), AppError> {
+    ) -> Result<Vec<UserPermissionModel>, AppError> {
+        let mut data: Vec<UserPermissionModel> = vec![];
         for perm_id in permission_ids {
+            if let Ok(_) = Self::find_entry(db, user_id, perm_id).await {
+                continue;
+            }
+
             let active_model = UserPermissionActiveModel {
                 user_id: Set(user_id),
                 permission_id: Set(perm_id),
             };
-            let _ = active_model.insert(db).await;
+            let d = active_model.insert(db).await?;
+            data.push(d);
         }
-        Ok(())
+        Ok(data)
     }
 
     pub async fn remove(
@@ -69,6 +75,24 @@ impl UserPermissionsRepository {
             .all(db)
             .await
             .map_err(AppError::Database)
+    }
+    pub async fn find_entry(
+        db: &DatabaseConnection,
+        user_id: Uuid,
+        permission_id: Uuid,
+    ) -> Result<UserPermissionModel, AppError> {
+        let user_permission = UserPermissionEntity::find()
+            .filter(UserPermissionColumn::UserId.eq(user_id))
+            .filter(UserPermissionColumn::PermissionId.eq(permission_id))
+            .one(db)
+            .await
+            .map_err(AppError::Database)?;
+
+        if user_permission.is_none() {
+            return Err(AppError::NotFound("User permission not found!".to_string()));
+        }
+
+        Ok(user_permission.unwrap())
     }
 }
 

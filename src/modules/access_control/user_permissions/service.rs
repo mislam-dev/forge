@@ -1,6 +1,7 @@
 use super::dto::request::{AssignUserPermissionsDto, RemoveUserPermissionsDto};
 use super::repository::UserPermissionsRepository;
 use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
+use crate::modules::access_control::user_permissions::dto::response::UserPermissionResponse;
 use crate::modules::users::repository::UserRepository;
 use crate::shared::error::AppError;
 use sea_orm::DatabaseConnection;
@@ -12,13 +13,23 @@ impl UserPermissionsService {
     pub async fn assign(
         db: &DatabaseConnection,
         dto: AssignUserPermissionsDto,
-    ) -> Result<(), AppError> {
+    ) -> Result<Vec<UserPermissionResponse>, AppError> {
         let user = UserRepository::find_by_id(db, dto.user_id).await?;
         if user.is_none() {
             return Err(AppError::NotFound("User not found!".to_string()));
         }
 
-        UserPermissionsRepository::assign(db, dto.user_id, dto.permission_ids).await
+        let data = UserPermissionsRepository::assign(db, dto.user_id, dto.permission_ids).await?;
+
+        let response_data = data
+            .into_iter()
+            .map(|p| UserPermissionResponse {
+                user_id: p.user_id,
+                permission_id: p.permission_id,
+            })
+            .collect();
+
+        Ok(response_data)
     }
 
     pub async fn remove(
