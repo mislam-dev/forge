@@ -6,6 +6,7 @@ use super::role_permissions::repository::RolePermissionsRepository;
 use super::user_permissions::repository::UserPermissionsRepository;
 use super::user_roles::repository::UserRolesRepository;
 use crate::shared::error::AppError;
+use crate::shared::pagination::PaginationParams;
 
 pub struct AccessControlService;
 
@@ -21,9 +22,16 @@ impl AccessControlService {
 
         // 2. Fetch permissions for each role
         for role in user_roles {
-            let role_perms =
-                RolePermissionsRepository::find_permissions_by_role_id(db, role.id).await?;
-            for perm in role_perms {
+            let role_perms = RolePermissionsRepository::find_permissions_by_role_id(
+                db,
+                role.id,
+                PaginationParams {
+                    page: 1,
+                    per_page: 100,
+                },
+            )
+            .await?;
+            for perm in role_perms.data {
                 permissions_set.insert(perm.value);
             }
         }

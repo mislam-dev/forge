@@ -1,6 +1,7 @@
 use axum::{Json, extract::FromRequest};
 use serde::de::DeserializeOwned;
-use validator::Validate;
+use uuid::Uuid;
+use validator::{Validate, ValidationError};
 
 use crate::shared::error::AppError;
 
@@ -22,5 +23,13 @@ where
             .map_err(|err| AppError::Validation(err.into()))?;
 
         Ok(JsonValidate(value))
+    }
+}
+
+pub fn validate_uuid_format(id: &str) -> Result<(), ValidationError> {
+    if Uuid::parse_str(id).is_ok() {
+        Ok(())
+    } else {
+        Err(ValidationError::new("invalid_uuid"))
     }
 }

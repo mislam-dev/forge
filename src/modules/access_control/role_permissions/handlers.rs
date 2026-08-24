@@ -2,11 +2,13 @@ use super::dto::request::{AssignRolePermissionsDto, RemoveRolePermissionsDto};
 use super::service::RolePermissionsService;
 use crate::app::state::AppState;
 use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
+use crate::modules::access_control::role_permissions::dto::response::RolePermissionsResponse;
+use crate::shared::pagination::{PaginatedResponse, PaginationParams};
+use crate::shared::response::ApiResponse;
 use crate::shared::{error::AppError, utils::IdParams, validation::JsonValidate};
-use axum::{
-    Json,
-    extract::{Path, State},
-};
+use axum::extract::Query;
+use axum::extract::{Path, State};
+use axum::http::StatusCode;
 
 pub struct RolePermissionsHandlers;
 
@@ -14,23 +16,34 @@ impl RolePermissionsHandlers {
     pub async fn assign(
         State(state): State<AppState>,
         JsonValidate(payload): JsonValidate<AssignRolePermissionsDto>,
-    ) -> Result<(), AppError> {
-        RolePermissionsService::assign(&state.db, payload).await
+    ) -> Result<ApiResponse<Vec<RolePermissionsResponse>>, AppError> {
+        let data = RolePermissionsService::assign(&state.db, payload).await?;
+
+        Ok(ApiResponse::new()
+            .message("Permissions assigned to the role".to_string())
+            .status(StatusCode::CREATED)
+            .body(Some(data)))
     }
 
     pub async fn remove(
         State(state): State<AppState>,
         JsonValidate(payload): JsonValidate<RemoveRolePermissionsDto>,
-    ) -> Result<(), AppError> {
-        RolePermissionsService::remove(&state.db, payload).await
+    ) -> Result<ApiResponse<()>, AppError> {
+        RolePermissionsService::remove(&state.db, payload).await?;
+
+        Ok(ApiResponse::new().status(StatusCode::NO_CONTENT))
     }
 
     pub async fn show(
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
-    ) -> Result<Json<Vec<PermissionResponseDto>>, AppError> {
-        let perms = RolePermissionsService::find_permissions_by_role_id(&state.db, id.0).await?;
-        Ok(Json(perms))
+        Query(params): Query<PaginationParams>,
+    ) -> Result<ApiResponse<PaginatedResponse<PermissionResponseDto>>, AppError> {
+        let perms =
+            RolePermissionsService::find_permissions_by_role_id(&state.db, id.0, params).await?;
+        Ok(ApiResponse::new()
+            .message("Permissions fetched successfully!".to_string())
+            .body(Some(perms)))
     }
 }
 
@@ -76,7 +89,15 @@ mod tests {
     async fn test_show_handler() {
         let state = setup_mock_state();
         let id = IdParams(Uuid::new_v4());
-        let result = RolePermissionsHandlers::show(State(state), Path(id)).await;
+        let result = RolePermissionsHandlers::show(
+            State(state),
+            Path(id),
+            Query(PaginationParams {
+                page: 1,
+                per_page: 10,
+            }),
+        )
+        .await;
         assert!(result.is_err());
     }
 }

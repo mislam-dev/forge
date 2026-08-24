@@ -38,6 +38,31 @@ impl PermissionsRepository {
             data: items,
         })
     }
+    pub async fn find_by_permission_ids(
+        db: &DatabaseConnection,
+        permission_ids: Vec<Uuid>,
+        params: &PaginationParams,
+    ) -> Result<PaginatedResponse<PermissionModel>, AppError> {
+        let current_page = params.page.saturating_sub(1);
+        let limit = params.per_page;
+
+        let paginator = PermissionEntity::find()
+            .order_by_asc(PermissionColumn::CreatedAt)
+            .filter(PermissionColumn::Id.is_in(permission_ids))
+            .paginate(db, limit);
+
+        let total_pages = paginator.num_pages().await?;
+        let total_items = paginator.num_items().await?;
+        let items = paginator.fetch_page(current_page).await?;
+
+        Ok(PaginatedResponse {
+            page: params.page,
+            per_page: params.per_page,
+            total: total_items,
+            total_pages,
+            data: items,
+        })
+    }
 
     pub async fn find_by_id(
         db: &DatabaseConnection,

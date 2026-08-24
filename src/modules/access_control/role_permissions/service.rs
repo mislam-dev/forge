@@ -1,8 +1,10 @@
 use super::dto::request::{AssignRolePermissionsDto, RemoveRolePermissionsDto};
 use super::repository::RolePermissionsRepository;
 use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
+use crate::modules::access_control::role_permissions::dto::response::RolePermissionsResponse;
 use crate::modules::access_control::roles::repository::RoleRepository;
 use crate::shared::error::AppError;
+use crate::shared::pagination::{PaginatedResponse, PaginationParams};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
@@ -12,13 +14,23 @@ impl RolePermissionsService {
     pub async fn assign(
         db: &DatabaseConnection,
         dto: AssignRolePermissionsDto,
-    ) -> Result<(), AppError> {
+    ) -> Result<Vec<RolePermissionsResponse>, AppError> {
         let role = RoleRepository::find_by_id(db, dto.role_id).await?;
         if role.is_none() {
             return Err(AppError::NotFound("Role not found!".to_string()));
         }
 
-        RolePermissionsRepository::assign(db, dto.role_id, dto.permission_ids).await
+        let permissions =
+            RolePermissionsRepository::assign(db, dto.role_id, dto.permission_ids).await;
+        let permissions_data = permissions?
+            .into_iter()
+            .map(|p| RolePermissionsResponse {
+                role_id: p.role_id,
+                permission_id: p.permission_id,
+            })
+            .collect();
+
+        Ok(permissions_data)
     }
 
     pub async fn remove(
@@ -36,23 +48,17 @@ impl RolePermissionsService {
     pub async fn find_permissions_by_role_id(
         db: &DatabaseConnection,
         role_id: Uuid,
-    ) -> Result<Vec<PermissionResponseDto>, AppError> {
+        params: PaginationParams,
+    ) -> Result<PaginatedResponse<PermissionResponseDto>, AppError> {
         let role = RoleRepository::find_by_id(db, role_id).await?;
         if role.is_none() {
             return Err(AppError::NotFound("Role not found!".to_string()));
         }
 
-        let perms = RolePermissionsRepository::find_permissions_by_role_id(db, role_id).await?;
+        let perms =
+            RolePermissionsRepository::find_permissions_by_role_id(db, role_id, params).await?;
 
-        Ok(perms
-            .into_iter()
-            .map(|p| PermissionResponseDto {
-                id: p.id.to_string(),
-                key: p.key,
-                value: p.value,
-                descriptions: p.description,
-            })
-            .collect())
+        Ok(perms)
     }
 }
 
@@ -91,7 +97,15 @@ mod tests {
     async fn test_find_permissions_by_role_id_role_not_found() {
         let db = setup_mock_db();
         let role_id = Uuid::new_v4();
-        let result = RolePermissionsService::find_permissions_by_role_id(&db, role_id).await;
+        let result = RolePermissionsService::find_permissions_by_role_id(
+            &db,
+            role_id,
+            PaginationParams {
+                page: 1,
+                per_page: 10,
+            },
+        )
+        .await;
         assert!(result.is_err());
     }
 }

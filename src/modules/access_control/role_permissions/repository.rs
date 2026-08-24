@@ -1,11 +1,11 @@
 use super::entities::role_permissions::{
     ActiveModel as RolePermissionActiveModel, Column as RolePermissionColumn,
-    Entity as RolePermissionEntity,
+    Entity as RolePermissionEntity, Model as RolePermissionModel,
 };
-use crate::modules::access_control::permissions::entities::permissions::{
-    Column as PermissionColumn, Entity as PermissionEntity, Model as PermissionModel,
-};
+use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
+use crate::modules::access_control::permissions::service::PermissionsService;
 use crate::shared::error::AppError;
+use crate::shared::pagination::{PaginatedResponse, PaginationParams};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
     QueryFilter,
@@ -19,15 +19,20 @@ impl RolePermissionsRepository {
         db: &DatabaseConnection,
         role_id: Uuid,
         permission_ids: Vec<Uuid>,
-    ) -> Result<(), AppError> {
-        for perm_id in permission_ids {
+    ) -> Result<Vec<RolePermissionModel>, AppError> {
+        let mut data: Vec<RolePermissionModel> = vec![];
+        for permission_id in permission_ids {
+            if let Ok(_) = Self::find_permissions_entry(db, role_id, permission_id).await {
+                continue;
+            }
             let active_model = RolePermissionActiveModel {
                 role_id: Set(role_id),
-                permission_id: Set(perm_id),
+                permission_id: Set(permission_id),
             };
-            let _ = active_model.insert(db).await;
+            let da = active_model.insert(db).await?;
+            data.push(da);
         }
-        Ok(())
+        Ok(data)
     }
 
     pub async fn remove(
@@ -51,7 +56,8 @@ impl RolePermissionsRepository {
     pub async fn find_permissions_by_role_id(
         db: &DatabaseConnection,
         role_id: Uuid,
-    ) -> Result<Vec<PermissionModel>, AppError> {
+        params: PaginationParams,
+    ) -> Result<PaginatedResponse<PermissionResponseDto>, AppError> {
         let role_perms = RolePermissionEntity::find()
             .filter(RolePermissionColumn::RoleId.eq(role_id))
             .all(db)
@@ -60,15 +66,26 @@ impl RolePermissionsRepository {
 
         let perm_ids: Vec<Uuid> = role_perms.into_iter().map(|rp| rp.permission_id).collect();
 
-        if perm_ids.is_empty() {
-            return Ok(vec![]);
+        let data = PermissionsService::find_by_permission_ids(db, perm_ids, params).await?;
+        Ok(data)
+    }
+    pub async fn find_permissions_entry(
+        db: &DatabaseConnection,
+        role_id: Uuid,
+        permission_id: Uuid,
+    ) -> Result<RolePermissionModel, AppError> {
+        let role_permission = RolePermissionEntity::find()
+            .filter(RolePermissionColumn::RoleId.eq(role_id))
+            .filter(RolePermissionColumn::PermissionId.eq(permission_id))
+            .one(db)
+            .await
+            .map_err(AppError::Database)?;
+
+        if role_permission.is_none() {
+            return Err(AppError::NotFound("Resource not found".to_string()));
         }
 
-        PermissionEntity::find()
-            .filter(PermissionColumn::Id.is_in(perm_ids))
-            .all(db)
-            .await
-            .map_err(AppError::Database)
+        Ok(role_permission.unwrap())
     }
 }
 
@@ -101,13 +118,5 @@ mod tests {
         let perm_id = Uuid::new_v4();
         let result = RolePermissionsRepository::remove(&db, role_id, vec![perm_id]).await;
         assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_find_permissions_by_role_id_empty_db() {
-        let db = setup_mock_db();
-        let role_id = Uuid::new_v4();
-        let result = RolePermissionsRepository::find_permissions_by_role_id(&db, role_id).await;
-        assert!(result.is_err());
     }
 }

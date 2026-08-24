@@ -97,6 +97,34 @@ impl PermissionsService {
     pub async fn remove(db: &DatabaseConnection, id: Uuid) -> Result<(), AppError> {
         PermissionsRepository::remove(db, id).await
     }
+
+    pub async fn find_by_permission_ids(
+        db: &DatabaseConnection,
+        permission_ids: Vec<Uuid>,
+        params: PaginationParams,
+    ) -> Result<PaginatedResponse<PermissionResponseDto>, AppError> {
+        let data =
+            PermissionsRepository::find_by_permission_ids(db, permission_ids, &params).await?;
+
+        let perms_data = data
+            .data
+            .into_iter()
+            .map(|c| PermissionResponseDto {
+                id: c.id.to_string(),
+                key: c.key,
+                value: c.value,
+                descriptions: c.description,
+            })
+            .collect::<Vec<PermissionResponseDto>>();
+
+        Ok(PaginatedResponse {
+            data: perms_data,
+            page: data.page,
+            per_page: data.per_page,
+            total: data.total,
+            total_pages: data.total_pages,
+        })
+    }
 }
 
 #[cfg(test)]
