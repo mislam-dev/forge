@@ -1,7 +1,10 @@
-mod permissions;
-mod role_permissions;
-mod roles;
+pub mod permissions;
+pub mod role_permissions;
+pub mod roles;
 pub mod router;
+pub mod seeder;
 pub mod service;
-mod user_permissions;
-mod user_roles;
+pub mod user_permissions;
+pub mod user_roles;
+
+

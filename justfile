@@ -54,6 +54,16 @@ entity path tables:
         --with-serde both \
         --date-time-crate chrono
 
+
+
+
+
+# ================================
+# Database Seed
+# ================================
+seed: 
+    cargo run --bin seed
+
 # ================================
 # Database Migrations
 # ================================
