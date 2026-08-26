@@ -1,6 +1,5 @@
-use crate::shared::error::AppError;
-
 use super::token::{AuthTokenService, JwtClaims};
+use crate::shared::error::AppError;
 use axum::http::header::AUTHORIZATION;
 use axum::{extract::FromRequestParts, http::request::Parts};
 
@@ -25,8 +24,9 @@ where
                 "Invalid Authorization header format".to_string(),
             ))?;
 
-        AuthTokenService::verify(token)
-            .map_err(|_| AppError::Unauthorized("Unauthorized".to_string()))
+        let jwt_claims = AuthTokenService::verify(token)
+            .map_err(|_| AppError::Unauthorized("Unauthorized".to_string()))?;
+        Ok(jwt_claims)
     }
 }
 

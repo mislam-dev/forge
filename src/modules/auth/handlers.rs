@@ -99,6 +99,7 @@ pub async fn verify_email(
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use crate::config::AppConfig;
     use uuid::Uuid;
