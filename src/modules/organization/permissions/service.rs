@@ -44,23 +44,6 @@ impl OrgPermissionsService {
         Ok(role)
     }
 
-    pub async fn verify_org_roles(
-        required_roles: Vec<OrgRole>,
-        user_roles: Vec<String>,
-    ) -> Result<(), AppError> {
-        let user_resolved_roles = OrgRole::resolve_roles_hierarchy(user_roles);
-
-        for role in required_roles {
-            if !user_resolved_roles.contains(&role) {
-                return Err(AppError::Forbidden(
-                    "Insufficient organization permissions.".to_string(),
-                ));
-            }
-        }
-
-        Ok(())
-    }
-
     // latest
     pub async fn find_role(
         db: &DatabaseConnection,
