@@ -40,14 +40,13 @@ impl AuthService {
             return Err(AppError::Unauthorized("Invalid credentials".to_string()));
         }
 
-        // todo fetch user roles and permissions
         let permissions = AccessControlService::resolve_user_permissions(db, user.id).await?;
         let roles = AccessControlService::get_user_roles_by_user_id(db, user.id).await?;
         let access_token = AuthTokenService::access(JwtPayload {
             user_id: user.id,
             email: user.email.clone(),
             permissions: permissions.iter().map(|p| p.to_string()).collect(),
-            roles: roles.iter().map(|r| r.key.clone()).collect(),
+            roles: roles.iter().map(|r| r.value.clone()).collect(),
         })?;
 
         let refresh_token = AuthTokenService::refresh(RefreshTokenPayload {
