@@ -36,7 +36,6 @@ impl OrganizationRepository {
     }
 
     pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<OrganizationModel>, AppError> {
-        tracing::info!("find_all");
         OrganizationEntity::find()
             .order_by_asc(OrganizationColumn::Name)
             .all(db)
@@ -48,18 +47,16 @@ impl OrganizationRepository {
         db: &DatabaseConnection,
         user_id: Uuid,
     ) -> Result<Vec<OrganizationModel>, AppError> {
-        tracing::info!("find user org");
         let members = MemberEntity::find()
             .filter(MemberColumn::UserId.eq(user_id))
             .all(db)
             .await?;
-        tracing::info!("member info: {:?}", members);
+
         let org_ids: Vec<Uuid> = members.into_iter().map(|m| m.organization_id).collect();
-        tracing::info!("org_ids, {:?}", org_ids);
+
         if org_ids.is_empty() {
             return Ok(vec![]);
         }
-        tracing::info!("org is not empty");
 
         OrganizationEntity::find()
             .filter(OrganizationColumn::Id.is_in(org_ids))

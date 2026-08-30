@@ -18,6 +18,11 @@ pub struct CreateOrganizationRequest {
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct UpdateOrganizationRequest {
+    #[validate(length(
+        min = 2,
+        max = 255,
+        message = "Name must be between 2 and 255 characters"
+    ))]
     pub name: Option<String>,
     pub slug: Option<String>,
     pub description: Option<String>,

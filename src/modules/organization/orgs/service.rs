@@ -113,7 +113,7 @@ impl OrganizationService {
 
         let role = OrgPermissionsService::find_role(db, id, user_id)
             .await?
-            .unwrap();
+            .ok_or_else(|| AppError::InternalServerError("failed to fetch roles".to_string()))?;
 
         let mut active: OrganizationActiveModel = org.into();
         let now = Utc::now().into();

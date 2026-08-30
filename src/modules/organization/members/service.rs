@@ -163,7 +163,7 @@ impl OrganizationMembersService {
 
         // ! currently allowing only 1 owner for each organization
         if target_member_role == OrganizationMemberRole::Owner
-            || new_role != OrganizationMemberRole::Owner
+            || new_role == OrganizationMemberRole::Owner
         {
             return Err(AppError::Forbidden(
                 "Owner cannot be modified or removed from the Organization".to_string(),
