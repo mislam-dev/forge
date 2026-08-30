@@ -8,11 +8,17 @@ use validator::{ValidationError, ValidationErrors};
 use super::dto::request::{CreateOrganizationRequest, UpdateOrganizationRequest};
 use super::dto::response::OrganizationResponse;
 use super::service::OrganizationService;
-use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::{
+    auth::token::JwtClaims,
+    organization::permissions::extractors::{RequireOwner, RequireViewer},
+};
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
+use crate::{
+    app::state::AppState,
+    modules::organization::permissions::extractors::{RequireAdmin, RequireOrgRole},
+};
 
 pub async fn create(
     State(state): State<AppState>,
@@ -58,12 +64,10 @@ pub async fn list(
 
 pub async fn show(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<OrganizationResponse>, AppError> {
-    let is_admin = claims.roles.iter().any(|r| r.eq_ignore_ascii_case("admin"));
-    let res =
-        OrganizationService::get_organization_by_id(&state.db, id, claims.sub, is_admin).await?;
+    let res = OrganizationService::get_organization_by_id(&state.db, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -73,17 +77,11 @@ pub async fn show(
 
 pub async fn update(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(claims, _): RequireAdmin,
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<UpdateOrganizationRequest>,
 ) -> Result<ApiResponse<OrganizationResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res =
-        OrganizationService::update_organization(&state.db, id, claims.sub, is_admin, payload)
-            .await?;
+    let res = OrganizationService::update_organization(&state.db, id, claims.sub, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -93,14 +91,10 @@ pub async fn update(
 
 pub async fn remove(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireOwner,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    OrganizationService::delete_organization(&state.db, id, claims.sub, is_admin).await?;
+    OrganizationService::delete_organization(&state.db, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)

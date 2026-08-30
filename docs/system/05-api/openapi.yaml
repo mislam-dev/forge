@@ -1209,7 +1209,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationResponse'
-    put:
+    patch:
       operationId: organizations_id_put
       tags:
         - Organizations

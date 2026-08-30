@@ -1,6 +1,6 @@
 use axum::{
     Router, middleware,
-    routing::{delete, get, post, put},
+    routing::{delete, get, patch, post},
 };
 
 use super::handlers;
@@ -12,7 +12,7 @@ pub fn orgs_router() -> Router<AppState> {
         .route("/", post(handlers::create))
         .route("/", get(handlers::list))
         .route("/{id}", get(handlers::show))
-        .route("/{id}", put(handlers::update))
+        .route("/{id}", patch(handlers::update))
         .route("/{id}", delete(handlers::remove))
         .route_layer(middleware::from_extractor::<JwtClaims>())
 }

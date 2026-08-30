@@ -92,18 +92,10 @@ impl OrganizationService {
     pub async fn get_organization_by_id(
         db: &DatabaseConnection,
         id: Uuid,
-        user_id: Uuid,
-        is_admin: bool,
     ) -> Result<OrganizationResponse, AppError> {
         let org = OrganizationRepository::find_by_id(db, id)
             .await?
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
-
-        if !is_admin {
-            let _role =
-                OrgPermissionsService::verify_org_role(db, id, user_id, OrgRole::Viewer, is_admin)
-                    .await?;
-        }
 
         let owner_id = OrganizationRepository::find_owner_id(db, org.id).await?;
         Ok(OrganizationResponse::from_model(org, owner_id))
@@ -113,31 +105,29 @@ impl OrganizationService {
         db: &DatabaseConnection,
         id: Uuid,
         user_id: Uuid,
-        is_admin: bool,
         dto: UpdateOrganizationRequest,
     ) -> Result<OrganizationResponse, AppError> {
         let org = OrganizationRepository::find_by_id(db, id)
             .await?
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
 
-        let role =
-            OrgPermissionsService::verify_org_role(db, id, user_id, OrgRole::Admin, is_admin)
-                .await?;
+        let role = OrgPermissionsService::find_role(db, id, user_id)
+            .await?
+            .unwrap();
 
         let mut active: OrganizationActiveModel = org.into();
         let now = Utc::now().into();
         active.updated_at = Set(now);
 
-        if let Some(new_name) = dto.name {
-            if role != OrgRole::Owner && !is_admin {
-                return Err(AppError::Forbidden(
-                    "Only the Organization Owner can rename an organization.".to_string(),
-                ));
-            }
+        if let Some(new_name) = dto.name
+            && role == OrgRole::Owner
+        {
             active.name = Set(new_name);
         }
 
-        if let Some(new_slug) = dto.slug {
+        if let Some(new_slug) = dto.slug
+            && role == OrgRole::Owner
+        {
             let slugified = Self::slugify(&new_slug);
             if !slugified.is_empty() {
                 let existing = OrganizationRepository::find_by_slug(db, &slugified).await?;
@@ -166,20 +156,10 @@ impl OrganizationService {
         Ok(OrganizationResponse::from_model(updated_org, owner_id))
     }
 
-    pub async fn delete_organization(
-        db: &DatabaseConnection,
-        id: Uuid,
-        user_id: Uuid,
-        is_admin: bool,
-    ) -> Result<(), AppError> {
+    pub async fn delete_organization(db: &DatabaseConnection, id: Uuid) -> Result<(), AppError> {
         let _org = OrganizationRepository::find_by_id(db, id)
             .await?
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
-
-        let role =
-            OrgPermissionsService::verify_org_role(db, id, user_id, OrgRole::Owner, is_admin)
-                .await?;
-        OrgPermissionsService::enforce_delete_permission(role, is_admin)?;
 
         OrganizationRepository::delete(db, id).await?;
         Ok(())
@@ -223,8 +203,7 @@ mod tests {
     async fn test_get_organization_by_id_not_found() {
         let db = setup_mock_db();
         let org_id = Uuid::new_v4();
-        let user_id = Uuid::new_v4();
-        let result = OrganizationService::get_organization_by_id(&db, org_id, user_id, false).await;
+        let result = OrganizationService::get_organization_by_id(&db, org_id).await;
         assert!(result.is_err());
     }
 
@@ -232,8 +211,7 @@ mod tests {
     async fn test_delete_organization_not_found() {
         let db = setup_mock_db();
         let org_id = Uuid::new_v4();
-        let user_id = Uuid::new_v4();
-        let result = OrganizationService::delete_organization(&db, org_id, user_id, true).await;
+        let result = OrganizationService::delete_organization(&db, org_id).await;
         assert!(result.is_err());
     }
 }
