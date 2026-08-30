@@ -37,6 +37,22 @@ impl UserService {
             data: users_data,
         })
     }
+    pub async fn find_ids(
+        db: &DatabaseConnection,
+        ids: Vec<Uuid>,
+    ) -> Result<Vec<UserItemResponse>, AppError> {
+        let users = UserRepository::find_by_ids(db, ids).await?;
+        let users_data = users
+            .into_iter()
+            .map(|c| UserItemResponse {
+                id: c.id,
+                name: c.name,
+                email: c.email,
+            })
+            .collect::<Vec<UserItemResponse>>();
+
+        Ok(users_data)
+    }
 
     pub async fn find_one(db: &DatabaseConnection, id: Uuid) -> Result<UserItemResponse, AppError> {
         let user = UserRepository::find_by_id(db, id).await?;
@@ -106,6 +122,18 @@ impl UserService {
             name: user.name,
             email: user.email,
             password: user.password_hash,
+        })
+    }
+    pub async fn find_by_email(
+        db: &DatabaseConnection,
+        email: &String,
+    ) -> Result<UserItemResponse, AppError> {
+        let user = UserRepository::find_by_email_with_password(db, email).await?;
+        let user = user.ok_or(AppError::NotFound("User not found".to_string()))?;
+        Ok(UserItemResponse {
+            id: user.id,
+            name: user.name,
+            email: user.email,
         })
     }
 

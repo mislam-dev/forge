@@ -8,12 +8,14 @@ use uuid::Uuid;
 use super::dto::request::{InviteMemberRequest, UpdateMemberRoleRequest};
 use super::dto::response::{InvitationResponse, MemberResponse};
 use super::service::OrganizationMembersService;
-use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::{
+    auth::token::JwtClaims,
+    organization::permissions::extractors::{RequireAdmin, RequireOrgRole},
+};
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
-
+use crate::{app::state::AppState, modules::organization::permissions::extractors::RequireViewer};
 #[derive(Deserialize)]
 pub struct OrgMemberPathParams {
     pub id: Uuid,
@@ -22,17 +24,11 @@ pub struct OrgMemberPathParams {
 
 pub async fn invite(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireAdmin,
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<InviteMemberRequest>,
 ) -> Result<ApiResponse<InvitationResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res =
-        OrganizationMembersService::invite_member(&state.db, id, claims.sub, is_admin, payload)
-            .await?;
+    let res = OrganizationMembersService::invite_member(&state.db, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -42,15 +38,10 @@ pub async fn invite(
 
 pub async fn list_invitations(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireAdmin,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<InvitationResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res =
-        OrganizationMembersService::list_invitations(&state.db, id, claims.sub, is_admin).await?;
+    let res = OrganizationMembersService::list_invitations(&state.db, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -73,14 +64,10 @@ pub async fn accept_invitation(
 
 pub async fn list_members(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<MemberResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res = OrganizationMembersService::list_members(&state.db, id, claims.sub, is_admin).await?;
+    let res = OrganizationMembersService::list_members(&state.db, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -90,20 +77,14 @@ pub async fn list_members(
 
 pub async fn update_member(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireAdmin,
     Path(params): Path<OrgMemberPathParams>,
     JsonValidate(payload): JsonValidate<UpdateMemberRoleRequest>,
 ) -> Result<ApiResponse<MemberResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let res = OrganizationMembersService::update_member_role(
         &state.db,
         params.id,
         params.user_id,
-        claims.sub,
-        is_admin,
         payload,
     )
     .await?;
@@ -116,21 +97,10 @@ pub async fn update_member(
 
 pub async fn remove_member(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireAdmin,
     Path(params): Path<OrgMemberPathParams>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    OrganizationMembersService::remove_member(
-        &state.db,
-        params.id,
-        params.user_id,
-        claims.sub,
-        is_admin,
-    )
-    .await?;
+    OrganizationMembersService::remove_member(&state.db, params.id, params.user_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)

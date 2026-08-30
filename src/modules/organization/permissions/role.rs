@@ -22,6 +22,35 @@ impl OrganizationMemberRole {
             OrganizationMemberRole::Owner => "owner",
         }
     }
+
+    pub fn resolve_role_hierarchy(role: String) -> Vec<OrganizationMemberRole> {
+        match role.to_lowercase().as_str() {
+            "viewer" => vec![OrganizationMemberRole::Viewer],
+            "editor" | "developer" => vec![
+                OrganizationMemberRole::Viewer,
+                OrganizationMemberRole::Editor,
+            ],
+            "admin" => vec![
+                OrganizationMemberRole::Viewer,
+                OrganizationMemberRole::Editor,
+                OrganizationMemberRole::Admin,
+            ],
+            "owner" => vec![
+                OrgRole::Viewer,
+                OrgRole::Editor,
+                OrgRole::Admin,
+                OrgRole::Owner,
+            ],
+            _ => vec![],
+        }
+    }
+    pub fn resolve_roles_hierarchy(roles: Vec<String>) -> Vec<OrganizationMemberRole> {
+        let mut hierarchy = Vec::new();
+        for role in roles {
+            hierarchy.extend(OrgRole::resolve_role_hierarchy(role));
+        }
+        hierarchy
+    }
 }
 
 impl PartialOrd for OrganizationMemberRole {

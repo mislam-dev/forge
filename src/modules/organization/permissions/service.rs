@@ -25,7 +25,7 @@ impl OrgPermissionsService {
         is_system_admin: bool,
     ) -> Result<OrgRole, AppError> {
         if is_system_admin {
-            return Ok(OrgRole::Owner);
+            return Ok(OrgRole::Admin);
         }
 
         let role = Self::resolve_org_role(db, org_id, user_id)
@@ -42,6 +42,67 @@ impl OrgPermissionsService {
         }
 
         Ok(role)
+    }
+
+    pub async fn verify_org_roles(
+        required_roles: Vec<OrgRole>,
+        user_roles: Vec<String>,
+    ) -> Result<(), AppError> {
+        let user_resolved_roles = OrgRole::resolve_roles_hierarchy(user_roles);
+
+        for role in required_roles {
+            if !user_resolved_roles.contains(&role) {
+                return Err(AppError::Forbidden(
+                    "Insufficient organization permissions.".to_string(),
+                ));
+            }
+        }
+
+        Ok(())
+    }
+
+    // latest
+    pub async fn find_role(
+        db: &DatabaseConnection,
+        org_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<Option<OrgRole>, AppError> {
+        let member = OrganizationMembersRepository::find_member(db, org_id, user_id).await?;
+        Ok(member.and_then(|m| m.role))
+    }
+
+    pub async fn match_roles(
+        required_roles: Vec<OrgRole>,
+        user_roles: Vec<String>,
+    ) -> Result<(), AppError> {
+        let user_resolved_roles = OrgRole::resolve_roles_hierarchy(user_roles);
+
+        for role in required_roles {
+            if !user_resolved_roles.contains(&role) {
+                return Err(AppError::Forbidden(
+                    "Insufficient organization permissions.".to_string(),
+                ));
+            }
+        }
+
+        Ok(())
+    }
+
+    pub async fn validate(
+        db: &DatabaseConnection,
+        org_id: Uuid,
+        user_id: Uuid,
+        required_roles: Vec<OrgRole>,
+    ) -> Result<(), AppError> {
+        let role = Self::find_role(db, org_id, user_id).await?;
+
+        let role = role.ok_or_else(|| {
+            AppError::Forbidden("You are not a member of this organization".to_string())
+        })?;
+
+        let _r = Self::match_roles(required_roles, vec![role.to_string()]).await?;
+
+        Ok(())
     }
 
     pub fn enforce_rename_permission(role: OrgRole) -> Result<(), AppError> {

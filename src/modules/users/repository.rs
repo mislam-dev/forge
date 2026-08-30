@@ -44,6 +44,17 @@ impl UserRepository {
             data: items,
         })
     }
+    pub async fn find_by_ids(
+        db: &DatabaseConnection,
+        ids: Vec<Uuid>,
+    ) -> Result<Vec<UserModel>, AppError> {
+        let users = UsersEntity::find()
+            .filter(UserColumn::Id.is_in(ids))
+            .all(db)
+            .await?;
+
+        Ok(users)
+    }
 
     pub async fn find_by_id(
         db: &DatabaseConnection,
