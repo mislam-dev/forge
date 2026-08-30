@@ -119,9 +119,22 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
-            example:
-              email: "monirul@example.com"
-              password: "StrongPassword123!"
+            examples:
+              admin:
+                summary: "System Administrator"
+                value:
+                  email: "admin1@forge.local"
+                  password: "Password123!"
+              developer:
+                summary: "Developer"
+                value:
+                  email: "dev1@forge.local"
+                  password: "Password123!"
+              viewer:
+                summary: "Viewer"
+                value:
+                  email: "viewer1@forge.local"
+                  password: "Password123!"
       responses:
         '200':
           description: "Authentication successful"
