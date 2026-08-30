@@ -1,4 +1,4 @@
-use sea_orm_migration::prelude::*;
+use sea_orm_migration::{prelude::*, sea_query::extension::postgres::Type};
 
 pub struct Migration;
 
@@ -11,6 +11,19 @@ impl MigrationName for Migration {
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .create_type(
+                Type::create()
+                    .as_enum(OrganizationInvitationsStatus::Table)
+                    .values([
+                        OrganizationInvitationsStatus::Accepted,
+                        OrganizationInvitationsStatus::Pending,
+                        OrganizationInvitationsStatus::Rejected,
+                    ])
+                    .to_owned(),
+            )
+            .await?;
+
         manager
             .create_table(
                 Table::create()
@@ -46,8 +59,16 @@ impl MigrationTrait for Migration {
                     )
                     .col(
                         ColumnDef::new(OrganizationInvitations::Role)
-                            .string()
-                            .not_null(),
+                            .enumeration(
+                                OrganizationMemberRole::Table,
+                                [
+                                    OrganizationMemberRole::Admin,
+                                    OrganizationMemberRole::Editor,
+                                    OrganizationMemberRole::Viewer,
+                                    OrganizationMemberRole::Owner,
+                                ],
+                            )
+                            .default("viewer"),
                     )
                     .col(
                         ColumnDef::new(OrganizationInvitations::Token)
@@ -57,8 +78,14 @@ impl MigrationTrait for Migration {
                     )
                     .col(
                         ColumnDef::new(OrganizationInvitations::Status)
-                            .string()
-                            .not_null()
+                            .enumeration(
+                                OrganizationInvitationsStatus::Table,
+                                [
+                                    OrganizationInvitationsStatus::Pending,
+                                    OrganizationInvitationsStatus::Accepted,
+                                    OrganizationInvitationsStatus::Rejected,
+                                ],
+                            )
                             .default("pending"),
                     )
                     .col(
@@ -115,4 +142,21 @@ enum OrganizationInvitations {
 enum Organizations {
     Table,
     Id,
+}
+
+#[derive(DeriveIden)]
+enum OrganizationMemberRole {
+    Table,
+    Viewer,
+    Editor,
+    Admin,
+    Owner,
+}
+
+#[derive(DeriveIden)]
+enum OrganizationInvitationsStatus {
+    Table,
+    Pending,
+    Accepted,
+    Rejected,
 }

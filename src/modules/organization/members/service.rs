@@ -1,17 +1,17 @@
-use chrono::{Duration, Utc};
-use sea_orm::{DatabaseConnection, Set};
-use uuid::Uuid;
-use validator::Validate;
-
 use super::dto::request::{InviteMemberRequest, UpdateMemberRoleRequest};
 use super::dto::response::{InvitationResponse, MemberResponse};
-use super::entities::organization_invitation::ActiveModel as InvitationActiveModel;
-use super::entities::organization_member::ActiveModel as MemberActiveModel;
+use super::entities::sea_orm_active_enums::{
+    OrganizationInvitationsStatus, OrganizationMemberRole,
+};
 use super::repository::OrganizationMembersRepository;
 use crate::modules::organization::orgs::repository::OrganizationRepository;
 use crate::modules::organization::permissions::role::OrgRole;
 use crate::modules::organization::permissions::service::OrgPermissionsService;
 use crate::shared::error::AppError;
+use chrono::{Duration, Utc};
+use sea_orm::DatabaseConnection;
+use uuid::Uuid;
+use validator::Validate;
 
 pub struct OrganizationMembersService;
 
@@ -33,12 +33,12 @@ impl OrganizationMembersService {
             db,
             org_id,
             requester_id,
-            OrgRole::Admin,
+            OrganizationMemberRole::Admin,
             is_system_admin,
         )
         .await?;
 
-        let role: OrgRole = req.role.parse().map_err(AppError::BadRequest)?;
+        let member_role: OrganizationMemberRole = req.role.parse().map_err(AppError::BadRequest)?;
 
         let target_email = if let Some(email) = req.email {
             email
@@ -66,11 +66,13 @@ impl OrganizationMembersService {
             }
         }
 
-        let pending_invites =
-            OrganizationMembersRepository::find_pending_invitations(db, org_id).await?;
-        if pending_invites
-            .iter()
-            .any(|i| i.email.eq_ignore_ascii_case(&target_email))
+        if OrganizationMembersRepository::find_pending_invitation_by_email(
+            db,
+            org_id,
+            &target_email,
+        )
+        .await?
+        .is_some()
         {
             return Err(AppError::Conflict(
                 "A pending invitation already exists for this email".to_string(),
@@ -81,20 +83,16 @@ impl OrganizationMembersService {
         let now = Utc::now();
         let expires_at = now + Duration::days(7);
 
-        let invitation_active = InvitationActiveModel {
-            id: Set(Uuid::new_v4()),
-            organization_id: Set(org_id),
-            email: Set(target_email),
-            role: Set(role.as_str().to_string()),
-            token: Set(token),
-            status: Set("pending".to_string()),
-            expires_at: Set(expires_at.into()),
-            created_at: Set(now.into()),
-            updated_at: Set(now.into()),
-        };
+        let created_invite = OrganizationMembersRepository::create_invitation(
+            db,
+            org_id,
+            target_email,
+            member_role,
+            token,
+            expires_at,
+        )
+        .await?;
 
-        let created_invite =
-            OrganizationMembersRepository::create_invitation(db, invitation_active).await?;
         Ok(InvitationResponse::from_model(created_invite))
     }
 
@@ -107,7 +105,7 @@ impl OrganizationMembersService {
             .await?
             .ok_or_else(|| AppError::NotFound("Invalid or expired invitation token".to_string()))?;
 
-        if invite.status != "pending" {
+        if invite.status != Some(OrganizationInvitationsStatus::Pending) {
             return Err(AppError::BadRequest(
                 "Invitation has already been used or cancelled".to_string(),
             ));
@@ -133,18 +131,12 @@ impl OrganizationMembersService {
             ));
         }
 
-        let member_active = MemberActiveModel {
-            organization_id: Set(invite.organization_id),
-            user_id: Set(user_id),
-            role: Set(invite.role.clone()),
-            joined_at: Set(now.into()),
-        };
-        let member = OrganizationMembersRepository::add_member(db, member_active).await?;
+        let role = invite.role.unwrap_or(OrganizationMemberRole::Viewer);
+        let member =
+            OrganizationMembersRepository::add_member(db, invite.organization_id, user_id, role)
+                .await?;
 
-        let mut invite_active: InvitationActiveModel = invite.into();
-        invite_active.status = Set("accepted".to_string());
-        invite_active.updated_at = Set(now.into());
-        OrganizationMembersRepository::update_invitation(db, invite_active).await?;
+        OrganizationMembersRepository::accept_invitation(db, invite.id).await?;
 
         Ok(MemberResponse::from_model(member, Some(user.email)))
     }
@@ -171,11 +163,13 @@ impl OrganizationMembersService {
         let members_with_users =
             OrganizationMembersRepository::find_members_by_org_id(db, org_id).await?;
 
-        let mut res = Vec::with_capacity(members_with_users.len());
-        for (m, u) in members_with_users {
-            let email = u.map(|usr| usr.email);
-            res.push(MemberResponse::from_model(m, email));
-        }
+        let res = members_with_users
+            .into_iter()
+            .map(|(m, u)| {
+                let email = u.map(|usr| usr.email);
+                MemberResponse::from_model(m, email)
+            })
+            .collect();
 
         Ok(res)
     }
@@ -220,25 +214,27 @@ impl OrganizationMembersService {
             db,
             org_id,
             requester_id,
-            OrgRole::Admin,
+            OrganizationMemberRole::Admin,
             is_system_admin,
         )
         .await?;
-        let new_role: OrgRole = req.role.parse().map_err(AppError::BadRequest)?;
+        let new_member_role: OrganizationMemberRole = req.role.parse().map_err(AppError::BadRequest)?;
 
         let target_member = OrganizationMembersRepository::find_member(db, org_id, target_user_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Member not found in organization".to_string()))?;
 
-        let target_role: OrgRole = target_member.role.parse().unwrap_or(OrgRole::Viewer);
+        let target_role = target_member
+            .role
+            .unwrap_or(OrganizationMemberRole::Viewer);
 
-        if !is_system_admin && requester_role == OrgRole::Admin && target_role == OrgRole::Owner {
+        if !is_system_admin && requester_role == OrganizationMemberRole::Admin && target_role == OrganizationMemberRole::Owner {
             return Err(AppError::Forbidden(
                 "Admin cannot modify the Organization Owner role".to_string(),
             ));
         }
 
-        if target_role == OrgRole::Owner && new_role != OrgRole::Owner {
+        if target_role == OrganizationMemberRole::Owner && new_member_role != OrganizationMemberRole::Owner {
             let owner_count = OrganizationMembersRepository::count_owners(db, org_id).await?;
             if owner_count <= 1 {
                 return Err(AppError::Conflict(
@@ -247,9 +243,13 @@ impl OrganizationMembersService {
             }
         }
 
-        let mut active: MemberActiveModel = target_member.into();
-        active.role = Set(new_role.as_str().to_string());
-        let updated = OrganizationMembersRepository::update_member(db, active).await?;
+        let updated = OrganizationMembersRepository::update_member_role(
+            db,
+            org_id,
+            target_user_id,
+            new_member_role,
+        )
+        .await?;
 
         let target_user =
             OrganizationMembersRepository::find_user_by_id(db, target_user_id).await?;
@@ -269,7 +269,7 @@ impl OrganizationMembersService {
             db,
             org_id,
             requester_id,
-            OrgRole::Admin,
+            OrganizationMemberRole::Admin,
             is_system_admin,
         )
         .await?;
@@ -278,15 +278,17 @@ impl OrganizationMembersService {
             .await?
             .ok_or_else(|| AppError::NotFound("Member not found in organization".to_string()))?;
 
-        let target_role: OrgRole = target_member.role.parse().unwrap_or(OrgRole::Viewer);
+        let target_role = target_member
+            .role
+            .unwrap_or(OrganizationMemberRole::Viewer);
 
-        if !is_system_admin && requester_role == OrgRole::Admin && target_role == OrgRole::Owner {
+        if !is_system_admin && requester_role == OrganizationMemberRole::Admin && target_role == OrganizationMemberRole::Owner {
             return Err(AppError::Forbidden(
                 "Admin cannot remove the Organization Owner".to_string(),
             ));
         }
 
-        if target_role == OrgRole::Owner {
+        if target_role == OrganizationMemberRole::Owner {
             let owner_count = OrganizationMembersRepository::count_owners(db, org_id).await?;
             if owner_count <= 1 {
                 return Err(AppError::Conflict(

@@ -1,6 +1,6 @@
 use axum::{
     Router, middleware,
-    routing::{delete, get, post, put},
+    routing::{delete, get, patch, post},
 };
 
 use super::handlers;
@@ -16,7 +16,7 @@ pub fn members_router() -> Router<AppState> {
             post(handlers::accept_invitation),
         )
         .route("/{id}/members", get(handlers::list_members))
-        .route("/{id}/members/{user_id}", put(handlers::update_member))
+        .route("/{id}/members/{user_id}", patch(handlers::update_member))
         .route("/{id}/members/{user_id}", delete(handlers::remove_member))
         .route_layer(middleware::from_extractor::<JwtClaims>())
 }

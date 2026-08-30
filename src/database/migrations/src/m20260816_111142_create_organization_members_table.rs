@@ -14,12 +14,12 @@ impl MigrationTrait for Migration {
         manager
             .create_type(
                 Type::create()
-                    .as_enum(OrganizationMemeberRole::Table)
+                    .as_enum(OrganizationMemberRole::Table)
                     .values([
-                        OrganizationMemeberRole::Admin,
-                        OrganizationMemeberRole::Editor,
-                        OrganizationMemeberRole::Viewer,
-                        OrganizationMemeberRole::Owner,
+                        OrganizationMemberRole::Admin,
+                        OrganizationMemberRole::Editor,
+                        OrganizationMemberRole::Viewer,
+                        OrganizationMemberRole::Owner,
                     ])
                     .to_owned(),
             )
@@ -62,15 +62,21 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(OrganizationMembers::Role)
                             .enumeration(
-                                OrganizationMemeberRole::Table,
+                                OrganizationMemberRole::Table,
                                 [
-                                    OrganizationMemeberRole::Admin,
-                                    OrganizationMemeberRole::Editor,
-                                    OrganizationMemeberRole::Viewer,
-                                    OrganizationMemeberRole::Owner,
+                                    OrganizationMemberRole::Admin,
+                                    OrganizationMemberRole::Editor,
+                                    OrganizationMemberRole::Viewer,
+                                    OrganizationMemberRole::Owner,
                                 ],
                             )
                             .default("viewer"),
+                    )
+                    .primary_key(
+                        Index::create()
+                            .name("pk_organization_member")
+                            .col(OrganizationMembers::OrganizationId)
+                            .col(OrganizationMembers::UserId),
                     )
                     .col(
                         ColumnDef::new(OrganizationMembers::JoinedAt)
@@ -90,7 +96,7 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_type(Type::drop().name(OrganizationMemeberRole::Table).to_owned())
+            .drop_type(Type::drop().name(OrganizationMemberRole::Table).to_owned())
             .await?;
 
         Ok(())
@@ -119,7 +125,7 @@ enum Users {
 }
 
 #[derive(DeriveIden)]
-enum OrganizationMemeberRole {
+enum OrganizationMemberRole {
     Table,
     Viewer,
     Editor,

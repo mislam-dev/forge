@@ -3,6 +3,7 @@ use axum::{
     http::StatusCode,
 };
 use uuid::Uuid;
+use validator::{ValidationError, ValidationErrors};
 
 use super::dto::request::{CreateOrganizationRequest, UpdateOrganizationRequest};
 use super::dto::response::OrganizationResponse;
@@ -16,14 +17,24 @@ use crate::shared::validation::JsonValidate;
 pub async fn create(
     State(state): State<AppState>,
     claims: JwtClaims,
-    JsonValidate(payload): JsonValidate<CreateOrganizationRequest>,
+    JsonValidate(mut payload): JsonValidate<CreateOrganizationRequest>,
 ) -> Result<ApiResponse<OrganizationResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let res =
-        OrganizationService::create_organization(&state.db, claims.sub, is_admin, payload).await?;
+    let is_admin = claims.roles.iter().any(|r| r.eq_ignore_ascii_case("admin"));
+
+    if is_admin && payload.owner_user_id.is_none() {
+        let mut validation_errors = ValidationErrors::new();
+        validation_errors.add(
+            "owner_user_id",
+            ValidationError::new("Owner user id is required"),
+        );
+        return Err(AppError::Validation(validation_errors));
+    }
+
+    if !is_admin {
+        payload.owner_user_id = Some(claims.sub);
+    }
+
+    let res = OrganizationService::create_organization(&state.db, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -35,10 +46,8 @@ pub async fn list(
     State(state): State<AppState>,
     claims: JwtClaims,
 ) -> Result<ApiResponse<Vec<OrganizationResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims.roles.iter().any(|r| r.eq_ignore_ascii_case("admin"));
+
     let res = OrganizationService::get_user_organizations(&state.db, claims.sub, is_admin).await?;
 
     Ok(ApiResponse::new()
@@ -52,10 +61,7 @@ pub async fn show(
     claims: JwtClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<OrganizationResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    let is_admin = claims.roles.iter().any(|r| r.eq_ignore_ascii_case("admin"));
     let res =
         OrganizationService::get_organization_by_id(&state.db, id, claims.sub, is_admin).await?;
 

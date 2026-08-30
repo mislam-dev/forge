@@ -1,10 +1,8 @@
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
+use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
 use super::role::OrgRole;
-use crate::modules::organization::members::entities::organization_member::{
-    Column as MemberColumn, Entity as OrganizationMemberEntity,
-};
+use crate::modules::organization::members::repository::OrganizationMembersRepository;
 use crate::shared::error::AppError;
 
 pub struct OrgPermissionsService;
@@ -15,19 +13,8 @@ impl OrgPermissionsService {
         org_id: Uuid,
         user_id: Uuid,
     ) -> Result<Option<OrgRole>, AppError> {
-        let member = OrganizationMemberEntity::find()
-            .filter(MemberColumn::OrganizationId.eq(org_id))
-            .filter(MemberColumn::UserId.eq(user_id))
-            .one(db)
-            .await?;
-
-        if let Some(m) = member {
-            let role_str = m.role.to_string();
-            let role = role_str.parse::<OrgRole>().map_err(AppError::BadRequest)?;
-            Ok(Some(role))
-        } else {
-            Ok(None)
-        }
+        let member = OrganizationMembersRepository::find_member(db, org_id, user_id).await?;
+        Ok(member.and_then(|m| m.role))
     }
 
     pub async fn verify_org_role(

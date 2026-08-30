@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::super::entities::organization_invitation::Model as InvitationModel;
-use super::super::entities::organization_member::Model as MemberModel;
+use super::super::entities::organization_invitations::Model as InvitationModel;
+use super::super::entities::organization_members::Model as MemberModel;
+use super::super::entities::sea_orm_active_enums::OrganizationInvitationsStatus;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MemberResponse {
@@ -19,7 +20,10 @@ impl MemberResponse {
             organization_id: model.organization_id,
             user_id: model.user_id,
             email,
-            role: model.role,
+            role: model
+                .role
+                .map(|r| r.as_str().to_string())
+                .unwrap_or_else(|| "viewer".to_string()),
             joined_at: model.joined_at.to_rfc3339(),
         }
     }
@@ -43,9 +47,16 @@ impl InvitationResponse {
             id: model.id,
             organization_id: model.organization_id,
             email: model.email,
-            role: model.role,
+            role: model
+                .role
+                .map(|r| r.as_str().to_string())
+                .unwrap_or_else(|| "viewer".to_string()),
             token: model.token,
-            status: model.status,
+            status: match model.status {
+                Some(OrganizationInvitationsStatus::Accepted) => "accepted".to_string(),
+                Some(OrganizationInvitationsStatus::Rejected) => "rejected".to_string(),
+                _ => "pending".to_string(),
+            },
             expires_at: model.expires_at.to_rfc3339(),
             created_at: model.created_at.to_rfc3339(),
         }
@@ -56,6 +67,9 @@ impl InvitationResponse {
 mod tests {
     use super::*;
     use chrono::Utc;
+    use crate::modules::organization::members::entities::sea_orm_active_enums::{
+        OrganizationInvitationsStatus, OrganizationMemberRole,
+    };
 
     #[test]
     fn test_member_response_from_model() {
@@ -65,7 +79,7 @@ mod tests {
         let model = MemberModel {
             organization_id: org_id,
             user_id,
-            role: "owner".to_string(),
+            role: Some(OrganizationMemberRole::Owner),
             joined_at: now,
         };
 
@@ -85,9 +99,9 @@ mod tests {
             id,
             organization_id: org_id,
             email: "invite@example.com".to_string(),
-            role: "editor".to_string(),
+            role: Some(OrganizationMemberRole::Editor),
             token: "tok_12345".to_string(),
-            status: "pending".to_string(),
+            status: Some(OrganizationInvitationsStatus::Pending),
             expires_at: now,
             created_at: now,
             updated_at: now,
@@ -96,6 +110,7 @@ mod tests {
         let res = InvitationResponse::from_model(model);
         assert_eq!(res.id, id);
         assert_eq!(res.email, "invite@example.com");
+        assert_eq!(res.role, "editor");
         assert_eq!(res.token, "tok_12345");
         assert_eq!(res.status, "pending");
     }

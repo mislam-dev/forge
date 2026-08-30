@@ -1,31 +1,26 @@
-use chrono::Utc;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TransactionTrait};
-use uuid::Uuid;
-use validator::Validate;
-
 use super::dto::request::{CreateOrganizationRequest, UpdateOrganizationRequest};
 use super::dto::response::OrganizationResponse;
 use super::entities::organization::ActiveModel as OrganizationActiveModel;
 use super::repository::OrganizationRepository;
-use crate::modules::organization::members::entities::organization_member::ActiveModel as MemberActiveModel;
+use crate::modules::organization::members::entities::sea_orm_active_enums::OrganizationMemberRole;
+use crate::modules::organization::members::repository::OrganizationMembersRepository;
 use crate::modules::organization::permissions::role::OrgRole;
 use crate::modules::organization::permissions::service::OrgPermissionsService;
 use crate::shared::error::AppError;
+use chrono::Utc;
+use sea_orm::{DatabaseConnection, Set, TransactionTrait};
+use uuid::Uuid;
 
 pub struct OrganizationService;
 
 impl OrganizationService {
     pub async fn create_organization(
         db: &DatabaseConnection,
-        current_user_id: Uuid,
-        is_admin: bool,
-        req: CreateOrganizationRequest,
+        dto: CreateOrganizationRequest,
     ) -> Result<OrganizationResponse, AppError> {
-        req.validate().map_err(AppError::from)?;
-
-        let slug = match req.slug {
+        let slug = match dto.slug {
             Some(s) if !s.trim().is_empty() => Self::slugify(&s),
-            _ => Self::slugify(&req.name),
+            _ => Self::slugify(&dto.name),
         };
 
         if slug.is_empty() {
@@ -43,36 +38,28 @@ impl OrganizationService {
             ));
         }
 
-        let owner_user_id = if is_admin {
-            req.owner_user_id.unwrap_or(current_user_id)
-        } else {
-            current_user_id
-        };
-
+        let owner_user_id = dto.owner_user_id.unwrap();
         let org_id = Uuid::new_v4();
-        let now = Utc::now().into();
 
         let org_active = OrganizationActiveModel {
             id: Set(org_id),
-            name: Set(req.name),
+            name: Set(dto.name),
             slug: Set(slug),
-            description: Set(req.description),
-            logo_url: Set(req.logo_url),
-            created_at: Set(now),
-            updated_at: Set(now),
+            description: Set(dto.description),
+            logo_url: Set(dto.logo_url),
+            ..Default::default()
         };
 
         let txn = db.begin().await?;
-
         let created_org = OrganizationRepository::create_with_txn(&txn, org_active).await?;
 
-        let member_active = MemberActiveModel {
-            organization_id: Set(org_id),
-            user_id: Set(owner_user_id),
-            role: Set("owner".to_string()),
-            joined_at: Set(now),
-        };
-        member_active.insert(&txn).await?;
+        OrganizationMembersRepository::add_member_with_txn(
+            &txn,
+            org_id,
+            owner_user_id,
+            OrganizationMemberRole::Owner,
+        )
+        .await?;
 
         txn.commit().await?;
 
@@ -127,10 +114,8 @@ impl OrganizationService {
         id: Uuid,
         user_id: Uuid,
         is_admin: bool,
-        req: UpdateOrganizationRequest,
+        dto: UpdateOrganizationRequest,
     ) -> Result<OrganizationResponse, AppError> {
-        req.validate().map_err(AppError::from)?;
-
         let org = OrganizationRepository::find_by_id(db, id)
             .await?
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
@@ -143,7 +128,7 @@ impl OrganizationService {
         let now = Utc::now().into();
         active.updated_at = Set(now);
 
-        if let Some(new_name) = req.name {
+        if let Some(new_name) = dto.name {
             if role != OrgRole::Owner && !is_admin {
                 return Err(AppError::Forbidden(
                     "Only the Organization Owner can rename an organization.".to_string(),
@@ -152,7 +137,7 @@ impl OrganizationService {
             active.name = Set(new_name);
         }
 
-        if let Some(new_slug) = req.slug {
+        if let Some(new_slug) = dto.slug {
             let slugified = Self::slugify(&new_slug);
             if !slugified.is_empty() {
                 let existing = OrganizationRepository::find_by_slug(db, &slugified).await?;
@@ -167,11 +152,11 @@ impl OrganizationService {
             }
         }
 
-        if let Some(desc) = req.description {
+        if let Some(desc) = dto.description {
             active.description = Set(Some(desc));
         }
 
-        if let Some(logo) = req.logo_url {
+        if let Some(logo) = dto.logo_url {
             active.logo_url = Set(Some(logo));
         }
 

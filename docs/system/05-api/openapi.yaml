@@ -1240,6 +1240,89 @@ paths:
         '200':
           description: "Organization deleted"
 
+  /organizations/{id}/invitations:
+    post:
+      operationId: organizations_id_invitations_post
+      tags:
+        - Org Members
+      summary: "Invite member to organization"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteMemberRequest'
+            example:
+              email: "colleague@example.com"
+              role: "editor"
+      responses:
+        '201':
+          description: "Invitation sent successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/OrgInvitationResponse'
+    get:
+      operationId: organizations_id_invitations_get
+      tags:
+        - Org Members
+      summary: "List organization invitations"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "Pending invitations retrieved"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrgInvitationResponse'
+
+  /organizations/invitations/{token}/accept:
+    post:
+      operationId: organizations_invitations_token_accept_post
+      tags:
+        - Org Members
+      summary: "Accept organization invitation"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "inv_tok_12345678"
+      responses:
+        '200':
+          description: "Invitation accepted"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/OrgMemberResponse'
+
   /organizations/{id}/members:
     get:
       operationId: organizations_id_members_get
@@ -1253,45 +1336,21 @@ paths:
       responses:
         '200':
           description: "Member list retrieved"
-    post:
-      operationId: organizations_id_members_post
-      tags:
-        - Org Members
-      summary: "Add member to organization"
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - user_id
-                - role
-              properties:
-                user_id:
-                  type: string
-                  format: uuid
-                role:
-                  type: string
-                  enum:
-                    - "Viewer"
-                    - "Developer"
-                    - "Admin"
-                    - "Owner"
-            example:
-              user_id: "123e4567-e89b-12d3-a456-426614174000"
-              role: "Developer"
-      responses:
-        '201':
-          description: "Member added"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrgMemberResponse'
 
   /organizations/{id}/members/{user_id}:
-    put:
-      operationId: organizations_id_members_user_id_put
+    patch:
+      operationId: organizations_id_members_user_id_patch
       tags:
         - Org Members
       summary: "Update member organization role"
@@ -1310,20 +1369,21 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - role
-              properties:
-                role:
-                  type: string
-                  enum:
-                    - "Viewer"
-                    - "Developer"
-                    - "Admin"
-                    - "Owner"
+              $ref: '#/components/schemas/UpdateMemberRoleRequest'
+            example:
+              role: "admin"
       responses:
         '200':
           description: "Member role updated"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/OrgMemberResponse'
     delete:
       operationId: organizations_id_members_user_id_delete
       tags:
@@ -1342,6 +1402,13 @@ paths:
       responses:
         '200':
           description: "Member removed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
   /organizations/{id}/teams:
     get:
@@ -3025,6 +3092,104 @@ components:
               type: string
             updated_at:
               type: string
+
+    InviteMemberRequest:
+      type: object
+      required:
+        - role
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Target user ID if inviting an existing platform user"
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: "Target email address if inviting via email"
+        role:
+          type: string
+          enum:
+            - viewer
+            - editor
+            - developer
+            - admin
+            - owner
+          example: "editor"
+
+    UpdateMemberRoleRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum:
+            - viewer
+            - editor
+            - developer
+            - admin
+            - owner
+          example: "admin"
+
+    OrgMemberResponse:
+      type: object
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          nullable: true
+        role:
+          type: string
+          enum:
+            - viewer
+            - editor
+            - admin
+            - owner
+        joined_at:
+          type: string
+          format: date-time
+
+    OrgInvitationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - viewer
+            - editor
+            - admin
+            - owner
+        token:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - accepted
+            - rejected
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
 
     ProfileUpdateRequest:
       type: object

@@ -26,7 +26,7 @@ async fn test_create_organization_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/organizations")
+        .uri("/api/v1/organizations")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(r#"{"name": "Acme Corp"}"#))
@@ -43,7 +43,7 @@ async fn test_list_organizations_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/organizations")
+        .uri("/api/v1/organizations")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -60,7 +60,7 @@ async fn test_get_organization_unauthorized_without_jwt() {
 
     let org_id = Uuid::new_v4();
     let req = Request::builder()
-        .uri(format!("/api/organizations/{}", org_id))
+        .uri(format!("/api/v1/organizations/{}", org_id))
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -77,7 +77,7 @@ async fn test_update_organization_unauthorized_without_jwt() {
 
     let org_id = Uuid::new_v4();
     let req = Request::builder()
-        .uri(format!("/api/organizations/{}", org_id))
+        .uri(format!("/api/v1/organizations/{}", org_id))
         .method("PUT")
         .header("Content-Type", "application/json")
         .body(Body::from(r#"{"name": "Updated Org"}"#))
@@ -95,7 +95,7 @@ async fn test_delete_organization_unauthorized_without_jwt() {
 
     let org_id = Uuid::new_v4();
     let req = Request::builder()
-        .uri(format!("/api/organizations/{}", org_id))
+        .uri(format!("/api/v1/organizations/{}", org_id))
         .method("DELETE")
         .body(Body::empty())
         .unwrap();
@@ -120,7 +120,7 @@ async fn test_list_organizations_authorized_with_jwt() {
     .unwrap();
 
     let req = Request::builder()
-        .uri("/api/organizations")
+        .uri("/api/v1/organizations")
         .method("GET")
         .header("Authorization", format!("Bearer {}", token))
         .body(Body::empty())
@@ -141,7 +141,7 @@ async fn test_invite_member_unauthorized_without_jwt() {
 
     let org_id = Uuid::new_v4();
     let req = Request::builder()
-        .uri(format!("/api/organizations/{}/invitations", org_id))
+        .uri(format!("/api/v1/organizations/{}/invitations", org_id))
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(
@@ -161,7 +161,7 @@ async fn test_list_members_unauthorized_without_jwt() {
 
     let org_id = Uuid::new_v4();
     let req = Request::builder()
-        .uri(format!("/api/organizations/{}/members", org_id))
+        .uri(format!("/api/v1/organizations/{}/members", org_id))
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -177,7 +177,7 @@ async fn test_accept_invitation_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/organizations/invitations/tok_12345678/accept")
+        .uri("/api/v1/organizations/invitations/tok_12345678/accept")
         .method("POST")
         .body(Body::empty())
         .unwrap();
