@@ -64,10 +64,10 @@ async fn shutdown_signal() {
 
     tokio::select! {
         _ = ctrl_c => {
-            println!("Ctrl+C received! Shutting down gracefully...");
+            tracing::info!("Ctrl+C received! Shutting down gracefully...");
         },
         _ = terminate => {
-            println!("Terminate signal received! Shutting down gracefully...");
+            tracing::info!("Terminate signal received! Shutting down gracefully...");
         },
     }
 }

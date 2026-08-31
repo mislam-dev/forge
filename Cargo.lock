@@ -1222,7 +1222,6 @@ dependencies = [
  "dotenvy",
  "jsonwebtoken",
  "sea-orm",
- "sea-orm-cli",
  "serde",
  "serde_json",
  "thiserror",
@@ -1912,7 +1911,6 @@ version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1f111c8c41e7c61a49cd34e44c7619462967221a6443b0ec299e0ac30cfb9b1"
 dependencies = [
- "cc",
  "pkg-config",
  "vcpkg",
 ]
@@ -2389,16 +2387,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy",
-]
-
-[[package]]
-name = "prettyplease"
-version = "0.2.37"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "479ca8adacdd7ce8f1fb39ce9ecccbfe93a3f1344b3d0d97f20bc0196208f62b"
-dependencies = [
- "proc-macro2",
- "syn 2.0.119",
 ]
 
 [[package]]
@@ -2961,29 +2949,12 @@ dependencies = [
  "glob",
  "indoc",
  "regex",
- "sea-orm-codegen",
  "sea-schema",
  "sqlx",
  "tokio",
  "tracing",
  "tracing-subscriber",
  "url",
-]
-
-[[package]]
-name = "sea-orm-codegen"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "269078c723a7488b16ec5f7d4ca2ba79d2f2af216d206c0bd73d812f8d30b19e"
-dependencies = [
- "heck 0.5.0",
- "pluralizer",
- "prettyplease",
- "proc-macro2",
- "quote",
- "sea-query",
- "syn 2.0.119",
- "tracing",
 ]
 
 [[package]]
@@ -3363,7 +3334,6 @@ dependencies = [
  "indexmap",
  "log",
  "memchr",
- "native-tls",
  "percent-encoding",
  "rust_decimal",
  "rustls",

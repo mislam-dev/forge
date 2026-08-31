@@ -7,7 +7,7 @@ start:
     cargo run
 
 dev:
-    cargo watch -x run
+    cargo watch -c -w src -d 0.1 -x run
 
 test:
     cargo test

@@ -22,7 +22,6 @@ sea-orm = {
   version = "2.0.0",
   features = ["macros", "mock", "runtime-tokio-rustls", "sqlx-postgres"]
 }
-sea-orm-cli = "2.0.2"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 thiserror = "2.0.20"
@@ -49,3 +48,11 @@ path = "tests/foundation_tests.rs"
 name = "auth_tests"
 path = "tests/auth_tests.rs"
 
+[profile.dev]
+opt-level = 0
+debug = "line-tables-only" # Keeps backtrace line numbers without bloating debug symbols
+incremental = true
+
+# Compile all external dependencies with full optimizations:
+[profile.dev.package."*"]
+opt-level = 3
