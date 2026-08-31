@@ -3,6 +3,7 @@ use crate::modules::organization::permissions::{
     role::OrgRole,
 };
 
+#[derive(Debug, Clone, Copy)]
 pub struct AdminRole;
 
 impl OrgRoleRequirements for AdminRole {
@@ -11,6 +12,7 @@ impl OrgRoleRequirements for AdminRole {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct OwnerRole;
 
 impl OrgRoleRequirements for OwnerRole {
@@ -18,13 +20,19 @@ impl OrgRoleRequirements for OwnerRole {
         vec![OrgRole::Owner]
     }
 }
+
+#[derive(Debug, Clone, Copy)]
 pub struct EditorRole;
+
 impl OrgRoleRequirements for EditorRole {
     fn required_roles() -> Vec<OrgRole> {
         vec![OrgRole::Editor]
     }
 }
+
+#[derive(Debug, Clone, Copy)]
 pub struct ViewerRole;
+
 impl OrgRoleRequirements for ViewerRole {
     fn required_roles() -> Vec<OrgRole> {
         vec![OrgRole::Viewer]

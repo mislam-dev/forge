@@ -25,7 +25,7 @@ impl OrgPermissionsService {
         is_system_admin: bool,
     ) -> Result<OrgRole, AppError> {
         if is_system_admin {
-            return Ok(OrgRole::Admin);
+            return Ok(min_role);
         }
 
         let role = Self::resolve_org_role(db, org_id, user_id)

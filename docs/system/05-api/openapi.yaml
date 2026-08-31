@@ -1202,6 +1202,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
       responses:
         '200':
           description: "Organization details"
@@ -1218,6 +1219,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
       requestBody:
         required: true
         content:
@@ -1236,6 +1238,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
       responses:
         '200':
           description: "Organization deleted"
@@ -1250,6 +1253,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
       requestBody:
         required: true
         content:
@@ -1280,6 +1284,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
       responses:
         '200':
           description: "Pending invitations retrieved"
@@ -1333,6 +1338,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
       responses:
         '200':
           description: "Member list retrieved"
@@ -1364,6 +1370,7 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/HeaderOrganizationId'
       requestBody:
         required: true
         content:
@@ -1399,6 +1406,7 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/HeaderOrganizationId'
       responses:
         '200':
           description: "Member removed"
@@ -2361,6 +2369,16 @@ components:
       bearerFormat: ServiceToken
 
   parameters:
+    HeaderOrganizationId:
+      name: Organization-ID
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: "Organization UUID required in the header for tenant-scoped role-based authorization"
+      example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
     PathId:
       name: id
       in: path
