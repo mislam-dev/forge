@@ -1686,12 +1686,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: organization_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Projects list"
@@ -1702,6 +1697,8 @@ paths:
       summary: "Create a project"
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -1733,6 +1730,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Project details"
@@ -1745,6 +1743,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -1763,6 +1762,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Project deleted"
@@ -1779,6 +1779,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -1814,6 +1815,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -1832,6 +1834,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Repository config"
@@ -1846,6 +1849,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Repository clone triggered"
@@ -1860,6 +1864,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Latest commit details"
@@ -1874,6 +1879,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -1901,6 +1907,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "List of remote branches"
@@ -1915,6 +1922,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
         - name: environment
           in: query
           schema:
@@ -1935,6 +1943,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -1966,6 +1975,7 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -1990,6 +2000,7 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Variable deleted"
@@ -2005,6 +2016,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
         - name: environment
           in: query
           required: true
@@ -2028,6 +2040,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "List of assigned users"
@@ -2040,6 +2053,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -2074,6 +2088,7 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "User removed from project"
@@ -2088,6 +2103,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "List of assigned teams"
@@ -2100,6 +2116,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -2134,6 +2151,7 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Team removed from project"
@@ -2146,6 +2164,8 @@ paths:
       summary: "Trigger a new project deployment"
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -2184,6 +2204,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Deployment metadata retrieved"
@@ -2198,6 +2219,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
         - name: page
           in: query
           schema:
@@ -2226,6 +2248,7 @@ paths:
         - serviceTokenAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
         required: true
         content:
@@ -2263,6 +2286,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "SSE event stream opened"
@@ -2281,6 +2305,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
         - name: step
           in: query
           schema:
@@ -2313,6 +2338,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
         - name: q
           in: query
           required: true
@@ -2332,6 +2358,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
           description: "Plain text log file download"
@@ -2350,6 +2377,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '201':
           description: "Redeploy queued"
@@ -2364,6 +2392,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '201':
           description: "Rollback deployment queued"
@@ -2490,6 +2519,16 @@ components:
         type: string
         format: uuid
       description: "Organization UUID required in the header for tenant-scoped role-based authorization"
+      example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    HeaderOptionalOrganizationId:
+      name: Organization-ID
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: "Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context"
       example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
 
     PathId:
