@@ -789,9 +789,27 @@ Content-Type: application/json
 
 #### Description
 
-Creates a new project in an organization. Requires `Developer`, `Admin`, or `Owner` role. (Auto-assigns creator as `owner_id`).
+Creates a new project. Can be created either as a **Personal Project** (omit `organization_id`; requires `projects:create` System Policy) or an **Organization Project** (provide `organization_id`; requires `Developer`, `Admin`, or `Owner` role in the organization). Automatically assigns the creator as `owner_id`.
 
-#### Request
+#### Request (Personal Project)
+
+```http
+POST /projects
+Authorization: Bearer <access-token>
+Content-Type: application/json
+
+{
+  "name": "Personal Portfolio",
+  "type": "repo",
+  "repository_url": "https://github.com/mislam-dev/portfolio.git",
+  "default_branch": "main",
+  "runtime": "Rust",
+  "framework": "Actix Web",
+  "descriptions": "My personal website"
+}
+```
+
+#### Request (Organization Project)
 
 ```http
 POST /projects

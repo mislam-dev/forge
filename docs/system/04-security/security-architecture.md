@@ -63,21 +63,23 @@ flowchart TD
 
 ---
 
-## 3. Authorization — Three-Tier RBAC
+## 3. Authorization — Multi-Tier RBAC & Dual Workspace Model
+
+Forge supports two operating models: **Personal Workspaces** (individual developer projects) and **Organization Workspaces** (collaborative team multi-tenancy).
 
 ### Tier 1: System Access Control (Global Roles & Permissions)
 
 - Managed by System Administrators via `/access-control/*` endpoints.
-- Defines global `roles` (e.g., `admin`, `developer`, `viewer`) and `permissions` (e.g., `create-user`).
-- Roles are assigned to users via `user_roles`.
-- Permissions are assigned to roles via `role_permissions`, or directly to users via `user_permissions`.
-- This tier is **admin-only**; not exposed to regular users.
+- Defines global `roles` (e.g., `admin`, `developer`, `viewer`) and fine-grained `permissions` (e.g., `projects:create`, `deployments:create`).
+- Encoded into `JwtClaims` upon authentication.
+- **For Personal Workspaces (`organization_id IS NULL`)**: This tier serves as the **primary gatekeeper** (e.g. evaluating `ProjectsCreatePolicy`, `DeploymentsCreatePolicy`).
+- **For Platform Operators**: System Admin role bypasses tenant boundaries for system administration.
 
 ### Tier 2: Organization-Level RBAC
 
-- Managed by Organization Owners and Admins.
+- Managed by Organization Owners and Admins within their specific tenant.
 - Each organization member has a role: `Viewer`, `Developer`, `Admin`, `Owner`.
-- Enforced by the **Org Permissions** sub-module on all org resource operations.
+- Enforced by the **Org Permissions** sub-module on all organization-scoped resource operations (`organization_id IS NOT NULL`).
 
 | Org Role | Capabilities |
 |----------|-------------|
@@ -86,20 +88,27 @@ flowchart TD
 | **Admin** | Full CRUD on all org projects, members, and deployments |
 | **Owner** | Unrestricted; includes rollback, member management, and org lifecycle |
 
-### Tier 3: Project-Level Ownership
+### Tier 3: Resource Ownership & ABAC
 
-- Enforced by the **Project Permissions** sub-module.
-- `Developer` role users can only delete or manage assignments for projects they personally created (`project.owner_id == self.id`).
-- `Admin` and `Owner` roles bypass project ownership constraints.
+- Enforced by the **Project Permissions** sub-module and contextual guards.
+- **Personal Projects**: Full access granted to the creator (`owner_id == self.id`); denied to other users.
+- **Organization Projects**: `Developer` role users can delete projects only if `project.owner_id == self.id`. `Admin` and `Owner` roles bypass project ownership constraints.
 
 ```mermaid
 flowchart TD
     REQ[Request arrives] --> JWT[Validate JWT]
-    JWT -->|Valid| SYSROLE[Check System Roles]
     JWT -->|Invalid| R401[401 Unauthorized]
-    SYSROLE -->|System Admin| ALLOW[Authorize — Full Access]
-    SYSROLE -->|Standard User| ORGROLE[Check Org Membership Role]
-    ORGROLE -->|No Membership| R403[403 Forbidden]
+    JWT -->|Valid| SYSROLE{System Admin?}
+    
+    SYSROLE -->|Yes| ALLOW[Authorize — Full Access]
+    SYSROLE -->|No| WSCHECK{Is Resource Personal or Org?}
+    
+    WSCHECK -->|Personal: organization_id IS NULL| PGUARD{Check System Policy & owner_id}
+    PGUARD -->|Policy + Owner Match| ALLOW
+    PGUARD -->|Denied| R403[403 Forbidden]
+    
+    WSCHECK -->|Org: organization_id IS NOT NULL| ORGROLE[Check Org Membership Role]
+    ORGROLE -->|No Membership| R403
     ORGROLE -->|Viewer| READONLY[Read-only allowed; write denied]
     ORGROLE -->|Developer/Admin/Owner| PROJCHECK[Project Ownership Check if applicable]
     PROJCHECK -->|Admin/Owner| ALLOW
@@ -161,8 +170,8 @@ flowchart LR
 | `/access-control/*` | ✅ | System Admin | Admin-only |
 | `/organizations/*` | ✅ | Authenticated | Org role checked per action |
 | `/teams/*` | ✅ | Authenticated | Org role checked per action |
-| `/projects/*` | ✅ | Authenticated | Org role + project ownership checked |
-| `/deployments/*` (trigger) | ✅ | Developer | Project membership required |
+| `/projects/*` | ✅ | Authenticated | Personal: System Policy + Ownership; Org: Org Role + Ownership |
+| `/deployments/*` (trigger) | ✅ | Developer / Policy | Personal: `deployments:create` + Owner; Org: Org Role + Project assignment |
 | `PATCH /deployments/:id/status` | ✅ | Internal Service | Build Worker service token only |
 | `/deployments/:id/logs/*` | ✅ | Viewer | Must have project access |
 | `GET /dashboard` | ✅ | Authenticated | Scoped to user's orgs |

@@ -119,29 +119,33 @@ All requests to protected endpoints pass through a JWT validation middleware. Th
 3. Resolves the `user_id` and injects it into the request context.
 4. Refresh tokens are stored in the database; access tokens are stateless JWTs.
 
-### 4.2 Authorization (Multi-Layer RBAC)
+### 4.2 Authorization (Multi-Tier RBAC & Dual Workspace Model)
 
-Forge operates a **three-tier RBAC hierarchy**:
+Forge operates a **three-tier RBAC hierarchy** supporting both **Personal Workspaces** (standalone individual projects) and **Organization Workspaces** (multi-tenant team projects):
 
 | Tier | Module | Scope |
 |------|--------|-------|
-| **System Level** | Access Control (Roles, Permissions) | Platform-wide roles assigned by System Admins |
-| **Organization Level** | Org Permissions, Org Members | Member roles within an organization (Viewer, Developer, Admin, Owner) |
-| **Project Level** | Project Permissions | Per-project ownership rules (owner_id-based) |
-
-These tiers compose at runtime: a request is evaluated against all applicable permission layers.
+| **System Level** | Access Control (Roles, Permissions) | Platform-wide roles and fine-grained policies. Serves as primary gatekeeper for Personal Workspaces (`projects:create`, `deployments:create`). |
+| **Organization Level** | Org Permissions, Org Members | Member roles within an organization (Viewer, Developer, Admin, Owner) for organization-scoped resources. |
+| **Project Level** | Project Permissions | Resource ownership rules (`owner_id`-based) and team/member assignments. |
 
 ```mermaid
 flowchart TD
     REQ[Incoming Request] --> JWT[JWT Validation]
-    JWT --> SYS[System Role Check]
-    SYS --> ORG[Org Role Check]
-    ORG --> PROJ[Project Ownership Check]
-    PROJ --> EXEC[Execute Business Logic]
-
     JWT -->|Invalid| DENY401[401 Unauthorized]
-    SYS -->|Denied| DENY403[403 Forbidden]
+    JWT -->|Valid| SYS{System Admin?}
+    
+    SYS -->|Yes| EXEC[Execute Business Logic]
+    SYS -->|No| WS{Workspace Scoping}
+    
+    WS -->|Personal: organization_id IS NULL| POL[System Policy + Owner Check]
+    POL -->|Authorized| EXEC
+    POL -->|Denied| DENY403[403 Forbidden]
+    
+    WS -->|Org: organization_id IS NOT NULL| ORG[Org Role Check]
     ORG -->|Denied| DENY403
+    ORG -->|Authorized| PROJ[Project Ownership Check]
+    PROJ -->|Authorized| EXEC
     PROJ -->|Denied| DENY403
 ```
 

@@ -668,9 +668,9 @@ Stores project configuration and runtime metadata. Owned by Projects Module.
 | Column          | Type         | Nullable | Default            | Key  | Description                                                |
 | --------------- | ------------ | -------- | ------------------ | ---- | ---------------------------------------------------------- |
 | id              | UUID         | No       | uuid_generate_v4() | PK   | Project unique identifier                                  |
-| organization_id | UUID         | No       | None               | FK   | Parent organization ID                                     |
+| organization_id | UUID         | Yes      | NULL               | FK   | Parent organization ID (NULL for Personal projects)        |
 | owner_id        | UUID         | No       | None               | FK   | Project owner user ID                                      |
-| name            | VARCHAR(255) | No       | None               | None | Project name (unique per org)                              |
+| name            | VARCHAR(255) | No       | None               | None | Project name (unique per org or per owner if personal)     |
 | type            | VARCHAR(50)  | No       | None               | None | Project type (`repo` or `files`)                           |
 | repository_url  | VARCHAR(500) | Yes      | NULL               | None | Git URL (required if `type=repo`)                          |
 | default_branch  | VARCHAR(100) | Yes      | NULL               | None | Branch name (required if `type=repo`)                      |
@@ -700,13 +700,14 @@ Stores project configuration and runtime metadata. Owned by Projects Module.
 
 | Index Name           | Column(s)             | Type  | Unique |
 | -------------------- | --------------------- | ----- | ------ |
-| uk_projects_org_name | organization_id, name | BTREE | Yes    |
+| uk_projects_org_name | organization_id, name | BTREE | Yes (Partial: WHERE organization_id IS NOT NULL) |
+| uk_projects_personal | owner_id, name        | BTREE | Yes (Partial: WHERE organization_id IS NULL)     |
 
 ### Relationships
 
 | Relationship | Related Table                 | Cardinality |
 | ------------ | ----------------------------- | ----------- |
-| belongs to   | organizations                 | N:1         |
+| belongs to   | organizations                 | N:1 (Optional) |
 | belongs to   | users (owner)                 | N:1         |
 | has one      | project_repositories          | 1:1         |
 | has many     | project_environment_variables | 1:N         |

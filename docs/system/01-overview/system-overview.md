@@ -9,12 +9,12 @@
 
 ## 1. Platform Purpose
 
-Forge is a **developer-facing deployment and project management platform**. It provides organizations with a unified environment for managing users, projects, teams, Git repository connections, environment configuration, and automated Docker-based deployments — all gated behind a robust role-based access control (RBAC) system.
+Forge is a **developer-facing deployment and project management platform**. It provides individual developers and organizations with a unified environment for managing projects, Git repository connections, environment configuration, and automated Docker-based deployments — all gated behind a multi-tier role-based access control (RBAC) and ownership system.
 
-Forge enables development teams to:
+Forge enables individual developers and development teams to:
 
-- Create and manage **projects** backed by Git repositories or direct file uploads.
-- Configure **runtime environments** and **environment variables** per deployment target.
+- Create and manage **personal projects** independently or collaborative **organization projects** within teams.
+- Configure **runtime environments** and **environment variables** per deployment target with AES-256-GCM encryption.
 - Trigger **automated deployments** that follow a defined lifecycle: `Queued → Building → Deploying → Running → Success / Failed`.
 - Monitor **deployment progress** via real-time log streaming.
 - Manage **organizational structure** through organizations, teams, and granular member permissions.

@@ -57,13 +57,13 @@ The Projects module is responsible for managing projects within the system, incl
 
 ### Description
 
-Allows an authorized user to create a new project within an organization.
+Allows an authorized user to create a new project either as a **Personal Project** (standalone, individual workspace) or within an **Organization** (team/company workspace).
 
 ### Inputs
 
 | Field           | Required                          | Descriptions                                                            |
 | --------------- | --------------------------------- | ----------------------------------------------------------------------- |
-| organization_id | Yes                               | UUID of the parent organization                                         |
+| organization_id | No                                | Optional UUID of the parent organization (omit/null for Personal Project) |
 | name            | Yes                               | Name of the project                                                     |
 | type            | Yes                               | `repo` or `files`                                                       |
 | repository_url  | Required if `type` is `repo`      | Git repository URL                                                      |
@@ -78,20 +78,28 @@ Allows an authorized user to create a new project within an organization.
 1. Validate payload data and conditional field dependencies:
    - If `type == 'repo'`, verify `repository_url` and `default_branch` are provided.
    - Verify `runtime` is one of `Node.js`, `Rust`, `Python`, `Go`, `Static Site`.
-2. Verify existence of `organization_id`.
-3. Set `owner_id` to current authenticated user's ID.
+2. **Authorization & Workspace Scoping**:
+   - **If `organization_id` is null/omitted (Personal Project)**:
+     - Verify user has `projects:create` capability via System RBAC / `ProjectsCreatePolicy`.
+     - Set `organization_id = null`.
+   - **If `organization_id` is provided (Organization Project)**:
+     - Verify existence of `organization_id`.
+     - Verify user is a member of the organization with at least `Developer`/`Editor` role (`role >= OrgRole::Editor`).
+     - Set `organization_id = organization_id`.
+3. Set `owner_id` to current authenticated user's ID (`claims.sub`).
 4. Set default `status = 'active'` if not provided.
 5. Create project record in `projects`.
 
 ### Success Response
 
-- Project created successfully.
+- Project created successfully (either as Personal Project or Organization Project).
 
 ### Failure Cases
 
 - Missing required fields (e.g. missing `repository_url` when `type == 'repo'`).
 - Invalid runtime environment specified.
-- Invalid `organization_id`.
+- Non-existent `organization_id` provided.
+- Insufficient permissions (user lacks `projects:create` or is a `Viewer` in the target organization).
 
 ---
 
@@ -99,18 +107,22 @@ Allows an authorized user to create a new project within an organization.
 
 ### Description
 
-Lists all projects for an organization.
+Lists projects accessible to the authenticated user. If `organization_id` query parameter is provided, lists projects for that organization. If omitted, lists the user's personal projects and/or all accessible projects.
 
 ### Inputs
 
-| Field           | Required | Descriptions                     |
-| --------------- | -------- | -------------------------------- |
-| organization_id | Yes      | UUID of the organization         |
+| Field           | Required | Descriptions                                                    |
+| --------------- | -------- | --------------------------------------------------------------- |
+| organization_id | No       | Optional UUID of an organization to filter by                   |
 
 ### Process
 
-1. Find all projects matching `organization_id`.
-2. Return project records.
+1. If `organization_id` is provided:
+   - Verify user has access to `organization_id`.
+   - Find all projects matching `organization_id`.
+2. If `organization_id` is omitted:
+   - Find user's personal projects (`owner_id == user_id AND organization_id IS NULL`) and/or projects in organizations where the user is a member.
+3. Return project records.
 
 ### Success Response
 
@@ -118,7 +130,7 @@ Lists all projects for an organization.
 
 ### Failure Cases
 
-- Organization not found.
+- Specified organization not found or user lacks access.
 
 ---
 
@@ -217,11 +229,11 @@ Retrieves complete project details by project ID.
 
 | ID     | Rule                                                                                                 |
 | ------ | ---------------------------------------------------------------------------------------------------- |
-| BR-001 | Project name must be non-empty and unique per organization.                                          |
+| BR-001 | Project name must be non-empty and unique per organization (for Org projects) or unique per user owner (for Personal projects). |
 | BR-002 | Project `type` must be either `repo` or `files`.                                                     |
 | BR-003 | If `type == 'repo'`, `repository_url` and `default_branch` are mandatory.                            |
 | BR-004 | Project `runtime` must be one of: `Node.js`, `Rust`, `Python`, `Go`, `Static Site`.                  |
-| BR-005 | Project must be associated with a valid `organization_id`.                                           |
+| BR-005 | `organization_id` is optional; if omitted/null, the project is scoped to the user's Personal Workspace. |
 | BR-006 | The user creating the project is assigned as `owner_id`.                                             |
 
 ---
@@ -232,7 +244,7 @@ Retrieves complete project details by project ID.
 
 | Field           | Validation                                                                                         |
 | --------------- | -------------------------------------------------------------------------------------------------- |
-| organization_id | Required, valid UUID                                                                               |
+| organization_id | Optional, valid UUID if provided                                                                   |
 | name            | Required, non-empty string                                                                         |
 | type            | Required, must be `repo` or `files`                                                                |
 | repository_url  | Required if `type == 'repo'`, valid URL format                                                     |
@@ -247,15 +259,19 @@ Retrieves complete project details by project ID.
 
 # 7. Authorization Matrix
 
-| Route                | Action | Viewer | Developer | Admin | Owner | System Admin |
-| -------------------- | ------ | ------ | --------- | ----- | ----- | ------------ |
-| POST /projects       | Create | No     | Yes       | Yes   | Yes   | Yes          |
-| GET /projects        | List   | Yes    | Yes       | Yes   | Yes   | Yes          |
-| GET /projects/:id    | View   | Yes    | Yes       | Yes   | Yes   | Yes          |
-| PUT /projects/:id    | Edit   | No     | Yes       | Yes   | Yes   | Yes          |
-| DELETE /projects/:id | Delete | No     | Yes*      | Yes   | Yes   | Yes          |
+| Context | Route | Action | Viewer | Developer | Admin | Owner | System Admin |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Personal Project** (`organization_id == null`) | POST /projects | Create | — | Yes (`projects:create`) | Yes | Yes | Yes |
+| **Personal Project** (`organization_id == null`) | GET /projects/:id | View | — | If Owner (`owner_id == self`) | — | — | Yes |
+| **Personal Project** (`organization_id == null`) | PUT /projects/:id | Edit | — | If Owner (`owner_id == self`) | — | — | Yes |
+| **Personal Project** (`organization_id == null`) | DELETE /projects/:id | Delete | — | If Owner (`owner_id == self`) | — | — | Yes |
+| **Organization Project** (`organization_id != null`) | POST /projects | Create | No | Yes | Yes | Yes | Yes |
+| **Organization Project** (`organization_id != null`) | GET /projects | List | Yes | Yes | Yes | Yes | Yes |
+| **Organization Project** (`organization_id != null`) | GET /projects/:id | View | Yes | Yes | Yes | Yes | Yes |
+| **Organization Project** (`organization_id != null`) | PUT /projects/:id | Edit | No | Yes | Yes | Yes | Yes |
+| **Organization Project** (`organization_id != null`) | DELETE /projects/:id | Delete | No | Yes* | Yes | Yes | Yes |
 
-_\* Developer can delete only self-created projects (`owner_id == self.id`)._
+_\* In Organization projects, Developer can delete only self-created projects (`owner_id == self.id`). Org Admins and Owners can delete any project in their organization._
 
 ---
 
@@ -273,8 +289,17 @@ flowchart TD
     E -->|Yes| G{Is Runtime Valid?}
     D -->|No| G
     G -->|No| H[Return Invalid Runtime Error]
-    G -->|Yes| I[Set owner_id = Current User ID & status = active]
-    I --> J[Insert Project Record into projects]
+    G -->|Yes| WS{Is organization_id provided?}
+    
+    WS -->|No: Personal Project| PCHECK{User has projects:create policy?}
+    PCHECK -->|No| DENY[Return 403 Forbidden]
+    PCHECK -->|Yes| SAVE
+    
+    WS -->|Yes: Org Project| ORGCHECK{User >= Developer in Org?}
+    ORGCHECK -->|No| DENY
+    ORGCHECK -->|Yes| SAVE[Set owner_id = Current User ID & status = active]
+    
+    SAVE --> J[Insert Project Record into projects]
     J --> K[Return Success]
 ```
 
@@ -290,10 +315,10 @@ flowchart TD
 
 | Field           | Type      | Constraints                                                  |
 | --------------- | --------- | ------------------------------------------------------------ |
-| id              | UUID      | Primary                                                      |
-| organization_id | UUID      | Foreign Key                                                  |
-| owner_id        | UUID      | Project Owner                                                |
-| name            | VARCHAR   |                                                              |
+| id              | UUID      | Primary Key                                                  |
+| organization_id | UUID      | Nullable, Foreign Key → `organizations.id` (ON DELETE CASCADE) |
+| owner_id        | UUID      | Foreign Key → `users.id` (Project Owner)                     |
+| name            | VARCHAR   | Unique per org, or unique per owner if personal              |
 | type            | VARCHAR   | `repo` or `files`                                            |
 | repository_url  | VARCHAR   | Nullable (Required if `type == repo`)                        |
 | default_branch  | VARCHAR   | Nullable (Required if `type == repo`)                        |
@@ -320,7 +345,45 @@ flowchart TD
 
 # 12. API Examples
 
-## Create Repo Type Project
+## Create Personal Repo Project (No Organization)
+
+```json
+POST /projects
+{
+  "name": "Personal Portfolio",
+  "type": "repo",
+  "repository_url": "https://github.com/mislam-dev/portfolio.git",
+  "default_branch": "main",
+  "runtime": "Rust",
+  "framework": "Actix Web",
+  "descriptions": "My personal website"
+}
+```
+
+### Success Response
+
+```json
+{
+  "message": "Project created successfully.",
+  "data": {
+    "id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b9",
+    "organization_id": null,
+    "owner_id": "456e7890-e89b-12d3-a456-426614174000",
+    "name": "Personal Portfolio",
+    "type": "repo",
+    "repository_url": "https://github.com/mislam-dev/portfolio.git",
+    "default_branch": "main",
+    "runtime": "Rust",
+    "framework": "Actix Web",
+    "status": "active",
+    "descriptions": "My personal website",
+    "created_at": "2026-08-08T00:00:00Z",
+    "updated_at": "2026-08-08T00:00:00Z"
+  }
+}
+```
+
+## Create Organization Repo Project
 
 ```json
 POST /projects

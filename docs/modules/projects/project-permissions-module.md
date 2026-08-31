@@ -12,16 +12,18 @@
 
 ## Purpose
 
-The Project Permissions sub-module defines and enforces project-level access control and ownership rules for project creation, viewing, modification, deletion, and assignment.
+The Project Permissions sub-module defines and enforces access control and ownership rules for project creation, viewing, modification, deletion, and assignment across both **Personal Workspaces** (standalone individual projects) and **Organization Workspaces** (multi-tenant team projects).
 
 ## Scope
 
 ### Included
 
-- Evaluation of project operations (`create`, `view`, `update`, `delete`) based on Organization Role and Project Ownership (`owner_id`)
-- Enforcement of project deletion rules (restricting `Developer` role users to deleting only self-created projects)
-- Authorization of project team and member assignments
-- Permission enforcement matrix across project endpoints
+- Evaluation of project operations (`create`, `view`, `update`, `delete`) based on:
+  - **Personal Context (`organization_id == null`)**: System RBAC / `ProjectsCreatePolicy` and Project Ownership (`owner_id == self.id`).
+  - **Organization Context (`organization_id != null`)**: Organization Member Role (`Owner`, `Admin`, `Developer`, `Viewer`) and Project Ownership (`owner_id`).
+- Enforcement of project deletion rules (restricting `Developer` role users to deleting only self-created projects).
+- Authorization of project team and member assignments within organizations.
+- Permission enforcement matrix across project endpoints.
 
 ### Excluded
 
@@ -34,6 +36,16 @@ The Project Permissions sub-module defines and enforces project-level access con
 
 # 2. Roles & Ownership Permissions Hierarchy
 
+## Context 1: Personal Projects (`organization_id IS NULL`)
+
+| Role / Capability | Access Level | Description & Personal Project Capabilities |
+| :--- | :--- | :--- |
+| **System Developer / User** (with `projects:create`) | Full Owner | Can create personal projects. Automatically assigned as `owner_id`. Has unrestricted full CRUD and deployment access on self-owned personal projects. |
+| **Non-Owner User** | No Access | Cannot view, update, delete, or trigger deployments on another user's personal project. |
+| **System Administrator** | Platform Admin | Full override capability across all platform projects. |
+
+## Context 2: Organization Projects (`organization_id IS NOT NULL`)
+
 | Organization Role | Project Access Level | Description & Project Capabilities                                                                               |
 | ----------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Viewer**        | Read-Only            | Can view projects and assignment lists. Cannot create, edit, delete, or assign anything.                         |
@@ -45,6 +57,7 @@ The Project Permissions sub-module defines and enforces project-level access con
 
 # 3. Business Goals
 
+- Enable individual developers to create, deploy, and manage personal projects seamlessly without needing an organization.
 - Empower organization Developers to create and manage projects while guarding against unauthorized deletion of projects owned by others.
 - Ensure project creators maintain control over their project's settings and assignments.
 - Provide Admins and Organization Owners full governance to manage and maintain all projects across the organization.
@@ -53,16 +66,15 @@ The Project Permissions sub-module defines and enforces project-level access con
 
 # 4. Detailed Project Permission Matrix
 
-| Operation                        | Viewer | Developer (Self-Owned Project) | Developer (Other User's Project) | Admin | Owner |
-| -------------------------------- | ------ | ------------------------------ | -------------------------------- | ----- | ----- |
-| **View Project / List Projects** | Yes    | Yes                            | Yes                              | Yes   | Yes   |
-| **Create Project**               | No     | Yes (Auto-sets `owner_id`)     | Yes (Auto-sets `owner_id`)       | Yes   | Yes   |
-| **Update Project**               | No     | Yes                            | Yes                              | Yes   | Yes   |
-| **Delete Project**               | No     | Yes                            | **No (Denied)**                  | Yes   | Yes   |
-| **Assign User / Team to Project**| No     | Yes                            | No*                              | Yes   | Yes   |
-| **Remove User / Team from Project**| No   | Yes                            | No*                              | Yes   | Yes   |
+| Operation | Personal Project (Owner) | Personal Project (Other User) | Org: Viewer | Org: Developer (Self-Owned) | Org: Developer (Other User) | Org: Admin | Org: Owner | System Admin |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **View Project** | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes |
+| **Create Project** | Yes (`projects:create`) | — | No | Yes | Yes | Yes | Yes | Yes |
+| **Update Project** | Yes | No | No | Yes | Yes | Yes | Yes | Yes |
+| **Delete Project** | Yes | No | No | Yes | **No (Denied)** | Yes | Yes | Yes |
+| **Assign User / Team** | N/A (Org only) | N/A | No | Yes | No* | Yes | Yes | Yes |
 
-_\* Only the Project Owner (`owner_id == self.id`) or an Org Admin/Owner can manage user/team assignments for a project._
+_\* In Organization projects, only the Project Owner (`owner_id == self.id`) or an Org Admin/Owner can manage user/team assignments for a project._
 
 ---
 
@@ -72,21 +84,25 @@ _\* Only the Project Owner (`owner_id == self.id`) or an Org Admin/Owner can man
 
 ### Description
 
-Validates project creation permission and automatically sets `owner_id` to the requesting user's ID.
+Validates project creation permission based on whether the project is Personal or Organization-scoped, and automatically sets `owner_id` to the requesting user's ID.
 
 ### Inputs
 
-| Field           | Required | Descriptions                     |
-| --------------- | -------- | -------------------------------- |
-| user_id         | Yes      | UUID of the requesting user      |
-| organization_id | Yes      | UUID of the parent organization  |
+| Field           | Required | Descriptions                                                    |
+| --------------- | -------- | --------------------------------------------------------------- |
+| user_id         | Yes      | UUID of the requesting user                                     |
+| organization_id | No       | Optional UUID of parent organization (null for Personal Project) |
 
 ### Process
 
-1. Verify user's organization role in `organization_members`.
-2. Check if role is `Developer`, `Admin`, or `Owner`.
-3. If role is `Viewer`, reject request.
-4. On creation, assign `project.owner_id = user_id`.
+1. **If `organization_id` is null (Personal Project)**:
+   - Check if user holds `projects:create` capability from System RBAC / Access Control.
+   - If permitted, authorize creation with `organization_id = null` and `owner_id = user_id`.
+2. **If `organization_id` is provided (Organization Project)**:
+   - Verify user's organization role in `organization_members`.
+   - Check if role is `Developer`, `Admin`, or `Owner`.
+   - If role is `Viewer`, reject request (`PRJ_PERM_001`).
+   - On creation, assign `organization_id = organization_id` and `owner_id = user_id`.
 
 ### Success Response
 
@@ -94,7 +110,8 @@ Validates project creation permission and automatically sets `owner_id` to the r
 
 ### Failure Cases
 
-- User has `Viewer` role (`PRJ_PERM_001`).
+- User lacking `projects:create` capability for personal project (`PRJ_PERM_001`).
+- User has `Viewer` role in parent organization (`PRJ_PERM_001`).
 
 ---
 
@@ -102,25 +119,29 @@ Validates project creation permission and automatically sets `owner_id` to the r
 
 ### Description
 
-Enforces strict deletion authorization based on project ownership for `Developer` role users.
+Enforces strict deletion authorization based on workspace context and ownership.
 
 ### Inputs
 
-| Field           | Required | Descriptions                     |
-| --------------- | -------- | -------------------------------- |
-| user_id         | Yes      | UUID of the requesting user      |
-| organization_id | Yes      | UUID of the organization         |
-| project_id      | Yes      | UUID of the target project       |
+| Field           | Required | Descriptions                                                    |
+| --------------- | -------- | --------------------------------------------------------------- |
+| user_id         | Yes      | UUID of the requesting user                                     |
+| organization_id | No       | Optional UUID of the organization (null for Personal Project)   |
+| project_id      | Yes      | UUID of the target project                                      |
 
 ### Process
 
-1. Fetch user's role in `organization_members`.
-2. Fetch target project record and extract `project.owner_id`.
-3. If role is `Owner` or `Admin`, authorize deletion.
-4. If role is `Developer`:
-   - If `project.owner_id == user_id`, authorize deletion.
-   - If `project.owner_id != user_id`, reject deletion with error `PRJ_PERM_002`.
-5. If role is `Viewer`, reject deletion with error `PRJ_PERM_001`.
+1. Fetch target project record and inspect `project.organization_id` and `project.owner_id`.
+2. **If Personal Project (`project.organization_id IS NULL`)**:
+   - If `project.owner_id == user_id` or user is System Admin, authorize deletion.
+   - Otherwise, reject deletion (`PRJ_PERM_002`).
+3. **If Organization Project (`project.organization_id IS NOT NULL`)**:
+   - Fetch user's role in `organization_members`.
+   - If role is `Owner` or `Admin` (or user is System Admin), authorize deletion.
+   - If role is `Developer`:
+     - If `project.owner_id == user_id`, authorize deletion.
+     - If `project.owner_id != user_id`, reject deletion (`PRJ_PERM_002`).
+   - If role is `Viewer`, reject deletion (`PRJ_PERM_001`).
 
 ### Success Response
 
@@ -128,8 +149,9 @@ Enforces strict deletion authorization based on project ownership for `Developer
 
 ### Failure Cases
 
-- `Developer` user attempting to delete a project created by another user (`PRJ_PERM_002`).
-- `Viewer` user attempting to delete a project (`PRJ_PERM_001`).
+- User attempting to delete another user's personal project (`PRJ_PERM_002`).
+- `Developer` user attempting to delete an organization project created by another user (`PRJ_PERM_002`).
+- `Viewer` user attempting to delete an organization project (`PRJ_PERM_001`).
 
 ---
 
@@ -137,7 +159,7 @@ Enforces strict deletion authorization based on project ownership for `Developer
 
 ### Description
 
-Ensures only the Project Owner or Org Admin/Owner can add or remove team/user assignments.
+Ensures only the Project Owner or Org Admin/Owner can add or remove team/user assignments (applicable only to organization projects).
 
 ### Inputs
 

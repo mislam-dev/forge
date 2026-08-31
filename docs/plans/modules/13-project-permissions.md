@@ -12,14 +12,14 @@
 
 ### Purpose
 
-The Project Permissions sub-module implements **Tier 3 of the three-tier RBAC hierarchy** — project-level access control. Like Org Permissions, it is primarily a middleware/service component, not an API-facing module. It resolves a user's effective access level on a specific project.
+The Project Permissions sub-module implements **project-level access control and ownership rules** across both Personal Workspaces (`organization_id IS NULL`) and Organization Workspaces (`organization_id IS NOT NULL`). It resolves a user's effective access level on a specific project.
 
 ### Responsibilities
 
 - Define project-level role hierarchy: `Viewer < Developer < Admin < Owner`
-- Resolve a user's effective project role (from project_members or project owner status or team membership)
-- Provide `require_project_role(minimum_role)` Axum extractor
-- Prevent deletion of projects by non-owners (the `owner_id` guard)
+- Resolve a user's effective project role (from personal ownership, project_members, project owner status, or team membership)
+- Provide project authorization validation and ownership guards
+- Prevent deletion or modification of projects by non-owners (the `owner_id` guard)
 
 ### Scope
 

@@ -12,12 +12,12 @@
 
 ### Purpose
 
-The Projects module manages **deployable units within an organization**. A project represents a single application, service, or static site that can be built and deployed through the Forge platform. It is the central resource that connects repositories, environment variables, team assignments, and deployments.
+The Projects module manages **deployable units within an individual personal workspace or an organization**. A project represents a single application, service, or static site that can be built and deployed through the Forge platform. It is the central resource that connects repositories, environment variables, team assignments, and deployments.
 
 ### Responsibilities
 
-- Create projects within an organization
-- List projects in an organization
+- Create personal projects (standalone) or organization projects
+- List personal projects or projects within an organization
 - Get a specific project by ID
 - Update project configuration
 - Delete a project (owner/admin guard)

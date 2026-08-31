@@ -149,9 +149,9 @@ This document provides a consolidated reference for all database tables owned by
 | Column            | Type      | Constraints                                      |
 | ----------------- | --------- | ------------------------------------------------ |
 | `id`              | UUID      | Primary Key                                      |
-| `organization_id` | UUID      | FK → `organizations.id`                          |
+| `organization_id` | UUID      | Nullable, FK → `organizations.id` (ON DELETE CASCADE; NULL for Personal projects) |
 | `owner_id`        | UUID      | FK → `users.id`                                  |
-| `name`            | VARCHAR   | Unique per org                                   |
+| `name`            | VARCHAR   | Unique per org, or unique per owner if personal  |
 | `type`            | VARCHAR   | `repo` or `files`                                |
 | `repository_url`  | VARCHAR   | Nullable (required if `type = repo`)             |
 | `default_branch`  | VARCHAR   | Nullable (required if `type = repo`)             |

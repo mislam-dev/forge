@@ -3332,7 +3332,6 @@ components:
     CreateProjectRequest:
       type: object
       required:
-        - organization_id
         - name
         - type
         - runtime
@@ -3340,6 +3339,8 @@ components:
         organization_id:
           type: string
           format: uuid
+          nullable: true
+          description: "Optional UUID of the parent organization. If omitted/null, project is created in the user's Personal Workspace."
         name:
           type: string
         type:
