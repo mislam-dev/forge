@@ -6,24 +6,21 @@ use uuid::Uuid;
 
 use super::dto::{AddTeamMemberRequest, TeamMemberResponse, UpdateTeamMemberRoleRequest};
 use super::service::TeamMembersService;
-use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
+use crate::{
+    app::state::AppState,
+    modules::organization::permissions::extractors::{RequireAdmin, RequireOrgRole, RequireViewer},
+};
 
 pub async fn add_member(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireAdmin,
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<AddTeamMemberRequest>,
 ) -> Result<ApiResponse<TeamMemberResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let member =
-        TeamMembersService::add_member(&state.db, claims.sub, is_admin, id, payload).await?;
+    let member = TeamMembersService::add_member(&state.db, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -33,14 +30,10 @@ pub async fn add_member(
 
 pub async fn list_members(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<TeamMemberResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let members = TeamMembersService::list_members(&state.db, claims.sub, is_admin, id).await?;
+    let members = TeamMembersService::list_members(&state.db, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -50,18 +43,11 @@ pub async fn list_members(
 
 pub async fn update_member(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireAdmin,
     Path((id, user_id)): Path<(Uuid, Uuid)>,
     JsonValidate(payload): JsonValidate<UpdateTeamMemberRoleRequest>,
 ) -> Result<ApiResponse<TeamMemberResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let member = TeamMembersService::update_member_role(
-        &state.db, claims.sub, is_admin, id, user_id, payload,
-    )
-    .await?;
+    let member = TeamMembersService::update_member_role(&state.db, id, user_id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -71,14 +57,10 @@ pub async fn update_member(
 
 pub async fn remove_member(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireAdmin,
     Path((id, user_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    TeamMembersService::remove_member(&state.db, claims.sub, is_admin, id, user_id).await?;
+    TeamMembersService::remove_member(&state.db, id, user_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)

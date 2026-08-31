@@ -13,7 +13,7 @@ pub fn teams_router() -> Router<AppState> {
         .route(
             "/{id}",
             get(handlers::get_team)
-                .put(handlers::update_team)
+                .patch(handlers::update_team)
                 .delete(handlers::delete_team),
         )
         .route_layer(middleware::from_extractor::<JwtClaims>())

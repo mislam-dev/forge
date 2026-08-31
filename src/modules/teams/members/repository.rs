@@ -5,6 +5,8 @@ use super::entities::team_member::{
     ActiveModel as TeamMemberActiveModel, Column as TeamMemberColumn, Entity as TeamMemberEntity,
     Model as TeamMemberModel,
 };
+use crate::modules::teams::members::TeamRole;
+use crate::modules::teams::members::dto::AddTeamMemberRequest;
 use crate::modules::users::entities::users::{
     Column as UserColumn, Entity as UserEntity, Model as UserModel,
 };
@@ -57,8 +59,17 @@ impl TeamMembersRepository {
 
     pub async fn add_member(
         db: &DatabaseConnection,
-        active_model: TeamMemberActiveModel,
+        team_id: Uuid,
+        dto: AddTeamMemberRequest,
     ) -> Result<TeamMemberModel, AppError> {
+        let role: TeamRole = dto.role.parse().map_err(AppError::BadRequest)?;
+
+        let active_model = TeamMemberActiveModel {
+            team_id: Set(team_id),
+            user_id: Set(dto.user_id),
+            role: Set(role.as_str().to_string()),
+            ..Default::default()
+        };
         active_model.insert(db).await.map_err(AppError::from)
     }
 

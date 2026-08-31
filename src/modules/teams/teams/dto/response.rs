@@ -9,19 +9,17 @@ pub struct TeamResponse {
     pub organization_id: Option<Uuid>,
     pub name: String,
     pub descriptions: Option<String>,
-    pub member_count: u64,
     pub created_at: String,
     pub updated_at: String,
 }
 
 impl TeamResponse {
-    pub fn from_model(model: TeamModel, member_count: u64) -> Self {
+    pub fn from_model(model: TeamModel) -> Self {
         Self {
             id: model.id,
             organization_id: model.organization_id,
             name: model.name,
             descriptions: model.descriptions,
-            member_count,
             created_at: model.created_at.to_rfc3339(),
             updated_at: model.updated_at.to_rfc3339(),
         }
@@ -47,10 +45,9 @@ mod tests {
             updated_at: now,
         };
 
-        let res = TeamResponse::from_model(model, 5);
+        let res = TeamResponse::from_model(model);
         assert_eq!(res.id, id);
         assert_eq!(res.organization_id, Some(org_id));
         assert_eq!(res.name, "DevOps");
-        assert_eq!(res.member_count, 5);
     }
 }

@@ -24,6 +24,7 @@ mod m20260819_000001_create_organization_invitations_table;
 mod m20260819_000002_add_description_and_logo_to_organizations;
 mod m20260819_000003_add_role_to_team_members;
 mod m20260819_044939_create_users_profile_table;
+mod m20260831_075811_add_team_table_organization_id_constraints_to_not_null;
 
 pub struct Migrator;
 
@@ -51,10 +52,11 @@ impl MigratorTrait for Migrator {
             Box::new(m20260816_111248_create_project_teams_table::Migration),
             Box::new(m20260816_111300_create_deployment_table::Migration),
             Box::new(m20260816_111317_create_notifications_table::Migration),
-            Box::new(m20260819_044939_create_users_profile_table::Migration),
             Box::new(m20260819_000001_create_organization_invitations_table::Migration),
             Box::new(m20260819_000002_add_description_and_logo_to_organizations::Migration),
             Box::new(m20260819_000003_add_role_to_team_members::Migration),
+            Box::new(m20260819_044939_create_users_profile_table::Migration),
+            Box::new(m20260831_075811_add_team_table_organization_id_constraints_to_not_null::Migration),
         ]
     }
 }

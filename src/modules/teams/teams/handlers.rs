@@ -1,27 +1,26 @@
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, State},
     http::StatusCode,
 };
 use uuid::Uuid;
 
-use super::dto::{CreateTeamRequest, TeamQuery, TeamResponse, UpdateTeamRequest};
+use super::dto::{CreateTeamDTO, TeamResponse, UpdateTeamDTO};
 use super::service::TeamsService;
-use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::organization::permissions::extractors::{OrgIdHeader, RequireAdmin};
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
+use crate::{
+    app::state::AppState,
+    modules::organization::permissions::extractors::{RequireOrgRole, RequireViewer},
+};
 
 pub async fn create_team(
     State(state): State<AppState>,
-    claims: JwtClaims,
-    JsonValidate(payload): JsonValidate<CreateTeamRequest>,
+    RequireOrgRole(claims, _): RequireViewer,
+    JsonValidate(payload): JsonValidate<CreateTeamDTO>,
 ) -> Result<ApiResponse<TeamResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let team = TeamsService::create_team(&state.db, claims.sub, is_admin, payload).await?;
+    let team = TeamsService::create_team(&state.db, claims.sub, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -31,14 +30,10 @@ pub async fn create_team(
 
 pub async fn list_teams(
     State(state): State<AppState>,
-    claims: JwtClaims,
-    Query(query): Query<TeamQuery>,
+    RequireOrgRole(_, _): RequireViewer,
+    OrgIdHeader(org_id): OrgIdHeader,
 ) -> Result<ApiResponse<Vec<TeamResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let teams = TeamsService::list_teams(&state.db, claims.sub, is_admin, query).await?;
+    let teams = TeamsService::list_teams(&state.db, org_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -48,14 +43,10 @@ pub async fn list_teams(
 
 pub async fn get_team(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<TeamResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let team = TeamsService::get_team_by_id(&state.db, claims.sub, is_admin, id).await?;
+    let team = TeamsService::get_team_by_id(&state.db, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -65,15 +56,11 @@ pub async fn get_team(
 
 pub async fn update_team(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireAdmin,
     Path(id): Path<Uuid>,
-    JsonValidate(payload): JsonValidate<UpdateTeamRequest>,
+    JsonValidate(payload): JsonValidate<UpdateTeamDTO>,
 ) -> Result<ApiResponse<TeamResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let team = TeamsService::update_team(&state.db, claims.sub, is_admin, id, payload).await?;
+    let team = TeamsService::update_team(&state.db, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -83,14 +70,10 @@ pub async fn update_team(
 
 pub async fn delete_team(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    RequireOrgRole(_, _): RequireAdmin,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    TeamsService::delete_team(&state.db, claims.sub, is_admin, id).await?;
+    TeamsService::delete_team(&state.db, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -104,7 +87,7 @@ mod tests {
 
     #[test]
     fn test_create_team_handler_validation() {
-        let req = CreateTeamRequest {
+        let req = CreateTeamDTO {
             organization_id: Uuid::new_v4(),
             name: "A".to_string(),
             descriptions: None,

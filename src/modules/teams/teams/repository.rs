@@ -7,6 +7,7 @@ use super::super::members::entities::team_member::{
 use super::entities::team::{
     ActiveModel as TeamActiveModel, Column as TeamColumn, Entity as TeamEntity, Model as TeamModel,
 };
+use crate::modules::teams::teams::dto::CreateTeamDTO;
 use crate::shared::error::AppError;
 
 pub struct TeamsRepository;
@@ -77,8 +78,14 @@ impl TeamsRepository {
 
     pub async fn create_team(
         db: &DatabaseConnection,
-        active_model: TeamActiveModel,
+        dto: CreateTeamDTO,
     ) -> Result<TeamModel, AppError> {
+        let active_model = TeamActiveModel {
+            organization_id: Set(Some(dto.organization_id)),
+            name: Set(dto.name),
+            descriptions: Set(dto.descriptions),
+            ..Default::default()
+        };
         active_model.insert(db).await.map_err(AppError::from)
     }
 

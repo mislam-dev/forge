@@ -3,7 +3,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
-pub struct CreateTeamRequest {
+pub struct CreateTeamDTO {
     pub organization_id: Uuid,
     #[validate(length(
         min = 2,
@@ -15,14 +15,9 @@ pub struct CreateTeamRequest {
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
-pub struct UpdateTeamRequest {
+pub struct UpdateTeamDTO {
     pub name: Option<String>,
     pub descriptions: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct TeamQuery {
-    pub organization_id: Option<Uuid>,
 }
 
 #[cfg(test)]
@@ -31,7 +26,7 @@ mod tests {
 
     #[test]
     fn test_create_team_request_validation_success() {
-        let req = CreateTeamRequest {
+        let req = CreateTeamDTO {
             organization_id: Uuid::new_v4(),
             name: "Backend Engineering".to_string(),
             descriptions: Some("Core API team".to_string()),
@@ -41,7 +36,7 @@ mod tests {
 
     #[test]
     fn test_create_team_request_validation_failure() {
-        let req = CreateTeamRequest {
+        let req = CreateTeamDTO {
             organization_id: Uuid::new_v4(),
             name: "A".to_string(),
             descriptions: None,
@@ -51,7 +46,7 @@ mod tests {
 
     #[test]
     fn test_update_team_request_validation() {
-        let req = UpdateTeamRequest {
+        let req = UpdateTeamDTO {
             name: Some("Frontend Team".to_string()),
             descriptions: None,
         };
