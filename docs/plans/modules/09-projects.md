@@ -27,6 +27,7 @@ The Projects module manages **deployable units within an individual personal wor
 ### Scope
 
 **Included:**
+
 - `POST /organizations/:org_id/projects` — create project
 - `GET /organizations/:org_id/projects` — list projects
 - `GET /organizations/:org_id/projects/:project_id` — get project
@@ -34,6 +35,7 @@ The Projects module manages **deployable units within an individual personal wor
 - `DELETE /organizations/:org_id/projects/:project_id` — delete project
 
 **Excluded:**
+
 - Git repository connection (Repository sub-module)
 - Environment variables (Environment Variables sub-module)
 - Project member/team assignments (Project Assignments sub-module)
@@ -43,24 +45,26 @@ The Projects module manages **deployable units within an individual personal wor
 
 ## 2. Current State
 
-| Item | Status |
-|------|--------|
+| Item                          | Status              |
+| ----------------------------- | ------------------- |
 | `src/modules/projects/mod.rs` | Exists — empty stub |
-| Handlers | Not implemented |
-| Service | Not implemented |
-| Tests | None |
+| Handlers                      | Not implemented     |
+| Service                       | Not implemented     |
+| Tests                         | None                |
 
 ---
 
 ## 3. Dependencies
 
 ### Depends On
+
 - **Organizations**
 - **Org Permissions** (Admin/Owner to create/delete projects)
 - **Authentication**
 - **RabbitMQ** (project deployment triggers require queue — declared later)
 
 ### Used By
+
 - **Repository** (repository belongs to project)
 - **Environment Variables** (env vars belong to project)
 - **Project Assignments** (members/teams assigned to project)
@@ -75,33 +79,39 @@ The Projects module manages **deployable units within an individual personal wor
 
 ### `projects`
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | UUID | PK |
-| organization_id | UUID | FK -> organizations.id CASCADE, Not Null |
-| owner_id | UUID | FK -> users.id, Not Null |
-| name | VARCHAR(255) | Not Null |
-| description | TEXT | Nullable |
-| project_type | VARCHAR | CHECK(repo, files), Not Null |
-| runtime | VARCHAR | CHECK(Node.js, Rust, Python, Go, Static Site), Not Null |
-| port | INTEGER | Not Null (default 3000) |
-| health_check_url | VARCHAR | Nullable (default /health) |
-| status | VARCHAR | CHECK(Active, Inactive, Archived), Default Active |
-| created_at | TIMESTAMP | Not Null |
-| updated_at | TIMESTAMP | Not Null |
+| Column           | Type         | Constraints                                                           |
+| ---------------- | ------------ | --------------------------------------------------------------------- |
+| id               | UUID         | PK                                                                    |
+| organization_id  | UUID         | FK -> organizations.id CASCADE, Nullable (NULL for Personal projects) |
+| owner_id         | UUID         | FK -> users.id, Not Null                                              |
+| name             | VARCHAR(255) | Not Null                                                              |
+| description      | TEXT         | Nullable                                                              |
+| project_type     | VARCHAR      | CHECK(repo, files), Not Null                                          |
+| runtime          | VARCHAR      | CHECK(Node.js, Rust, Python, Go, Static Site), Not Null               |
+| port             | INTEGER      | Not Null (default 3000)                                               |
+| health_check_url | VARCHAR      | Nullable (default /health)                                            |
+| status           | VARCHAR      | CHECK(Active, Inactive, Archived), Default Active                     |
+| created_at       | TIMESTAMP    | Not Null                                                              |
+| updated_at       | TIMESTAMP    | Not Null                                                              |
 
-**Constraint:** `(organization_id, name)` composite unique index.
+**Constraints & Indexes:**
+
+- Partial unique index on `(organization_id, name)` WHERE `organization_id IS NOT NULL`
+- Partial unique index on `(owner_id, name)` WHERE `organization_id IS NULL`
 
 ---
 
 ## 5. API Implementation
 
-### POST /organizations/:org_id/projects
+### POST /projects
 
-- **Auth:** JWT + org role: Developer, Admin, or Owner
+- **Auth:** JWT
+  - If `organization_id` is null (Personal Project): System RBAC / `ProjectsCreatePolicy`
+  - If `organization_id` is provided (Org Project): Org role Developer, Admin, or Owner
 - **Request:**
   ```json
   {
+    "organization_id": "UUID (optional - omit for Personal project)",
     "name": "string",
     "description": "string (optional)",
     "project_type": "repo | files",
@@ -111,34 +121,36 @@ The Projects module manages **deployable units within an individual personal wor
   }
   ```
 - **Service logic:**
-  1. Check org membership and role
+  1. Check workspace context (Personal vs Org membership & role)
   2. Validate project_type and runtime combination
-  3. Check name uniqueness within org
+  3. Check name uniqueness within org or per owner
   4. Set owner_id to authenticated user
   5. Insert project
 - **Response:** `201 { message, data: project }`
-- **Errors:** `409` duplicate name, `400` invalid runtime/type combo
+- **Errors:** `409` duplicate name, `400` invalid runtime/type combo, `403` forbidden
 
-### GET /organizations/:org_id/projects
+### GET /projects
 
-- **Auth:** JWT + org member (any role, filtered by project membership for Viewer/Developer)
-- **Response:** `200 { message, data: [projects], meta: pagination }`
+- **Auth:** JWT
+- **Query Params:** `?organization_id=<uuid>` (optional)
+- **Service logic:** If `organization_id` supplied, list org projects. If omitted, list personal projects and accessible org projects.
+- **Response:** `200 { message, data: [projects] }`
 
-### GET /organizations/:org_id/projects/:project_id
+### GET /projects/:project_id
 
-- **Auth:** JWT + project member OR org Admin/Owner
+- **Auth:** JWT + project owner OR project member OR org Admin/Owner OR system Admin
 - **Response:** `200 { message, data: project }`
 
-### PUT /organizations/:org_id/projects/:project_id
+### PUT /projects/:project_id
 
-- **Auth:** JWT + project owner OR org Admin/Owner
+- **Auth:** JWT + project owner OR org Admin/Owner OR system Admin
 - **Request:** All fields optional
 - **Service logic:** Update non-null fields; name uniqueness check if name changes
 - **Response:** `200 { message, data: updated_project }`
 
-### DELETE /organizations/:org_id/projects/:project_id
+### DELETE /projects/:project_id
 
-- **Auth:** JWT + project owner OR org Owner
+- **Auth:** JWT + project owner OR org Owner OR system Admin
 - **Service logic:** Check no Running deployments exist before deletion
 - **Response:** `200 { message: "Project deleted." }`
 - **Errors:** `409 Conflict` if active deployment running
@@ -147,30 +159,33 @@ The Projects module manages **deployable units within an individual personal wor
 
 ## 6. Authorization Matrix
 
-| Action | Viewer | Developer | Admin | Owner | Project Owner |
-|--------|--------|-----------|-------|-------|---------------|
-| Create project | No | Yes | Yes | Yes | N/A |
-| List projects | Own/assigned | Yes | Yes | Yes | Yes |
-| Get project | If assigned | Yes | Yes | Yes | Yes |
-| Update project | No | No | Yes | Yes | Yes |
-| Delete project | No | No | No | Yes | Yes |
+| Workspace Context                            | Action           | Viewer | Developer               | Admin | Owner | Project Owner            | System Admin |
+| :------------------------------------------- | :--------------- | :----- | :---------------------- | :---- | :---- | :----------------------- | :----------- |
+| **Personal** (`organization_id == null`)     | Create           | —      | Yes (`projects:create`) | Yes   | Yes   | N/A                      | Yes          |
+| **Personal** (`organization_id == null`)     | View/Edit/Delete | —      | —                       | —     | —     | Yes (`owner_id == self`) | Yes          |
+| **Organization** (`organization_id != null`) | Create           | No     | Yes                     | Yes   | Yes   | N/A                      | Yes          |
+| **Organization** (`organization_id != null`) | List             | Yes    | Yes                     | Yes   | Yes   | Yes                      | Yes          |
+| **Organization** (`organization_id != null`) | Get              | Yes    | Yes                     | Yes   | Yes   | Yes                      | Yes          |
+| **Organization** (`organization_id != null`) | Update           | No     | Yes                     | Yes   | Yes   | Yes                      | Yes          |
+| **Organization** (`organization_id != null`) | Delete           | No     | Self only               | Yes   | Yes   | Yes                      | Yes          |
 
 ---
 
 ## 7. Logging
 
-| Event | Level | Fields |
-|-------|-------|--------|
-| Project created | INFO | project_id, org_id, owner_id, runtime |
-| Project updated | INFO | project_id, user_id |
-| Project deleted | WARN | project_id, org_id, user_id |
-| Delete blocked by running deployment | WARN | project_id, deployment_id |
+| Event                                | Level | Fields                                |
+| ------------------------------------ | ----- | ------------------------------------- |
+| Project created                      | INFO  | project_id, org_id, owner_id, runtime |
+| Project updated                      | INFO  | project_id, user_id                   |
+| Project deleted                      | WARN  | project_id, org_id, user_id           |
+| Delete blocked by running deployment | WARN  | project_id, deployment_id             |
 
 ---
 
 ## 8. Testing
 
 ### Integration Tests
+
 - [ ] `POST /projects` — success: project created with correct owner
 - [ ] `POST /projects` — duplicate name in org: 409 returned
 - [ ] `POST /projects` — invalid runtime: 400 returned
@@ -218,14 +233,17 @@ The Projects module manages **deployable units within an individual personal wor
 ## 12. Recommendations
 
 **Required:**
+
 - `project_type` must be `repo` or `files` — validated at service layer and enforced by DB CHECK constraint.
 - `runtime` must be one of the documented values — same pattern.
 - Project deletion must check for active (Running) deployments.
 
 **Recommended:**
+
 - The `files` project type (project-files sub-module) is marked as Medium priority in docs — implement the database column but stub the API for MVP.
 - Return project with related repository status in GET project response (join).
 
 **Future Enhancement:**
+
 - Project templates (pre-configured runtimes).
 - Project archiving (Archived status) instead of deletion.

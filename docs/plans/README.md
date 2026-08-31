@@ -61,28 +61,28 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 
 > All module plans are located in [`modules/`](./modules/).
 
-| # | Module | Plan | Status | Priority | Depends On |
-|---|--------|------|--------|----------|------------|
-| 01 | Foundation & Project Setup | [Plan](./modules/01-foundation.md) | Completed | P0 | — |
-| 02 | Authentication | [Plan](./modules/02-authentication.md) | Completed | P0 | Foundation |
-| 03 | Access Control (RBAC) | [Plan](./modules/03-access-control.md) | Completed | P0 | Foundation, Auth |
-| 04 | Users & User Profile | [Plan](./modules/04-users.md) | Completed | P0 | Foundation, Auth |
-| 05 | Organizations | [Plan](./modules/05-organizations.md) | Completed | P1 | Users |
-| 06 | Organization Members | [Plan](./modules/06-org-members.md) | Completed | P1 | Organizations |
-| 07 | Organization Permissions | [Plan](./modules/07-org-permissions.md) | Completed | P1 | Org Members |
-| 08 | Teams | [Plan](./modules/08-teams.md) | Completed | P1 | Organizations |
-| 09 | Projects | [Plan](./modules/09-projects.md) | Completed | P1 | Organizations |
-| 10 | Repository | [Plan](./modules/10-repository.md) | Completed | P1 | Projects |
-| 11 | Environment Variables | [Plan](./modules/11-environment-variables.md) | Completed | P1 | Projects |
-| 12 | Project Assignments | [Plan](./modules/12-project-assignments.md) | Completed | P1 | Projects, Teams |
-| 13 | Project Permissions | [Plan](./modules/13-project-permissions.md) | Completed | P1 | Project Assignments, Org Permissions |
-| 14 | Deployments | [Plan](./modules/14-deployments.md) | Completed | P1 | Projects, RabbitMQ |
-| 15 | Build Worker | [Plan](./modules/15-build-worker.md) | Completed | P1 | Deployments, Env Vars |
-| 16 | Live Build Logs | [Plan](./modules/16-live-build-logs.md) | Completed | P2 | Build Worker, RabbitMQ, Loki |
-| 17 | Deployment History | [Plan](./modules/17-deployment-history.md) | Completed | P2 | Deployments |
-| 18 | Notifications | [Plan](./modules/18-notifications.md) | Completed | P2 | Users, RabbitMQ |
-| 19 | Dashboard | [Plan](./modules/19-dashboard.md) | Completed | P2 | Projects, Deployments, Orgs |
-| 20 | Health & Observability | [Plan](./modules/20-health.md) | Completed | P0 | Foundation |
+| #   | Module                     | Plan                                          | Status    | Priority | Depends On                                 |
+| --- | -------------------------- | --------------------------------------------- | --------- | -------- | ------------------------------------------ |
+| 01  | Foundation & Project Setup | [Plan](./modules/01-foundation.md)            | Completed | P0       | —                                          |
+| 02  | Authentication             | [Plan](./modules/02-authentication.md)        | Completed | P0       | Foundation                                 |
+| 03  | Access Control (RBAC)      | [Plan](./modules/03-access-control.md)        | Completed | P0       | Foundation, Auth                           |
+| 04  | Users & User Profile       | [Plan](./modules/04-users.md)                 | Completed | P0       | Foundation, Auth                           |
+| 05  | Organizations              | [Plan](./modules/05-organizations.md)         | Completed | P1       | Users                                      |
+| 06  | Organization Members       | [Plan](./modules/06-org-members.md)           | Completed | P1       | Organizations                              |
+| 07  | Organization Permissions   | [Plan](./modules/07-org-permissions.md)       | Completed | P1       | Org Members                                |
+| 08  | Teams                      | [Plan](./modules/08-teams.md)                 | Completed | P1       | Organizations                              |
+| 09  | Projects                   | [Plan](./modules/09-projects.md)              | Completed | P1       | Users, Organizations (Optional)            |
+| 10  | Repository                 | [Plan](./modules/10-repository.md)            | Completed | P1       | Projects                                   |
+| 11  | Environment Variables      | [Plan](./modules/11-environment-variables.md) | Completed | P1       | Projects                                   |
+| 12  | Project Assignments        | [Plan](./modules/12-project-assignments.md)   | Completed | P1       | Projects, Teams                            |
+| 13  | Project Permissions        | [Plan](./modules/13-project-permissions.md)   | Completed | P1       | Access Control, Org Permissions (Optional) |
+| 14  | Deployments                | [Plan](./modules/14-deployments.md)           | Completed | P1       | Projects, RabbitMQ                         |
+| 15  | Build Worker               | [Plan](./modules/15-build-worker.md)          | Completed | P1       | Deployments, Env Vars                      |
+| 16  | Live Build Logs            | [Plan](./modules/16-live-build-logs.md)       | Completed | P2       | Build Worker, RabbitMQ, Loki               |
+| 17  | Deployment History         | [Plan](./modules/17-deployment-history.md)    | Completed | P2       | Deployments                                |
+| 18  | Notifications              | [Plan](./modules/18-notifications.md)         | Completed | P2       | Users, RabbitMQ                            |
+| 19  | Dashboard                  | [Plan](./modules/19-dashboard.md)             | Completed | P2       | Projects, Deployments, Orgs                |
+| 20  | Health & Observability     | [Plan](./modules/20-health.md)                | Completed | P0       | Foundation                                 |
 
 ---
 
@@ -90,14 +90,14 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 
 > All infrastructure plans are located in [`infrastructure/`](./infrastructure/).
 
-| Plan | Status | Priority |
-|------|--------|----------|
-| [Database & Migrations](./infrastructure/database.md) | Completed | P0 |
-| [Redis](./infrastructure/redis.md) | Not Started | P0 |
-| [RabbitMQ](./infrastructure/rabbitmq.md) | Not Started | P1 |
-| [Grafana Loki — Logging](./infrastructure/loki.md) | Not Started | P1 |
-| [Encryption](./infrastructure/encryption.md) | Completed | P0 |
-| [Testing Infrastructure](./infrastructure/testing.md) | Completed | P0 |
+| Plan                                                  | Status      | Priority |
+| ----------------------------------------------------- | ----------- | -------- |
+| [Database & Migrations](./infrastructure/database.md) | Completed   | P0       |
+| [Redis](./infrastructure/redis.md)                    | Not Started | P0       |
+| [RabbitMQ](./infrastructure/rabbitmq.md)              | Not Started | P1       |
+| [Grafana Loki — Logging](./infrastructure/loki.md)    | Not Started | P1       |
+| [Encryption](./infrastructure/encryption.md)          | Completed   | P0       |
+| [Testing Infrastructure](./infrastructure/testing.md) | Completed   | P0       |
 
 ---
 
@@ -276,28 +276,28 @@ After Phase 2 is complete:
 
 ## MVP Critical Path
 
-| Phase | Module | Why Required |
-|-------|--------|--------------|
-| P0 | Foundation | Application cannot run |
-| P0 | Database | No persistence |
-| P0 | Encryption | Secrets cannot be stored safely |
-| P0 | Authentication | No user identity |
-| P0 | Access Control | No RBAC |
-| P1 | Users | Core identity resource |
-| P1 | Organizations | Multi-tenant container |
-| P1 | Org Members | Users cannot join orgs |
-| P1 | Org Permissions | RBAC not enforced |
-| P1 | Projects | Core deployable unit |
-| P1 | Repository | Git source for builds |
-| P1 | Environment Variables | Build-time configuration |
-| P1 | Project Assignments | Access gating |
-| P1 | Project Permissions | Write-path gating |
-| P1 | RabbitMQ | Async build dispatch |
-| P1 | Deployments | Core deployment trigger |
-| P1 | Build Worker | Actual build execution |
-| P2 | Loki Logging | Build log persistence |
-| P2 | Live Build Logs | User-visible build output |
-| P0 | Health | Operational monitoring |
+| Phase | Module                | Why Required                    |
+| ----- | --------------------- | ------------------------------- |
+| P0    | Foundation            | Application cannot run          |
+| P0    | Database              | No persistence                  |
+| P0    | Encryption            | Secrets cannot be stored safely |
+| P0    | Authentication        | No user identity                |
+| P0    | Access Control        | No RBAC                         |
+| P1    | Users                 | Core identity resource          |
+| P1    | Organizations         | Multi-tenant container          |
+| P1    | Org Members           | Users cannot join orgs          |
+| P1    | Org Permissions       | RBAC not enforced               |
+| P1    | Projects              | Core deployable unit            |
+| P1    | Repository            | Git source for builds           |
+| P1    | Environment Variables | Build-time configuration        |
+| P1    | Project Assignments   | Access gating                   |
+| P1    | Project Permissions   | Write-path gating               |
+| P1    | RabbitMQ              | Async build dispatch            |
+| P1    | Deployments           | Core deployment trigger         |
+| P1    | Build Worker          | Actual build execution          |
+| P2    | Loki Logging          | Build log persistence           |
+| P2    | Live Build Logs       | User-visible build output       |
+| P0    | Health                | Operational monitoring          |
 
 **Post-MVP modules** (P2/P3 — can be delivered after core MVP works):
 
