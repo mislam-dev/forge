@@ -1,12 +1,11 @@
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::dto::{AddTeamMemberRequest, TeamMemberResponse, UpdateTeamMemberRoleRequest};
+use super::dto::{AddTeamMemberDTO, TeamMemberResponse, UpdateTeamMemberRoleDTO};
 use super::entities::team_member::ActiveModel as TeamMemberActiveModel;
 use super::repository::TeamMembersRepository;
 use super::role::TeamRole;
 use crate::modules::teams::teams::repository::TeamsRepository;
-use crate::modules::users::repository::UserRepository;
 use crate::shared::error::AppError;
 
 pub struct TeamMembersService;
@@ -15,7 +14,7 @@ impl TeamMembersService {
     pub async fn add_member(
         db: &DatabaseConnection,
         team_id: Uuid,
-        dto: AddTeamMemberRequest,
+        dto: AddTeamMemberDTO,
     ) -> Result<TeamMemberResponse, AppError> {
         let _team = TeamsRepository::find_by_id(db, team_id)
             .await?
@@ -29,9 +28,8 @@ impl TeamMembersService {
         }
 
         let member = TeamMembersRepository::add_member(db, team_id, dto).await?;
-        let user = UserRepository::find_by_id(db, member.user_id).await?;
 
-        Ok(TeamMemberResponse::from_model(member, user))
+        Ok(TeamMemberResponse::from_model(member))
     }
 
     pub async fn list_members(
@@ -44,11 +42,10 @@ impl TeamMembersService {
 
         let members_with_users =
             TeamMembersRepository::find_members_by_team_id(db, team_id).await?;
-        let mut responses = Vec::with_capacity(members_with_users.len());
-
-        for (member, user) in members_with_users {
-            responses.push(TeamMemberResponse::from_model(member, user));
-        }
+        let responses = members_with_users
+            .into_iter()
+            .map(TeamMemberResponse::from_model)
+            .collect();
 
         Ok(responses)
     }
@@ -58,7 +55,7 @@ impl TeamMembersService {
 
         team_id: Uuid,
         target_user_id: Uuid,
-        req: UpdateTeamMemberRoleRequest,
+        req: UpdateTeamMemberRoleDTO,
     ) -> Result<TeamMemberResponse, AppError> {
         let _team = TeamsRepository::find_by_id(db, team_id)
             .await?
@@ -74,9 +71,8 @@ impl TeamMembersService {
         active_model.role = Set(role.as_str().to_string());
 
         let updated_member = TeamMembersRepository::update_member(db, active_model).await?;
-        let user = UserRepository::find_by_id(db, target_user_id).await?;
 
-        Ok(TeamMemberResponse::from_model(updated_member, user))
+        Ok(TeamMemberResponse::from_model(updated_member))
     }
 
     pub async fn remove_member(

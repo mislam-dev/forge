@@ -4,7 +4,7 @@ use axum::{
 };
 use uuid::Uuid;
 
-use super::dto::{AddTeamMemberRequest, TeamMemberResponse, UpdateTeamMemberRoleRequest};
+use super::dto::{AddTeamMemberDTO, TeamMemberResponse, UpdateTeamMemberRoleDTO};
 use super::service::TeamMembersService;
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
@@ -18,7 +18,7 @@ pub async fn add_member(
     State(state): State<AppState>,
     RequireOrgRole(_, _): RequireAdmin,
     Path(id): Path<Uuid>,
-    JsonValidate(payload): JsonValidate<AddTeamMemberRequest>,
+    JsonValidate(payload): JsonValidate<AddTeamMemberDTO>,
 ) -> Result<ApiResponse<TeamMemberResponse>, AppError> {
     let member = TeamMembersService::add_member(&state.db, id, payload).await?;
 
@@ -45,7 +45,7 @@ pub async fn update_member(
     State(state): State<AppState>,
     RequireOrgRole(_, _): RequireAdmin,
     Path((id, user_id)): Path<(Uuid, Uuid)>,
-    JsonValidate(payload): JsonValidate<UpdateTeamMemberRoleRequest>,
+    JsonValidate(payload): JsonValidate<UpdateTeamMemberRoleDTO>,
 ) -> Result<ApiResponse<TeamMemberResponse>, AppError> {
     let member = TeamMembersService::update_member_role(&state.db, id, user_id, payload).await?;
 
@@ -74,7 +74,7 @@ mod tests {
 
     #[test]
     fn test_add_member_handler_validation() {
-        let req = AddTeamMemberRequest {
+        let req = AddTeamMemberDTO {
             user_id: Uuid::new_v4(),
             role: "".to_string(),
         };

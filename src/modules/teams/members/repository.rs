@@ -6,10 +6,7 @@ use super::entities::team_member::{
     Model as TeamMemberModel,
 };
 use crate::modules::teams::members::TeamRole;
-use crate::modules::teams::members::dto::AddTeamMemberRequest;
-use crate::modules::users::entities::users::{
-    Column as UserColumn, Entity as UserEntity, Model as UserModel,
-};
+use crate::modules::teams::members::dto::AddTeamMemberDTO;
 use crate::shared::error::AppError;
 
 pub struct TeamMembersRepository;
@@ -31,36 +28,18 @@ impl TeamMembersRepository {
     pub async fn find_members_by_team_id(
         db: &DatabaseConnection,
         team_id: Uuid,
-    ) -> Result<Vec<(TeamMemberModel, Option<UserModel>)>, AppError> {
-        let members = TeamMemberEntity::find()
+    ) -> Result<Vec<TeamMemberModel>, AppError> {
+        TeamMemberEntity::find()
             .filter(TeamMemberColumn::TeamId.eq(team_id))
             .all(db)
-            .await?;
-
-        let user_ids: Vec<Uuid> = members.iter().map(|m| m.user_id).collect();
-
-        let users = if !user_ids.is_empty() {
-            UserEntity::find()
-                .filter(UserColumn::Id.is_in(user_ids))
-                .all(db)
-                .await?
-        } else {
-            vec![]
-        };
-
-        let mut result = Vec::with_capacity(members.len());
-        for m in members {
-            let u = users.iter().find(|user| user.id == m.user_id).cloned();
-            result.push((m, u));
-        }
-
-        Ok(result)
+            .await
+            .map_err(AppError::from)
     }
 
     pub async fn add_member(
         db: &DatabaseConnection,
         team_id: Uuid,
-        dto: AddTeamMemberRequest,
+        dto: AddTeamMemberDTO,
     ) -> Result<TeamMemberModel, AppError> {
         let role: TeamRole = dto.role.parse().map_err(AppError::BadRequest)?;
 

@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::super::entities::team_member::Model as TeamMemberModel;
-use crate::modules::users::entities::users::Model as UserModel;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TeamMemberResponse {
@@ -10,17 +9,15 @@ pub struct TeamMemberResponse {
     pub user_id: Uuid,
     pub role: String,
     pub joined_at: String,
-    pub user: Option<UserModel>,
 }
 
 impl TeamMemberResponse {
-    pub fn from_model(model: TeamMemberModel, user: Option<UserModel>) -> Self {
+    pub fn from_model(model: TeamMemberModel) -> Self {
         Self {
             team_id: model.team_id,
             user_id: model.user_id,
             role: model.role,
             joined_at: model.joined_at.to_rfc3339(),
-            user,
         }
     }
 }
@@ -43,7 +40,7 @@ mod tests {
             joined_at: now,
         };
 
-        let res = TeamMemberResponse::from_model(model, None);
+        let res = TeamMemberResponse::from_model(model);
         assert_eq!(res.team_id, team_id);
         assert_eq!(res.user_id, user_id);
         assert_eq!(res.role, "developer");

@@ -6,7 +6,7 @@ use super::super::members::repository::TeamMembersRepository;
 use super::dto::{CreateTeamDTO, TeamResponse, UpdateTeamDTO};
 use super::entities::team::ActiveModel as TeamActiveModel;
 use super::repository::TeamsRepository;
-use crate::modules::teams::members::dto::AddTeamMemberRequest;
+use crate::modules::teams::members::dto::AddTeamMemberDTO;
 use crate::shared::error::AppError;
 
 pub struct TeamsService;
@@ -33,7 +33,7 @@ impl TeamsService {
         let _ = TeamMembersRepository::add_member(
             db,
             team.id,
-            AddTeamMemberRequest {
+            AddTeamMemberDTO {
                 user_id: requester_id,
                 role: "admin".to_string(),
             },

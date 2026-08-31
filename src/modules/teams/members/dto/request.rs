@@ -3,14 +3,14 @@ use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
-pub struct AddTeamMemberRequest {
+pub struct AddTeamMemberDTO {
     pub user_id: Uuid,
     #[validate(length(min = 1, message = "Role cannot be empty"))]
     pub role: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
-pub struct UpdateTeamMemberRoleRequest {
+pub struct UpdateTeamMemberRoleDTO {
     #[validate(length(min = 1, message = "Role cannot be empty"))]
     pub role: String,
 }
@@ -21,13 +21,13 @@ mod tests {
 
     #[test]
     fn test_add_team_member_request_validation() {
-        let req = AddTeamMemberRequest {
+        let req = AddTeamMemberDTO {
             user_id: Uuid::new_v4(),
             role: "developer".to_string(),
         };
         assert!(req.validate().is_ok());
 
-        let invalid = AddTeamMemberRequest {
+        let invalid = AddTeamMemberDTO {
             user_id: Uuid::new_v4(),
             role: "".to_string(),
         };
@@ -36,7 +36,7 @@ mod tests {
 
     #[test]
     fn test_update_team_member_role_request_validation() {
-        let req = UpdateTeamMemberRoleRequest {
+        let req = UpdateTeamMemberRoleDTO {
             role: "admin".to_string(),
         };
         assert!(req.validate().is_ok());
