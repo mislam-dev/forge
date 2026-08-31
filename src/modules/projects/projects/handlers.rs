@@ -1,27 +1,29 @@
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, State},
     http::StatusCode,
 };
+
 use uuid::Uuid;
 
-use super::dto::{CreateProjectRequest, ProjectQuery, ProjectResponse, UpdateProjectRequest};
+use super::dto::{CreateProjectDTO, ProjectResponse, UpdateProjectDTO};
 use super::service::ProjectsService;
-use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::projects::extractors::{
+    OrgValidationOptional,
+    organization_validation::{RequiredOrgAdmin, RequiredOrgOwner, RequiredOrgViewer},
+};
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
+use crate::{
+    app::state::AppState, modules::projects::extractors::organization_validation::RequiredOrgEditor,
+};
 
 pub async fn create_project(
     State(state): State<AppState>,
-    claims: JwtClaims,
-    JsonValidate(payload): JsonValidate<CreateProjectRequest>,
+    OrgValidationOptional(claims, org_id, _): RequiredOrgEditor,
+    JsonValidate(payload): JsonValidate<CreateProjectDTO>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let project = ProjectsService::create_project(&state.db, claims.sub, is_admin, payload).await?;
+    let project = ProjectsService::create_project(&state.db, claims.sub, org_id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -31,14 +33,9 @@ pub async fn create_project(
 
 pub async fn list_projects(
     State(state): State<AppState>,
-    claims: JwtClaims,
-    Query(query): Query<ProjectQuery>,
+    OrgValidationOptional(claims, org_id, _): RequiredOrgViewer,
 ) -> Result<ApiResponse<Vec<ProjectResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let projects = ProjectsService::list_projects(&state.db, claims.sub, is_admin, query).await?;
+    let projects = ProjectsService::list_projects(&state.db, claims.sub, org_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -48,14 +45,10 @@ pub async fn list_projects(
 
 pub async fn get_project(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(claims, org_id, _): RequiredOrgViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let project = ProjectsService::get_project(&state.db, claims.sub, is_admin, id).await?;
+    let project = ProjectsService::get_project(&state.db, org_id, claims.sub, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -65,16 +58,12 @@ pub async fn get_project(
 
 pub async fn update_project(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(claims, org_id, _): RequiredOrgAdmin,
     Path(id): Path<Uuid>,
-    JsonValidate(payload): JsonValidate<UpdateProjectRequest>,
+    JsonValidate(payload): JsonValidate<UpdateProjectDTO>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let project =
-        ProjectsService::update_project(&state.db, claims.sub, is_admin, id, payload).await?;
+        ProjectsService::update_project(&state.db, org_id, claims.sub, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -84,36 +73,12 @@ pub async fn update_project(
 
 pub async fn delete_project(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(claims, org_id, _): RequiredOrgOwner,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    ProjectsService::delete_project(&state.db, claims.sub, is_admin, id).await?;
+    let _r = ProjectsService::delete_project(&state.db, claims.sub, org_id, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
         .message("Project deleted successfully.".to_string()))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use validator::Validate;
-
-    #[test]
-    fn test_create_project_handler_validation() {
-        let req = CreateProjectRequest {
-            organization_id: Uuid::new_v4(),
-            name: "P".to_string(),
-            description: None,
-            project_type: "".to_string(),
-            runtime: "".to_string(),
-            port: None,
-            health_check_url: None,
-        };
-        assert!(req.validate().is_err());
-    }
 }

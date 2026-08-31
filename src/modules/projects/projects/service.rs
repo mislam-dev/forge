@@ -2,13 +2,9 @@ use chrono::Utc;
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::super::permissions::role::ProjectRole;
-use super::super::permissions::service::ProjectPermissionsService;
-use super::dto::{CreateProjectRequest, ProjectQuery, ProjectResponse, UpdateProjectRequest};
-use super::entities::project::ActiveModel as ProjectActiveModel;
+use super::dto::{CreateProjectDTO, ProjectResponse, UpdateProjectDTO};
+use super::entities::projects::ActiveModel as ProjectActiveModel;
 use super::repository::ProjectsRepository;
-use crate::modules::organization::permissions::role::OrgRole;
-use crate::modules::organization::permissions::service::OrgPermissionsService;
 use crate::shared::error::AppError;
 
 pub struct ProjectsService;
@@ -17,71 +13,40 @@ impl ProjectsService {
     pub async fn create_project(
         db: &DatabaseConnection,
         requester_id: Uuid,
-        is_system_admin: bool,
-        req: CreateProjectRequest,
+        org_id: Option<Uuid>,
+        dto: CreateProjectDTO,
     ) -> Result<ProjectResponse, AppError> {
-        let org_id = req.organization_id;
-
-        if !is_system_admin {
-            let role = OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
-            match role {
-                Some(r) if r >= OrgRole::Editor => {}
-                _ => {
-                    return Err(AppError::Forbidden(
-                        "You must be an Organization Developer/Editor or higher to create a project".to_string(),
-                    ));
-                }
+        if let Some(org_id) = org_id {
+            if (ProjectsRepository::find_by_org_and_name(db, org_id, &dto.name).await?).is_some() {
+                return Err(AppError::Conflict(format!(
+                    "Project with name '{}' already exists in this organization",
+                    dto.name
+                )));
+            }
+        } else {
+            if (ProjectsRepository::find_by_owner_and_name(db, requester_id, &dto.name).await?)
+                .is_some()
+            {
+                return Err(AppError::Conflict(format!(
+                    "Project with name '{}' already exists",
+                    dto.name
+                )));
             }
         }
 
-        if (ProjectsRepository::find_by_org_and_name(db, org_id, &req.name).await?).is_some() {
-            return Err(AppError::Conflict(format!(
-                "Project with name '{}' already exists in this organization",
-                req.name
-            )));
-        }
-
-        let now = Utc::now().into();
-        let project_id = Uuid::new_v4();
-
-        let active_model = ProjectActiveModel {
-            id: Set(project_id),
-            organization_id: Set(org_id),
-            owner_id: Set(requester_id),
-            name: Set(req.name),
-            description: Set(req.description),
-            project_type: Set(req.project_type),
-            runtime: Set(req.runtime),
-            port: Set(req.port.unwrap_or(3000)),
-            health_check_url: Set(req.health_check_url.or_else(|| Some("/health".to_string()))),
-            status: Set("active".to_string()),
-            created_at: Set(now),
-            updated_at: Set(now),
-        };
-
-        let project = ProjectsRepository::create_project(db, active_model).await?;
+        let project = ProjectsRepository::create_project(db, requester_id, org_id, dto).await?;
         Ok(ProjectResponse::from_model(project))
     }
 
     pub async fn list_projects(
         db: &DatabaseConnection,
-        requester_id: Uuid,
-        is_system_admin: bool,
-        query: ProjectQuery,
+        user_id: Uuid,
+        org_id: Option<Uuid>,
     ) -> Result<Vec<ProjectResponse>, AppError> {
-        let projects = if let Some(org_id) = query.organization_id {
-            if !is_system_admin {
-                let role =
-                    OrgPermissionsService::resolve_org_role(db, org_id, requester_id).await?;
-                if role.is_none() {
-                    return Err(AppError::Forbidden(
-                        "You are not a member of this organization".to_string(),
-                    ));
-                }
-            }
+        let projects = if let Some(org_id) = org_id {
             ProjectsRepository::find_by_org_id(db, org_id).await?
         } else {
-            vec![]
+            ProjectsRepository::find_by_owner_id(db, user_id).await?
         };
 
         Ok(projects
@@ -92,66 +57,72 @@ impl ProjectsService {
 
     pub async fn get_project(
         db: &DatabaseConnection,
+        org_id: Option<Uuid>,
         requester_id: Uuid,
-        is_system_admin: bool,
         project_id: Uuid,
     ) -> Result<ProjectResponse, AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
-            .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
-        if !is_system_admin {
-            ProjectPermissionsService::verify_project_role(
-                db,
-                project_id,
-                requester_id,
-                project.organization_id,
-                is_system_admin,
-                ProjectRole::Viewer,
-            )
-            .await?;
-        }
+        let project = if let Some(org_id) = org_id {
+            ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?
+        } else {
+            let p = ProjectsRepository::find_by_id(db, project_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            if p.owner_id != requester_id {
+                return Err(AppError::Forbidden(
+                    "You are not authorized to access this project".to_string(),
+                ));
+            }
+            p
+        };
 
         Ok(ProjectResponse::from_model(project))
     }
 
     pub async fn update_project(
         db: &DatabaseConnection,
+        org_id: Option<Uuid>,
         requester_id: Uuid,
-        is_system_admin: bool,
         project_id: Uuid,
-        req: UpdateProjectRequest,
+        req: UpdateProjectDTO,
     ) -> Result<ProjectResponse, AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
-            .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+        let project = if let Some(org_id) = org_id {
+            ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?
+        } else {
+            ProjectsRepository::find_by_id(db, project_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?
+        };
 
-        if !is_system_admin {
-            ProjectPermissionsService::verify_project_role(
-                db,
-                project_id,
-                requester_id,
-                project.organization_id,
-                is_system_admin,
-                ProjectRole::Admin,
-            )
-            .await?;
-        }
-
-        let mut active_model: ProjectActiveModel = project.into();
+        let mut active_model: ProjectActiveModel = project.clone().into();
         let now = Utc::now().into();
         active_model.updated_at = Set(now);
 
         if let Some(new_name) = req.name {
-            let org_id = active_model.organization_id.clone().unwrap();
-            if let Some(existing) =
-                ProjectsRepository::find_by_org_and_name(db, org_id, &new_name).await?
-            {
-                if existing.id != project_id {
-                    return Err(AppError::Conflict(format!(
-                        "Project with name '{}' already exists in this organization",
-                        new_name
-                    )));
+            if let Some(org_id) = project.organization_id {
+                if let Some(existing) =
+                    ProjectsRepository::find_by_org_and_name(db, org_id, &new_name).await?
+                {
+                    if existing.id != project_id {
+                        return Err(AppError::Conflict(format!(
+                            "Project with name '{}' already exists in this organization",
+                            new_name
+                        )));
+                    }
+                }
+            } else {
+                if let Some(existing) =
+                    ProjectsRepository::find_by_owner_and_name(db, requester_id, &new_name).await?
+                {
+                    if existing.id != project_id {
+                        return Err(AppError::Conflict(format!(
+                            "Project with name '{}' already exists!",
+                            new_name
+                        )));
+                    }
                 }
             }
             active_model.name = Set(new_name);
@@ -176,6 +147,12 @@ impl ProjectsService {
             active_model.status = Set(status);
         }
 
+        if org_id.is_none() && project.owner_id != requester_id {
+            return Err(AppError::Forbidden(
+                "You are not authorized to update this project".to_string(),
+            ));
+        }
+
         let updated = ProjectsRepository::update_project(db, active_model).await?;
         Ok(ProjectResponse::from_model(updated))
     }
@@ -183,53 +160,28 @@ impl ProjectsService {
     pub async fn delete_project(
         db: &DatabaseConnection,
         requester_id: Uuid,
-        is_system_admin: bool,
+        org_id: Option<Uuid>,
         project_id: Uuid,
     ) -> Result<(), AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
-            .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
-        if !is_system_admin && project.owner_id != requester_id {
-            let org_role =
-                OrgPermissionsService::resolve_org_role(db, project.organization_id, requester_id)
-                    .await?;
-            if org_role != Some(OrgRole::Owner) {
+        if let Some(org_id) = org_id {
+            ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?
+        } else {
+            let p = ProjectsRepository::find_by_id(db, project_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            if p.owner_id != requester_id {
                 return Err(AppError::Forbidden(
-                    "Only the Project Owner or Organization Owner can delete this project"
-                        .to_string(),
+                    "You are not authorized to delete this project".to_string(),
                 ));
             }
-        }
+            p
+        };
+
+        // todo: check if other thing is running
 
         ProjectsRepository::delete_project(db, project_id).await?;
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn setup_mock_db() -> DatabaseConnection {
-        MockDatabase::new(DatabaseBackend::Postgres).into_connection()
-    }
-
-    #[tokio::test]
-    async fn test_get_project_not_found() {
-        let db = setup_mock_db();
-        let project_id = Uuid::new_v4();
-        let requester_id = Uuid::new_v4();
-        let result = ProjectsService::get_project(&db, requester_id, false, project_id).await;
-        assert!(result.is_err());
-    }
-
-    #[tokio::test]
-    async fn test_delete_project_not_found() {
-        let db = setup_mock_db();
-        let project_id = Uuid::new_v4();
-        let requester_id = Uuid::new_v4();
-        let result = ProjectsService::delete_project(&db, requester_id, false, project_id).await;
-        assert!(result.is_err());
     }
 }

@@ -16,7 +16,7 @@ pub fn projects_core_router() -> Router<AppState> {
         .route(
             "/{id}",
             get(handlers::get_project)
-                .put(handlers::update_project)
+                .patch(handlers::update_project)
                 .delete(handlers::delete_project),
         )
         .route_layer(middleware::from_extractor::<JwtClaims>())

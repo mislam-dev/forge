@@ -25,6 +25,7 @@ mod m20260819_000002_add_description_and_logo_to_organizations;
 mod m20260819_000003_add_role_to_team_members;
 mod m20260819_044939_create_users_profile_table;
 mod m20260831_075811_add_team_table_organization_id_constraints_to_not_null;
+mod m20260831_155832_add_project_organization_id_to_nullable;
 
 pub struct Migrator;
 
@@ -56,7 +57,10 @@ impl MigratorTrait for Migrator {
             Box::new(m20260819_000002_add_description_and_logo_to_organizations::Migration),
             Box::new(m20260819_000003_add_role_to_team_members::Migration),
             Box::new(m20260819_044939_create_users_profile_table::Migration),
-            Box::new(m20260831_075811_add_team_table_organization_id_constraints_to_not_null::Migration),
+            Box::new(
+                m20260831_075811_add_team_table_organization_id_constraints_to_not_null::Migration,
+            ),
+            Box::new(m20260831_155832_add_project_organization_id_to_nullable::Migration),
         ]
     }
 }
