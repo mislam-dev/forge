@@ -3,7 +3,6 @@ use dotenvy::dotenv;
 use std::{
     env as EnvConfig,
     net::{IpAddr, Ipv4Addr},
-    str::FromStr,
 };
 
 #[derive(Debug, Clone)]

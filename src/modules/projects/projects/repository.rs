@@ -39,6 +39,28 @@ impl ProjectsRepository {
             .map_err(AppError::from)
     }
 
+    pub async fn find_by_id_and_optional_org(
+        db: &DatabaseConnection,
+        id: Uuid,
+        org_id: Option<Uuid>,
+    ) -> Result<Option<ProjectModel>, AppError> {
+        if let Some(org_id) = org_id {
+            Self::find_by_id_with_org(db, id, org_id).await
+        } else {
+            Self::find_by_id(db, id).await
+        }
+    }
+
+    pub async fn find_any_by_id(
+        db: &DatabaseConnection,
+        id: Uuid,
+    ) -> Result<Option<ProjectModel>, AppError> {
+        ProjectEntity::find_by_id(id)
+            .one(db)
+            .await
+            .map_err(AppError::from)
+    }
+
     pub async fn find_by_org_id(
         db: &DatabaseConnection,
         org_id: Uuid,

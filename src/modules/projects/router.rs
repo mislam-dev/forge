@@ -1,6 +1,6 @@
 use axum::Router;
 
-// use super::assignments::router::assignments_router;
+use super::assignments::router::assignments_router;
 // use super::deployments::router::deployments_router;
 // use super::environment_variables::router::environment_variables_router;
 // use super::logs::router::logs_router;
@@ -9,12 +9,13 @@ use super::projects::router::projects_core_router;
 use crate::app::state::AppState;
 
 pub fn projects_router() -> Router<AppState> {
-    Router::new().merge(projects_core_router())
-    // .merge(repositories_router())
-    // .merge(environment_variables_router())
-    // .merge(assignments_router())
-    // .merge(deployments_router())
-    // .merge(logs_router())
+    Router::new()
+        .merge(projects_core_router())
+        // .merge(repositories_router())
+        // .merge(environment_variables_router())
+        .merge(assignments_router())
+        // .merge(deployments_router())
+        // .merge(logs_router())
 }
 
 #[cfg(test)]

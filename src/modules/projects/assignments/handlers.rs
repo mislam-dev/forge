@@ -10,14 +10,17 @@ use super::dto::{
 };
 use super::service::ProjectAssignmentsService;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::projects::extractors::{
+    OptionalOrgAdmin, OptionalOrgViewer, OrgValidationOptional, OrgValidationRequired,
+    RequiredOrgAdmin, RequiredOrgViewer,
+};
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
 
 pub async fn assign_member(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgAdmin,
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<AssignProjectMemberRequest>,
 ) -> Result<ApiResponse<ProjectMemberResponse>, AppError> {
@@ -25,9 +28,15 @@ pub async fn assign_member(
         .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let member =
-        ProjectAssignmentsService::assign_member(&state.db, claims.sub, is_admin, id, payload)
-            .await?;
+    let member = ProjectAssignmentsService::assign_member(
+        &state.db,
+        claims.sub,
+        is_admin,
+        org_id,
+        id,
+        payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -37,15 +46,21 @@ pub async fn assign_member(
 
 pub async fn list_members(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<ProjectMemberResponse>>, AppError> {
     let is_admin = claims
         .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let members =
-        ProjectAssignmentsService::list_members(&state.db, claims.sub, is_admin, id).await?;
+    let members = ProjectAssignmentsService::list_members(
+        &state.db,
+        claims.sub,
+        is_admin,
+        org_id,
+        id,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -55,14 +70,22 @@ pub async fn list_members(
 
 pub async fn remove_member(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgAdmin,
     Path((id, user_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
     let is_admin = claims
         .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    ProjectAssignmentsService::remove_member(&state.db, claims.sub, is_admin, id, user_id).await?;
+    ProjectAssignmentsService::remove_member(
+        &state.db,
+        claims.sub,
+        is_admin,
+        org_id,
+        id,
+        user_id,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -71,7 +94,7 @@ pub async fn remove_member(
 
 pub async fn assign_team(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationRequired(claims, org_id, _): RequiredOrgAdmin,
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<AssignProjectTeamRequest>,
 ) -> Result<ApiResponse<ProjectTeamResponse>, AppError> {
@@ -79,8 +102,15 @@ pub async fn assign_team(
         .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let team = ProjectAssignmentsService::assign_team(&state.db, claims.sub, is_admin, id, payload)
-        .await?;
+    let team = ProjectAssignmentsService::assign_team(
+        &state.db,
+        claims.sub,
+        is_admin,
+        org_id,
+        id,
+        payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -90,14 +120,15 @@ pub async fn assign_team(
 
 pub async fn list_teams(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationRequired(claims, org_id, _): RequiredOrgViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<ProjectTeamResponse>>, AppError> {
     let is_admin = claims
         .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let teams = ProjectAssignmentsService::list_teams(&state.db, claims.sub, is_admin, id).await?;
+    let teams =
+        ProjectAssignmentsService::list_teams(&state.db, claims.sub, is_admin, org_id, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -107,14 +138,22 @@ pub async fn list_teams(
 
 pub async fn remove_team(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationRequired(claims, org_id, _): RequiredOrgAdmin,
     Path((id, team_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
     let is_admin = claims
         .roles
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    ProjectAssignmentsService::remove_team(&state.db, claims.sub, is_admin, id, team_id).await?;
+    ProjectAssignmentsService::remove_team(
+        &state.db,
+        claims.sub,
+        is_admin,
+        org_id,
+        id,
+        team_id,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -133,5 +172,13 @@ mod tests {
             role: "".to_string(),
         };
         assert!(req.validate().is_err());
+    }
+
+    #[test]
+    fn test_assign_team_handler_validation() {
+        let req = AssignProjectTeamRequest {
+            team_id: Uuid::new_v4(),
+        };
+        assert!(req.validate().is_ok());
     }
 }

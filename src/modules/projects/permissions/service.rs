@@ -23,7 +23,7 @@ impl ProjectPermissionsService {
         db: &DatabaseConnection,
         project_id: Uuid,
         user_id: Uuid,
-        org_id: Uuid,
+        org_id: Option<Uuid>,
         is_system_admin: bool,
     ) -> Result<Option<ProjectRole>, AppError> {
         if is_system_admin {
@@ -31,17 +31,20 @@ impl ProjectPermissionsService {
         }
 
         // Check Org role inheritance (Org Owner -> Project Owner, Org Admin -> Project Admin)
-        if let Some(org_role) = OrgPermissionsService::resolve_org_role(db, org_id, user_id).await?
-        {
-            match org_role {
-                OrgRole::Owner => return Ok(Some(ProjectRole::Owner)),
-                OrgRole::Admin => return Ok(Some(ProjectRole::Admin)),
-                _ => {}
+        if let Some(org_id) = org_id {
+            if let Some(org_role) =
+                OrgPermissionsService::resolve_org_role(db, org_id, user_id).await?
+            {
+                match org_role {
+                    OrgRole::Owner => return Ok(Some(ProjectRole::Owner)),
+                    OrgRole::Admin => return Ok(Some(ProjectRole::Admin)),
+                    _ => {}
+                }
             }
         }
 
         // Fetch project to check owner_id
-        if let Some(project) = ProjectsRepository::find_by_id(db, project_id).await? {
+        if let Some(project) = ProjectsRepository::find_any_by_id(db, project_id).await? {
             if project.owner_id == user_id {
                 return Ok(Some(ProjectRole::Owner));
             }
@@ -85,7 +88,7 @@ impl ProjectPermissionsService {
         db: &DatabaseConnection,
         project_id: Uuid,
         user_id: Uuid,
-        org_id: Uuid,
+        org_id: Option<Uuid>,
         is_system_admin: bool,
         required_role: ProjectRole,
     ) -> Result<ProjectRole, AppError> {
@@ -120,7 +123,7 @@ mod tests {
             &db,
             Uuid::new_v4(),
             Uuid::new_v4(),
-            Uuid::new_v4(),
+            Some(Uuid::new_v4()),
             true,
         )
         .await

@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use validator::Validate;
 
 use crate::modules::projects::projects::entities::sea_orm_active_enums::{

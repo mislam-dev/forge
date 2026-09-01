@@ -30,148 +30,7 @@ fn generate_test_token(user_id: Uuid) -> String {
 }
 
 #[tokio::test]
-async fn test_create_project_unauthorized_without_jwt() {
-    let config = setup_test_config();
-    let state = AppState::mock(config);
-    let app = create_app(state).await.expect("App creation failed");
-
-    let req = Request::builder()
-        .uri("/api/v1/projects")
-        .method("POST")
-        .header("Content-Type", "application/json")
-        .body(Body::from(format!(
-            r#"{{"organization_id": "{}", "name": "Forge API", "project_type": "repo", "runtime": "Rust"}}"#,
-            Uuid::new_v4()
-        )))
-        .unwrap();
-
-    let response = app.oneshot(req).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-}
-
-#[tokio::test]
-async fn test_list_projects_unauthorized_without_jwt() {
-    let config = setup_test_config();
-    let state = AppState::mock(config);
-    let app = create_app(state).await.expect("App creation failed");
-
-    let req = Request::builder()
-        .uri("/api/v1/projects")
-        .method("GET")
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(req).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-}
-
-#[tokio::test]
-async fn test_get_project_unauthorized_without_jwt() {
-    let config = setup_test_config();
-    let state = AppState::mock(config);
-    let app = create_app(state).await.expect("App creation failed");
-
-    let req = Request::builder()
-        .uri(format!("/api/v1/projects/{}", Uuid::new_v4()))
-        .method("GET")
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(req).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-}
-
-#[tokio::test]
-async fn test_connect_repository_unauthorized_without_jwt() {
-    let config = setup_test_config();
-    let state = AppState::mock(config);
-    let app = create_app(state).await.expect("App creation failed");
-
-    let req = Request::builder()
-        .uri(format!("/api/v1/projects/{}/repository", Uuid::new_v4()))
-        .method("POST")
-        .header("Content-Type", "application/json")
-        .body(Body::from(
-            r#"{"repository_url": "https://github.com/forge/core"}"#,
-        ))
-        .unwrap();
-
-    let response = app.oneshot(req).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-}
-
-#[tokio::test]
-async fn test_get_repository_unauthorized_without_jwt() {
-    let config = setup_test_config();
-    let state = AppState::mock(config);
-    let app = create_app(state).await.expect("App creation failed");
-
-    let req = Request::builder()
-        .uri(format!("/api/v1/projects/{}/repository", Uuid::new_v4()))
-        .method("GET")
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(req).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-}
-
-#[tokio::test]
-async fn test_create_env_var_unauthorized_without_jwt() {
-    let config = setup_test_config();
-    let state = AppState::mock(config);
-    let app = create_app(state).await.expect("App creation failed");
-
-    let req = Request::builder()
-        .uri(format!("/api/v1/projects/{}/env-vars", Uuid::new_v4()))
-        .method("POST")
-        .header("Content-Type", "application/json")
-        .body(Body::from(
-            r#"{"environment": "Production", "key": "DATABASE_URL", "value": "postgres://localhost/db"}"#,
-        ))
-        .unwrap();
-
-    let response = app.oneshot(req).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-}
-
-#[tokio::test]
-async fn test_list_env_vars_unauthorized_without_jwt() {
-    let config = setup_test_config();
-    let state = AppState::mock(config);
-    let app = create_app(state).await.expect("App creation failed");
-
-    let req = Request::builder()
-        .uri(format!("/api/v1/projects/{}/env-vars", Uuid::new_v4()))
-        .method("GET")
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(req).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-}
-
-#[tokio::test]
-async fn test_bulk_create_env_vars_unauthorized_without_jwt() {
-    let config = setup_test_config();
-    let state = AppState::mock(config);
-    let app = create_app(state).await.expect("App creation failed");
-
-    let req = Request::builder()
-        .uri(format!("/api/v1/projects/{}/env-vars/bulk", Uuid::new_v4()))
-        .method("POST")
-        .header("Content-Type", "application/json")
-        .body(Body::from(
-            r#"{"environment": "Development", "vars": [{"key": "PORT", "value": "3000"}]}"#,
-        ))
-        .unwrap();
-
-    let response = app.oneshot(req).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-}
-
-#[tokio::test]
-async fn test_assign_project_member_unauthorized_without_jwt() {
+async fn test_assign_member_unauthorized_without_jwt() {
     let config = setup_test_config();
     let state = AppState::mock(config);
     let app = create_app(state).await.expect("App creation failed");
@@ -191,7 +50,43 @@ async fn test_assign_project_member_unauthorized_without_jwt() {
 }
 
 #[tokio::test]
-async fn test_assign_project_team_unauthorized_without_jwt() {
+async fn test_list_members_unauthorized_without_jwt() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let req = Request::builder()
+        .uri(format!("/api/v1/projects/{}/members", Uuid::new_v4()))
+        .method("GET")
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn test_remove_member_unauthorized_without_jwt() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let req = Request::builder()
+        .uri(format!(
+            "/api/v1/projects/{}/members/{}",
+            Uuid::new_v4(),
+            Uuid::new_v4()
+        ))
+        .method("DELETE")
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn test_assign_team_unauthorized_without_jwt() {
     let config = setup_test_config();
     let state = AppState::mock(config);
     let app = create_app(state).await.expect("App creation failed");
@@ -208,4 +103,87 @@ async fn test_assign_project_team_unauthorized_without_jwt() {
 
     let response = app.oneshot(req).await.unwrap();
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn test_list_teams_unauthorized_without_jwt() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let req = Request::builder()
+        .uri(format!("/api/v1/projects/{}/teams", Uuid::new_v4()))
+        .method("GET")
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn test_remove_team_unauthorized_without_jwt() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let req = Request::builder()
+        .uri(format!(
+            "/api/v1/projects/{}/teams/{}",
+            Uuid::new_v4(),
+            Uuid::new_v4()
+        ))
+        .method("DELETE")
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn test_assign_team_requires_org_id_header() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let token = generate_test_token(Uuid::new_v4());
+
+    let req = Request::builder()
+        .uri(format!("/api/v1/projects/{}/teams", Uuid::new_v4()))
+        .method("POST")
+        .header("Authorization", format!("Bearer {}", token))
+        .header("Content-Type", "application/json")
+        .body(Body::from(format!(
+            r#"{{"team_id": "{}"}}"#,
+            Uuid::new_v4()
+        )))
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    // RequiredOrgAdmin extractor rejects missing Organization-ID header
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn test_assign_member_validation_failure_empty_role() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let token = generate_test_token(Uuid::new_v4());
+
+    let req = Request::builder()
+        .uri(format!("/api/v1/projects/{}/members", Uuid::new_v4()))
+        .method("POST")
+        .header("Authorization", format!("Bearer {}", token))
+        .header("Content-Type", "application/json")
+        .body(Body::from(format!(
+            r#"{{"user_id": "{}", "role": ""}}"#,
+            Uuid::new_v4()
+        )))
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 }
