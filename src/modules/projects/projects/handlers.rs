@@ -7,20 +7,17 @@ use uuid::Uuid;
 
 use super::dto::{CreateProjectDTO, ProjectResponse, UpdateProjectDTO};
 use super::service::ProjectsService;
+use crate::app::state::AppState;
 use crate::modules::projects::extractors::{
-    OrgValidationOptional,
-    organization_validation::{RequiredOrgAdmin, RequiredOrgOwner, RequiredOrgViewer},
+    OptionalOrgAdmin, OptionalOrgEditor, OptionalOrgOwner, OptionalOrgViewer, OrgValidationOptional,
 };
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
-use crate::{
-    app::state::AppState, modules::projects::extractors::organization_validation::RequiredOrgEditor,
-};
 
 pub async fn create_project(
     State(state): State<AppState>,
-    OrgValidationOptional(claims, org_id, _): RequiredOrgEditor,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgEditor,
     JsonValidate(payload): JsonValidate<CreateProjectDTO>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
     let project = ProjectsService::create_project(&state.db, claims.sub, org_id, payload).await?;
@@ -33,7 +30,7 @@ pub async fn create_project(
 
 pub async fn list_projects(
     State(state): State<AppState>,
-    OrgValidationOptional(claims, org_id, _): RequiredOrgViewer,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgViewer,
 ) -> Result<ApiResponse<Vec<ProjectResponse>>, AppError> {
     let projects = ProjectsService::list_projects(&state.db, claims.sub, org_id).await?;
 
@@ -45,7 +42,7 @@ pub async fn list_projects(
 
 pub async fn get_project(
     State(state): State<AppState>,
-    OrgValidationOptional(claims, org_id, _): RequiredOrgViewer,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
     let project = ProjectsService::get_project(&state.db, org_id, claims.sub, id).await?;
@@ -58,7 +55,7 @@ pub async fn get_project(
 
 pub async fn update_project(
     State(state): State<AppState>,
-    OrgValidationOptional(claims, org_id, _): RequiredOrgAdmin,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgAdmin,
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<UpdateProjectDTO>,
 ) -> Result<ApiResponse<ProjectResponse>, AppError> {
@@ -73,7 +70,7 @@ pub async fn update_project(
 
 pub async fn delete_project(
     State(state): State<AppState>,
-    OrgValidationOptional(claims, org_id, _): RequiredOrgOwner,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgOwner,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
     let _r = ProjectsService::delete_project(&state.db, claims.sub, org_id, id).await?;

@@ -14,18 +14,18 @@ use crate::{
 use axum::extract::{FromRef, FromRequestParts};
 use uuid::Uuid;
 
-trait OrgValidationRequiredRoles: Send + Sync + 'static {
+pub trait OrgValidationOptionalRequiredRoles: Send + Sync + 'static {
     fn required_roles() -> Vec<OrgRole>;
 }
 
 #[derive(Debug)]
-pub struct OrgValidationRequired<R>(pub JwtClaims, pub Uuid, pub PhantomData<R>);
+pub struct OrgValidationOptional<R>(pub JwtClaims, pub Option<Uuid>, pub PhantomData<R>);
 
-impl<R, S> FromRequestParts<S> for OrgValidationRequired<R>
+impl<R, S> FromRequestParts<S> for OrgValidationOptional<R>
 where
     S: Send + Sync,
     AppState: FromRef<S>,
-    R: OrgValidationRequiredRoles,
+    R: OrgValidationOptionalRequiredRoles,
 {
     type Rejection = AppError;
 
@@ -36,47 +36,45 @@ where
         let claims = JwtClaims::from_request_parts(parts, state).await?;
         let org_id = OrgIdHeaderOptional::from_request_parts(parts, state).await?;
 
-        if org_id.0.is_none() {
-            return Err(AppError::NotFound("Organization not found".to_string()));
+        if let Some(org_id) = org_id.0 {
+            let app_state = AppState::from_ref(state);
+            let db = &app_state.db;
+            let required_roles = R::required_roles();
+            let _ = OrgPermissionsService::validate(db, org_id, claims.sub, required_roles).await?;
         }
-        let org_id = org_id.0.unwrap();
-        let app_state = AppState::from_ref(state);
-        let db = &app_state.db;
-        let required_roles = R::required_roles();
-        let _ = OrgPermissionsService::validate(db, org_id, claims.sub, required_roles).await?;
 
-        Ok(Self(claims, org_id, PhantomData))
+        Ok(Self(claims, org_id.0, PhantomData))
     }
 }
 
 pub struct OrgOnlyViewer;
-impl OrgValidationRequiredRoles for OrgOnlyViewer {
+impl OrgValidationOptionalRequiredRoles for OrgOnlyViewer {
     fn required_roles() -> Vec<OrgRole> {
         vec![OrgRole::Viewer]
     }
 }
 
 pub struct OrgOnlyAdmin;
-impl OrgValidationRequiredRoles for OrgOnlyAdmin {
+impl OrgValidationOptionalRequiredRoles for OrgOnlyAdmin {
     fn required_roles() -> Vec<OrgRole> {
         vec![OrgRole::Admin]
     }
 }
 
 pub struct OrgOnlyOwner;
-impl OrgValidationRequiredRoles for OrgOnlyOwner {
+impl OrgValidationOptionalRequiredRoles for OrgOnlyOwner {
     fn required_roles() -> Vec<OrgRole> {
         vec![OrgRole::Owner]
     }
 }
 pub struct OrgOnlyEditor;
-impl OrgValidationRequiredRoles for OrgOnlyEditor {
+impl OrgValidationOptionalRequiredRoles for OrgOnlyEditor {
     fn required_roles() -> Vec<OrgRole> {
         vec![OrgRole::Editor]
     }
 }
 
-pub type RequiredOrgViewer = OrgValidationRequired<OrgOnlyViewer>;
-pub type RequiredOrgAdmin = OrgValidationRequired<OrgOnlyAdmin>;
-pub type RequiredOrgOwner = OrgValidationRequired<OrgOnlyOwner>;
-pub type RequiredOrgEditor = OrgValidationRequired<OrgOnlyEditor>;
+pub type OptionalOrgViewer = OrgValidationOptional<OrgOnlyViewer>;
+pub type OptionalOrgAdmin = OrgValidationOptional<OrgOnlyAdmin>;
+pub type OptionalOrgOwner = OrgValidationOptional<OrgOnlyOwner>;
+pub type OptionalOrgEditor = OrgValidationOptional<OrgOnlyEditor>;
