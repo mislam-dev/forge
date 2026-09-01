@@ -9,7 +9,7 @@ pub mod extractors;
 pub mod projects;
 pub mod router;
 
-pub use assignments::service::ProjectAssignmentsService;
+// pub use assignments::service::ProjectAssignmentsService;
 pub use permissions::service::ProjectPermissionsService;
 pub use projects::service::ProjectsService;
 pub use router::projects_router;

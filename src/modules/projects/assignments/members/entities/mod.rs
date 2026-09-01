@@ -3,5 +3,4 @@
 pub mod prelude;
 
 pub mod project_members;
-pub mod project_teams;
 pub mod sea_orm_active_enums;

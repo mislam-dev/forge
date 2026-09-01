@@ -1,28 +1,12 @@
-use axum::{Router, middleware, routing::post};
+use axum::Router;
 
-use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+
+use super::members::router::members_router;
+use super::teams::router::teams_router;
 
 pub fn assignments_router() -> Router<AppState> {
-    Router::new()
-        .route(
-            "/{id}/members",
-            post(handlers::assign_member).get(handlers::list_members),
-        )
-        .route(
-            "/{id}/members/{user_id}",
-            axum::routing::delete(handlers::remove_member),
-        )
-        .route(
-            "/{id}/teams",
-            post(handlers::assign_team).get(handlers::list_teams),
-        )
-        .route(
-            "/{id}/teams/{team_id}",
-            axum::routing::delete(handlers::remove_team),
-        )
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+    Router::new().merge(members_router()).merge(teams_router())
 }
 
 #[cfg(test)]
