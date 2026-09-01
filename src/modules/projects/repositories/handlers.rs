@@ -4,28 +4,26 @@ use axum::{
 };
 use uuid::Uuid;
 
-use super::dto::{ConnectRepositoryRequest, RepositoryResponse, UpdateRepositoryRequest};
+use super::dto::{
+    ConnectProjectRepositoryDTO, ProjectRepositoryResponse, UpdateProjectRepositoryDTO,
+};
 use super::service::ProjectRepositoriesService;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::projects::extractors::{
+    OptionalOrgAdmin, OptionalOrgViewer, OrgValidationOptional,
+};
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
 
 pub async fn connect_repository(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgAdmin,
     Path(id): Path<Uuid>,
-    JsonValidate(payload): JsonValidate<ConnectRepositoryRequest>,
-) -> Result<ApiResponse<RepositoryResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let repository = ProjectRepositoriesService::connect_repository(
-        &state.db, claims.sub, is_admin, id, payload,
-    )
-    .await?;
+    JsonValidate(payload): JsonValidate<ConnectProjectRepositoryDTO>,
+) -> Result<ApiResponse<ProjectRepositoryResponse>, AppError> {
+    let repository =
+        ProjectRepositoriesService::connect_repository(&state.db, org_id, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -35,15 +33,10 @@ pub async fn connect_repository(
 
 pub async fn get_repository(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgViewer,
     Path(id): Path<Uuid>,
-) -> Result<ApiResponse<RepositoryResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let repository =
-        ProjectRepositoriesService::get_repository(&state.db, claims.sub, is_admin, id).await?;
+) -> Result<ApiResponse<ProjectRepositoryResponse>, AppError> {
+    let repository = ProjectRepositoriesService::get_repository(&state.db, org_id, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -53,17 +46,12 @@ pub async fn get_repository(
 
 pub async fn update_repository(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgAdmin,
     Path(id): Path<Uuid>,
-    JsonValidate(payload): JsonValidate<UpdateRepositoryRequest>,
-) -> Result<ApiResponse<RepositoryResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    JsonValidate(payload): JsonValidate<UpdateProjectRepositoryDTO>,
+) -> Result<ApiResponse<ProjectRepositoryResponse>, AppError> {
     let repository =
-        ProjectRepositoriesService::update_repository(&state.db, claims.sub, is_admin, id, payload)
-            .await?;
+        ProjectRepositoriesService::update_repository(&state.db, org_id, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -73,14 +61,10 @@ pub async fn update_repository(
 
 pub async fn disconnect_repository(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgAdmin,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    ProjectRepositoriesService::disconnect_repository(&state.db, claims.sub, is_admin, id).await?;
+    ProjectRepositoriesService::disconnect_repository(&state.db, org_id, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -94,8 +78,8 @@ mod tests {
 
     #[test]
     fn test_connect_repository_handler_validation() {
-        let req = ConnectRepositoryRequest {
-            repository_url: "a".to_string(),
+        let req = ConnectProjectRepositoryDTO {
+            repository_url: "git".to_string(),
             auth_type: None,
             access_token: None,
             default_branch: None,

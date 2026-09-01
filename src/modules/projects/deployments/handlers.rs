@@ -10,7 +10,9 @@ use super::dto::{
 };
 use super::service::DeploymentsService;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::projects::extractors::{
+    OptionalOrgAdmin, OptionalOrgEditor, OptionalOrgViewer, OrgValidationOptional,
+};
 use crate::shared::error::AppError;
 use crate::shared::pagination::PaginatedResponse;
 use crate::shared::response::ApiResponse;
@@ -18,17 +20,12 @@ use crate::shared::validation::JsonValidate;
 
 pub async fn trigger_deployment(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgEditor,
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<TriggerDeploymentRequest>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let deployment =
-        DeploymentsService::trigger_deployment(&state.db, claims.sub, is_admin, id, payload)
-            .await?;
+        DeploymentsService::trigger_deployment(&state.db, org_id, id, claims.sub, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -38,16 +35,11 @@ pub async fn trigger_deployment(
 
 pub async fn list_deployments(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgViewer,
     Path(id): Path<Uuid>,
     Query(query): Query<DeploymentHistoryQuery>,
 ) -> Result<ApiResponse<PaginatedResponse<DeploymentResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let paginated =
-        DeploymentsService::list_deployments(&state.db, claims.sub, is_admin, id, query).await?;
+    let paginated = DeploymentsService::list_deployments(&state.db, org_id, id, query).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -57,20 +49,42 @@ pub async fn list_deployments(
 
 pub async fn get_deployment(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgViewer,
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
     let deployment =
-        DeploymentsService::get_deployment(&state.db, claims.sub, is_admin, id, deployment_id)
-            .await?;
+        DeploymentsService::get_deployment(&state.db, org_id, id, deployment_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
         .message("Deployment details retrieved successfully.".to_string())
+        .body(Some(deployment)))
+}
+
+pub async fn redeploy(
+    State(state): State<AppState>,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgEditor,
+    Path((id, deployment_id)): Path<(Uuid, Uuid)>,
+) -> Result<ApiResponse<DeploymentResponse>, AppError> {
+    let deployment =
+        DeploymentsService::redeploy(&state.db, org_id, id, claims.sub, deployment_id).await?;
+
+    Ok(ApiResponse::new()
+        .status(StatusCode::CREATED)
+        .message("Redeploy triggered successfully.".to_string())
+        .body(Some(deployment)))
+}
+
+pub async fn rollback(
+    State(state): State<AppState>,
+    OrgValidationOptional(claims, org_id, _): OptionalOrgAdmin,
+    Path(id): Path<Uuid>,
+) -> Result<ApiResponse<DeploymentResponse>, AppError> {
+    let deployment = DeploymentsService::rollback(&state.db, org_id, id, claims.sub).await?;
+
+    Ok(ApiResponse::new()
+        .status(StatusCode::CREATED)
+        .message("Rollback deployment triggered successfully.".to_string())
         .body(Some(deployment)))
 }
 
@@ -100,55 +114,28 @@ pub async fn update_status_internal(
         .body(Some(deployment)))
 }
 
-pub async fn redeploy(
-    State(state): State<AppState>,
-    claims: JwtClaims,
-    Path((id, deployment_id)): Path<(Uuid, Uuid)>,
-) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let deployment =
-        DeploymentsService::redeploy(&state.db, claims.sub, is_admin, id, deployment_id).await?;
-
-    Ok(ApiResponse::new()
-        .status(StatusCode::CREATED)
-        .message("Redeploy triggered successfully.".to_string())
-        .body(Some(deployment)))
-}
-
-pub async fn rollback(
-    State(state): State<AppState>,
-    claims: JwtClaims,
-    Path(id): Path<Uuid>,
-) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let deployment = DeploymentsService::rollback(&state.db, claims.sub, is_admin, id).await?;
-
-    Ok(ApiResponse::new()
-        .status(StatusCode::CREATED)
-        .message("Rollback deployment triggered successfully.".to_string())
-        .body(Some(deployment)))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use validator::Validate;
 
     #[test]
-    fn test_update_status_internal_handler_extracts_token() {
-        let mut headers = HeaderMap::new();
-        headers.insert("x-service-token", "secret_token".parse().unwrap());
+    fn test_trigger_deployment_handler_validation() {
+        let req = TriggerDeploymentRequest {
+            branch: Some("main".to_string()),
+            commit_hash: None,
+        };
+        assert!(req.validate().is_ok());
+    }
 
-        let token = headers
-            .get("x-service-token")
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or_default();
-
-        assert_eq!(token, "secret_token");
+    #[test]
+    fn test_update_deployment_status_handler_validation() {
+        let req = UpdateDeploymentStatusRequest {
+            status: "".to_string(),
+            build_duration: None,
+            deploy_duration: None,
+            error_message: None,
+        };
+        assert!(req.validate().is_err());
     }
 }

@@ -1,7 +1,4 @@
-use axum::{
-    Router, middleware,
-    routing::{get, post},
-};
+use axum::{Router, middleware, routing::post};
 
 use super::handlers;
 use crate::app::state::AppState;
@@ -13,7 +10,7 @@ pub fn repositories_router() -> Router<AppState> {
             "/{id}/repository",
             post(handlers::connect_repository)
                 .get(handlers::get_repository)
-                .put(handlers::update_repository)
+                .patch(handlers::update_repository)
                 .delete(handlers::disconnect_repository),
         )
         .route_layer(middleware::from_extractor::<JwtClaims>())

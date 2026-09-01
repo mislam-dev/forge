@@ -4,7 +4,7 @@ use uuid::Uuid;
 use super::super::entities::project_repository::Model as RepositoryModel;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RepositoryResponse {
+pub struct ProjectRepositoryResponse {
     pub id: Uuid,
     pub project_id: Uuid,
     pub repository_url: String,
@@ -16,14 +16,14 @@ pub struct RepositoryResponse {
     pub updated_at: String,
 }
 
-impl RepositoryResponse {
+impl ProjectRepositoryResponse {
     pub fn from_model(model: RepositoryModel) -> Self {
         Self {
             id: model.id,
             project_id: model.project_id,
             repository_url: model.repository_url,
             auth_type: model.auth_type,
-            access_token: "••••••••".to_string(), // Always masked for security
+            access_token: "••••••••".to_string(), // Always masked in public responses
             default_branch: model.default_branch.unwrap_or_else(|| "main".to_string()),
             status: model.status.unwrap_or_else(|| "connected".to_string()),
             created_at: model.created_at.to_rfc3339(),
@@ -55,7 +55,7 @@ mod tests {
             updated_at: now,
         };
 
-        let res = RepositoryResponse::from_model(model);
+        let res = ProjectRepositoryResponse::from_model(model);
         assert_eq!(res.access_token, "••••••••");
         assert_ne!(res.access_token, "encrypted_secret_payload");
     }
