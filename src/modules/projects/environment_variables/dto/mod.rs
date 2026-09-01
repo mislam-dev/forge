@@ -2,6 +2,7 @@ pub mod request;
 pub mod response;
 
 pub use request::{
-    BulkCreateEnvVarRequest, CreateEnvVarRequest, EnvVarItem, EnvVarQuery, UpdateEnvVarRequest,
+    BulkCreateProjectEnvVarDTO, CreateProjectEnvVarDTO, ProjectEnvVarItemDTO,
+    ProjectEnvVarQueryDTO, UpdateProjectEnvVarDTO,
 };
-pub use response::EnvVarResponse;
+pub use response::ProjectEnvVarResponse;

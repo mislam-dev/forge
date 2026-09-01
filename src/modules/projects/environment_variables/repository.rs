@@ -82,4 +82,13 @@ mod tests {
         let result = ProjectEnvironmentVariablesRepository::find_by_id(&db, Uuid::new_v4()).await;
         assert!(result.is_err());
     }
+
+    #[tokio::test]
+    async fn test_find_by_project_id_empty_db() {
+        let db = setup_mock_db();
+        let result =
+            ProjectEnvironmentVariablesRepository::find_by_project_id(&db, Uuid::new_v4(), None)
+                .await;
+        assert!(result.is_err());
+    }
 }

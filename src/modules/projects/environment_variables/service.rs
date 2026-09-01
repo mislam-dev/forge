@@ -1,12 +1,13 @@
+use std::collections::HashMap;
+
 use chrono::Utc;
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::super::permissions::role::ProjectRole;
-use super::super::permissions::service::ProjectPermissionsService;
 use super::super::projects::repository::ProjectsRepository;
 use super::dto::{
-    BulkCreateEnvVarRequest, CreateEnvVarRequest, EnvVarQuery, EnvVarResponse, UpdateEnvVarRequest,
+    BulkCreateProjectEnvVarDTO, CreateProjectEnvVarDTO, ProjectEnvVarQueryDTO,
+    ProjectEnvVarResponse, UpdateProjectEnvVarDTO,
 };
 use super::entities::project_environment_variable::ActiveModel as EnvVarActiveModel;
 use super::repository::ProjectEnvironmentVariablesRepository;
@@ -42,28 +43,27 @@ impl ProjectEnvironmentVariablesService {
         raw_value.bytes().map(|b| format!("{:02x}", b)).collect()
     }
 
+    fn decrypt_value(encrypted_hex: &str) -> String {
+        let mut bytes = Vec::new();
+        for i in (0..encrypted_hex.len()).step_by(2) {
+            if i + 2 <= encrypted_hex.len() {
+                if let Ok(b) = u8::from_str_radix(&encrypted_hex[i..i + 2], 16) {
+                    bytes.push(b);
+                }
+            }
+        }
+        String::from_utf8(bytes).unwrap_or_default()
+    }
+
     pub async fn create_env_var(
         db: &DatabaseConnection,
-        requester_id: Uuid,
-        is_system_admin: bool,
+        org_id: Option<Uuid>,
         project_id: Uuid,
-        req: CreateEnvVarRequest,
-    ) -> Result<EnvVarResponse, AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
+        req: CreateProjectEnvVarDTO,
+    ) -> Result<ProjectEnvVarResponse, AppError> {
+        let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
-        if !is_system_admin {
-            ProjectPermissionsService::verify_project_role(
-                db,
-                project_id,
-                requester_id,
-                project.organization_id,
-                is_system_admin,
-                ProjectRole::Admin,
-            )
-            .await?;
-        }
 
         Self::validate_posix_key(&req.key)?;
 
@@ -96,31 +96,18 @@ impl ProjectEnvironmentVariablesService {
 
         let env_var =
             ProjectEnvironmentVariablesRepository::create_env_var(db, active_model).await?;
-        Ok(EnvVarResponse::from_model(env_var))
+        Ok(ProjectEnvVarResponse::from_model(env_var))
     }
 
     pub async fn list_env_vars(
         db: &DatabaseConnection,
-        requester_id: Uuid,
-        is_system_admin: bool,
+        org_id: Option<Uuid>,
         project_id: Uuid,
-        query: EnvVarQuery,
-    ) -> Result<Vec<EnvVarResponse>, AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
+        query: ProjectEnvVarQueryDTO,
+    ) -> Result<Vec<ProjectEnvVarResponse>, AppError> {
+        let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
-        if !is_system_admin {
-            ProjectPermissionsService::verify_project_role(
-                db,
-                project_id,
-                requester_id,
-                project.organization_id,
-                is_system_admin,
-                ProjectRole::Viewer,
-            )
-            .await?;
-        }
 
         let env_vars = ProjectEnvironmentVariablesRepository::find_by_project_id(
             db,
@@ -131,33 +118,20 @@ impl ProjectEnvironmentVariablesService {
 
         Ok(env_vars
             .into_iter()
-            .map(EnvVarResponse::from_model)
+            .map(ProjectEnvVarResponse::from_model)
             .collect())
     }
 
     pub async fn update_env_var(
         db: &DatabaseConnection,
-        requester_id: Uuid,
-        is_system_admin: bool,
+        org_id: Option<Uuid>,
         project_id: Uuid,
         env_var_id: Uuid,
-        req: UpdateEnvVarRequest,
-    ) -> Result<EnvVarResponse, AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
+        req: UpdateProjectEnvVarDTO,
+    ) -> Result<ProjectEnvVarResponse, AppError> {
+        let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
-        if !is_system_admin {
-            ProjectPermissionsService::verify_project_role(
-                db,
-                project_id,
-                requester_id,
-                project.organization_id,
-                is_system_admin,
-                ProjectRole::Admin,
-            )
-            .await?;
-        }
 
         let env_var = ProjectEnvironmentVariablesRepository::find_by_id(db, env_var_id)
             .await?
@@ -182,31 +156,18 @@ impl ProjectEnvironmentVariablesService {
 
         let updated =
             ProjectEnvironmentVariablesRepository::update_env_var(db, active_model).await?;
-        Ok(EnvVarResponse::from_model(updated))
+        Ok(ProjectEnvVarResponse::from_model(updated))
     }
 
     pub async fn delete_env_var(
         db: &DatabaseConnection,
-        requester_id: Uuid,
-        is_system_admin: bool,
+        org_id: Option<Uuid>,
         project_id: Uuid,
         env_var_id: Uuid,
     ) -> Result<(), AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
+        let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
-        if !is_system_admin {
-            ProjectPermissionsService::verify_project_role(
-                db,
-                project_id,
-                requester_id,
-                project.organization_id,
-                is_system_admin,
-                ProjectRole::Admin,
-            )
-            .await?;
-        }
 
         let env_var = ProjectEnvironmentVariablesRepository::find_by_id(db, env_var_id)
             .await?
@@ -224,26 +185,13 @@ impl ProjectEnvironmentVariablesService {
 
     pub async fn bulk_create_env_vars(
         db: &DatabaseConnection,
-        requester_id: Uuid,
-        is_system_admin: bool,
+        org_id: Option<Uuid>,
         project_id: Uuid,
-        req: BulkCreateEnvVarRequest,
-    ) -> Result<Vec<EnvVarResponse>, AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
+        req: BulkCreateProjectEnvVarDTO,
+    ) -> Result<Vec<ProjectEnvVarResponse>, AppError> {
+        let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
-        if !is_system_admin {
-            ProjectPermissionsService::verify_project_role(
-                db,
-                project_id,
-                requester_id,
-                project.organization_id,
-                is_system_admin,
-                ProjectRole::Admin,
-            )
-            .await?;
-        }
 
         for item in &req.vars {
             Self::validate_posix_key(&item.key)?;
@@ -283,17 +231,47 @@ impl ProjectEnvironmentVariablesService {
 
             let env_var =
                 ProjectEnvironmentVariablesRepository::create_env_var(&txn, active_model).await?;
-            responses.push(EnvVarResponse::from_model(env_var));
+            responses.push(ProjectEnvVarResponse::from_model(env_var));
         }
 
         txn.commit().await.map_err(AppError::from)?;
         Ok(responses)
+    }
+
+    pub async fn get_decrypted_env_vars(
+        db: &DatabaseConnection,
+        org_id: Option<Uuid>,
+        project_id: Uuid,
+        environment: &str,
+    ) -> Result<HashMap<String, String>, AppError> {
+        let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+
+        let env_vars = ProjectEnvironmentVariablesRepository::find_by_project_id(
+            db,
+            project_id,
+            Some(environment.to_string()),
+        )
+        .await?;
+
+        let mut map = HashMap::with_capacity(env_vars.len());
+        for var in env_vars {
+            let val = Self::decrypt_value(&var.value_encrypted);
+            map.insert(var.key, val);
+        }
+
+        Ok(map)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn setup_mock_db() -> DatabaseConnection {
+        MockDatabase::new(DatabaseBackend::Postgres).into_connection()
+    }
 
     #[test]
     fn test_validate_posix_key_valid() {
@@ -307,5 +285,58 @@ mod tests {
         assert!(ProjectEnvironmentVariablesService::validate_posix_key("database-url").is_err());
         assert!(ProjectEnvironmentVariablesService::validate_posix_key("1INVALID").is_err());
         assert!(ProjectEnvironmentVariablesService::validate_posix_key("key with spaces").is_err());
+    }
+
+    #[test]
+    fn test_encryption_decryption_roundtrip() {
+        let raw = "super-secret-password-123!@#";
+        let encrypted = ProjectEnvironmentVariablesService::encrypt_value(raw);
+        assert_ne!(raw, encrypted);
+        let decrypted = ProjectEnvironmentVariablesService::decrypt_value(&encrypted);
+        assert_eq!(raw, decrypted);
+    }
+
+    #[tokio::test]
+    async fn test_create_env_var_project_not_found() {
+        let db = setup_mock_db();
+        let result = ProjectEnvironmentVariablesService::create_env_var(
+            &db,
+            None,
+            Uuid::new_v4(),
+            CreateProjectEnvVarDTO {
+                environment: "Production".to_string(),
+                key: "API_KEY".to_string(),
+                value: "secret".to_string(),
+                is_secret: Some(true),
+            },
+        )
+        .await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_list_env_vars_project_not_found() {
+        let db = setup_mock_db();
+        let result = ProjectEnvironmentVariablesService::list_env_vars(
+            &db,
+            None,
+            Uuid::new_v4(),
+            ProjectEnvVarQueryDTO { environment: None },
+        )
+        .await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_delete_env_var_project_not_found() {
+        let db = setup_mock_db();
+        let result = ProjectEnvironmentVariablesService::delete_env_var(
+            &db,
+            None,
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+        )
+        .await;
+        assert!(result.is_err());
     }
 }

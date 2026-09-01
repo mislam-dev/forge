@@ -5,29 +5,26 @@ use axum::{
 use uuid::Uuid;
 
 use super::dto::{
-    BulkCreateEnvVarRequest, CreateEnvVarRequest, EnvVarQuery, EnvVarResponse, UpdateEnvVarRequest,
+    BulkCreateProjectEnvVarDTO, CreateProjectEnvVarDTO, ProjectEnvVarQueryDTO,
+    ProjectEnvVarResponse, UpdateProjectEnvVarDTO,
 };
 use super::service::ProjectEnvironmentVariablesService;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::projects::extractors::{
+    OptionalOrgAdmin, OptionalOrgViewer, OrgValidationOptional,
+};
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
 
 pub async fn create_env_var(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgAdmin,
     Path(id): Path<Uuid>,
-    JsonValidate(payload): JsonValidate<CreateEnvVarRequest>,
-) -> Result<ApiResponse<EnvVarResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let env_var = ProjectEnvironmentVariablesService::create_env_var(
-        &state.db, claims.sub, is_admin, id, payload,
-    )
-    .await?;
+    JsonValidate(payload): JsonValidate<CreateProjectEnvVarDTO>,
+) -> Result<ApiResponse<ProjectEnvVarResponse>, AppError> {
+    let env_var =
+        ProjectEnvironmentVariablesService::create_env_var(&state.db, org_id, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -37,18 +34,12 @@ pub async fn create_env_var(
 
 pub async fn list_env_vars(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgViewer,
     Path(id): Path<Uuid>,
-    Query(query): Query<EnvVarQuery>,
-) -> Result<ApiResponse<Vec<EnvVarResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let env_vars = ProjectEnvironmentVariablesService::list_env_vars(
-        &state.db, claims.sub, is_admin, id, query,
-    )
-    .await?;
+    Query(query): Query<ProjectEnvVarQueryDTO>,
+) -> Result<ApiResponse<Vec<ProjectEnvVarResponse>>, AppError> {
+    let env_vars =
+        ProjectEnvironmentVariablesService::list_env_vars(&state.db, org_id, id, query).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -58,16 +49,12 @@ pub async fn list_env_vars(
 
 pub async fn update_env_var(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgAdmin,
     Path((id, env_id)): Path<(Uuid, Uuid)>,
-    JsonValidate(payload): JsonValidate<UpdateEnvVarRequest>,
-) -> Result<ApiResponse<EnvVarResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
+    JsonValidate(payload): JsonValidate<UpdateProjectEnvVarDTO>,
+) -> Result<ApiResponse<ProjectEnvVarResponse>, AppError> {
     let env_var = ProjectEnvironmentVariablesService::update_env_var(
-        &state.db, claims.sub, is_admin, id, env_id, payload,
+        &state.db, org_id, id, env_id, payload,
     )
     .await?;
 
@@ -79,15 +66,10 @@ pub async fn update_env_var(
 
 pub async fn delete_env_var(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgAdmin,
     Path((id, env_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    ProjectEnvironmentVariablesService::delete_env_var(&state.db, claims.sub, is_admin, id, env_id)
-        .await?;
+    ProjectEnvironmentVariablesService::delete_env_var(&state.db, org_id, id, env_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -96,18 +78,13 @@ pub async fn delete_env_var(
 
 pub async fn bulk_create_env_vars(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    OrgValidationOptional(_, org_id, _): OptionalOrgAdmin,
     Path(id): Path<Uuid>,
-    JsonValidate(payload): JsonValidate<BulkCreateEnvVarRequest>,
-) -> Result<ApiResponse<Vec<EnvVarResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let env_vars = ProjectEnvironmentVariablesService::bulk_create_env_vars(
-        &state.db, claims.sub, is_admin, id, payload,
-    )
-    .await?;
+    JsonValidate(payload): JsonValidate<BulkCreateProjectEnvVarDTO>,
+) -> Result<ApiResponse<Vec<ProjectEnvVarResponse>>, AppError> {
+    let env_vars =
+        ProjectEnvironmentVariablesService::bulk_create_env_vars(&state.db, org_id, id, payload)
+            .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -122,11 +99,20 @@ mod tests {
 
     #[test]
     fn test_create_env_var_handler_validation() {
-        let req = CreateEnvVarRequest {
+        let req = CreateProjectEnvVarDTO {
             environment: "".to_string(),
             key: "".to_string(),
             value: "".to_string(),
             is_secret: None,
+        };
+        assert!(req.validate().is_err());
+    }
+
+    #[test]
+    fn test_bulk_create_handler_validation() {
+        let req = BulkCreateProjectEnvVarDTO {
+            environment: "".to_string(),
+            vars: vec![],
         };
         assert!(req.validate().is_err());
     }

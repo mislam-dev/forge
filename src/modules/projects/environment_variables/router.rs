@@ -1,6 +1,6 @@
 use axum::{
     Router, middleware,
-    routing::{post, put},
+    routing::{patch, post},
 };
 
 use super::handlers;
@@ -16,7 +16,7 @@ pub fn environment_variables_router() -> Router<AppState> {
         .route("/{id}/env-vars/bulk", post(handlers::bulk_create_env_vars))
         .route(
             "/{id}/env-vars/{env_id}",
-            put(handlers::update_env_var).delete(handlers::delete_env_var),
+            patch(handlers::update_env_var).delete(handlers::delete_env_var),
         )
         .route_layer(middleware::from_extractor::<JwtClaims>())
 }
