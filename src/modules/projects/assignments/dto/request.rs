@@ -2,15 +2,16 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::modules::projects::assignments::entities::sea_orm_active_enums::ProjectMembersRole;
+
 #[derive(Debug, Deserialize, Serialize, Validate)]
-pub struct AssignProjectMemberRequest {
+pub struct AssignProjectMemberDTO {
     pub user_id: Uuid,
-    #[validate(length(min = 1, message = "Role is required"))]
-    pub role: String,
+    pub role: ProjectMembersRole,
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
-pub struct AssignProjectTeamRequest {
+pub struct AssignProjectTeamDTO {
     pub team_id: Uuid,
 }
 
@@ -20,16 +21,16 @@ mod tests {
 
     #[test]
     fn test_assign_member_request_validation() {
-        let req = AssignProjectMemberRequest {
+        let req = AssignProjectMemberDTO {
             user_id: Uuid::new_v4(),
-            role: "developer".to_string(),
+            role: ProjectMembersRole::Developer,
         };
         assert!(req.validate().is_ok());
     }
 
     #[test]
     fn test_assign_team_request_validation() {
-        let req = AssignProjectTeamRequest {
+        let req = AssignProjectTeamDTO {
             team_id: Uuid::new_v4(),
         };
         assert!(req.validate().is_ok());

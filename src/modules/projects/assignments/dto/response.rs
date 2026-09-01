@@ -1,28 +1,26 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::super::entities::project_member::Model as ProjectMemberModel;
-use super::super::entities::project_team::Model as ProjectTeamModel;
+use super::super::entities::project_members::Model as ProjectMemberModel;
+use super::super::entities::project_teams::Model as ProjectTeamModel;
+use crate::modules::projects::assignments::entities::sea_orm_active_enums::ProjectMembersRole;
 use crate::modules::teams::teams::entities::team::Model as TeamModel;
-use crate::modules::users::entities::users::Model as UserModel;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectMemberResponse {
     pub project_id: Uuid,
     pub user_id: Uuid,
-    pub role: String,
+    pub role: Option<ProjectMembersRole>,
     pub assigned_at: String,
-    pub user: Option<UserModel>,
 }
 
 impl ProjectMemberResponse {
-    pub fn from_model(model: ProjectMemberModel, user: Option<UserModel>) -> Self {
+    pub fn from_model(model: ProjectMemberModel) -> Self {
         Self {
             project_id: model.project_id,
             user_id: model.user_id,
             role: model.role,
             assigned_at: model.assigned_at.to_rfc3339(),
-            user,
         }
     }
 }
@@ -60,14 +58,14 @@ mod tests {
         let model = ProjectMemberModel {
             project_id,
             user_id,
-            role: "developer".to_string(),
+            role: Some(ProjectMembersRole::Developer),
             assigned_at: now,
         };
 
-        let res = ProjectMemberResponse::from_model(model, None);
+        let res = ProjectMemberResponse::from_model(model);
         assert_eq!(res.project_id, project_id);
         assert_eq!(res.user_id, user_id);
-        assert_eq!(res.role, "developer");
+        assert_eq!(res.role, Some(ProjectMembersRole::Developer));
     }
 
     #[test]

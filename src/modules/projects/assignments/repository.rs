@@ -1,14 +1,15 @@
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::entities::project_member::{
+use super::entities::project_members::{
     ActiveModel as ProjectMemberActiveModel, Column as ProjectMemberColumn,
     Entity as ProjectMemberEntity, Model as ProjectMemberModel,
 };
-use super::entities::project_team::{
+use super::entities::project_teams::{
     ActiveModel as ProjectTeamActiveModel, Column as ProjectTeamColumn,
     Entity as ProjectTeamEntity, Model as ProjectTeamModel,
 };
+use crate::modules::projects::assignments::dto::AssignProjectMemberDTO;
 use crate::modules::teams::teams::entities::team::{
     Column as TeamColumn, Entity as TeamEntity, Model as TeamModel,
 };
@@ -64,8 +65,15 @@ impl ProjectAssignmentsRepository {
 
     pub async fn add_member(
         db: &DatabaseConnection,
-        active_model: ProjectMemberActiveModel,
+        project_id: Uuid,
+        req: AssignProjectMemberDTO,
     ) -> Result<ProjectMemberModel, AppError> {
+        let active_model = ProjectMemberActiveModel {
+            project_id: Set(project_id),
+            user_id: Set(req.user_id),
+            role: Set(Some(req.role)),
+            ..Default::default()
+        };
         active_model.insert(db).await.map_err(AppError::from)
     }
 
@@ -126,8 +134,14 @@ impl ProjectAssignmentsRepository {
 
     pub async fn add_team(
         db: &DatabaseConnection,
-        active_model: ProjectTeamActiveModel,
+        team_id: Uuid,
+        project_id: Uuid,
     ) -> Result<ProjectTeamModel, AppError> {
+        let active_model = ProjectTeamActiveModel {
+            project_id: Set(project_id),
+            team_id: Set(team_id),
+            ..Default::default()
+        };
         active_model.insert(db).await.map_err(AppError::from)
     }
 

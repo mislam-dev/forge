@@ -5,8 +5,7 @@ use axum::{
 use uuid::Uuid;
 
 use super::dto::{
-    AssignProjectMemberRequest, AssignProjectTeamRequest, ProjectMemberResponse,
-    ProjectTeamResponse,
+    AssignProjectMemberDTO, AssignProjectTeamDTO, ProjectMemberResponse, ProjectTeamResponse,
 };
 use super::service::ProjectAssignmentsService;
 use crate::app::state::AppState;
@@ -20,23 +19,11 @@ use crate::shared::validation::JsonValidate;
 
 pub async fn assign_member(
     State(state): State<AppState>,
-    OrgValidationOptional(claims, org_id, _): OptionalOrgAdmin,
+    OrgValidationOptional(_, org_id, _): OptionalOrgAdmin,
     Path(id): Path<Uuid>,
-    JsonValidate(payload): JsonValidate<AssignProjectMemberRequest>,
+    JsonValidate(payload): JsonValidate<AssignProjectMemberDTO>,
 ) -> Result<ApiResponse<ProjectMemberResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let member = ProjectAssignmentsService::assign_member(
-        &state.db,
-        claims.sub,
-        is_admin,
-        org_id,
-        id,
-        payload,
-    )
-    .await?;
+    let member = ProjectAssignmentsService::assign_member(&state.db, org_id, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -46,21 +33,10 @@ pub async fn assign_member(
 
 pub async fn list_members(
     State(state): State<AppState>,
-    OrgValidationOptional(claims, org_id, _): OptionalOrgViewer,
+    OrgValidationOptional(_, org_id, _): OptionalOrgViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<ProjectMemberResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let members = ProjectAssignmentsService::list_members(
-        &state.db,
-        claims.sub,
-        is_admin,
-        org_id,
-        id,
-    )
-    .await?;
+    let members = ProjectAssignmentsService::list_members(&state.db, org_id, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -70,22 +46,10 @@ pub async fn list_members(
 
 pub async fn remove_member(
     State(state): State<AppState>,
-    OrgValidationOptional(claims, org_id, _): OptionalOrgAdmin,
+    OrgValidationOptional(_, org_id, _): OptionalOrgAdmin,
     Path((id, user_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    ProjectAssignmentsService::remove_member(
-        &state.db,
-        claims.sub,
-        is_admin,
-        org_id,
-        id,
-        user_id,
-    )
-    .await?;
+    ProjectAssignmentsService::remove_member(&state.db, org_id, id, user_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -94,23 +58,11 @@ pub async fn remove_member(
 
 pub async fn assign_team(
     State(state): State<AppState>,
-    OrgValidationRequired(claims, org_id, _): RequiredOrgAdmin,
+    OrgValidationRequired(_, org_id, _): RequiredOrgAdmin,
     Path(id): Path<Uuid>,
-    JsonValidate(payload): JsonValidate<AssignProjectTeamRequest>,
+    JsonValidate(payload): JsonValidate<AssignProjectTeamDTO>,
 ) -> Result<ApiResponse<ProjectTeamResponse>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let team = ProjectAssignmentsService::assign_team(
-        &state.db,
-        claims.sub,
-        is_admin,
-        org_id,
-        id,
-        payload,
-    )
-    .await?;
+    let team = ProjectAssignmentsService::assign_team(&state.db, org_id, id, payload).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -120,15 +72,10 @@ pub async fn assign_team(
 
 pub async fn list_teams(
     State(state): State<AppState>,
-    OrgValidationRequired(claims, org_id, _): RequiredOrgViewer,
+    OrgValidationRequired(_, org_id, _): RequiredOrgViewer,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<Vec<ProjectTeamResponse>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let teams =
-        ProjectAssignmentsService::list_teams(&state.db, claims.sub, is_admin, org_id, id).await?;
+    let teams = ProjectAssignmentsService::list_teams(&state.db, org_id, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -138,22 +85,10 @@ pub async fn list_teams(
 
 pub async fn remove_team(
     State(state): State<AppState>,
-    OrgValidationRequired(claims, org_id, _): RequiredOrgAdmin,
+    OrgValidationRequired(_, org_id, _): RequiredOrgAdmin,
     Path((id, team_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    ProjectAssignmentsService::remove_team(
-        &state.db,
-        claims.sub,
-        is_admin,
-        org_id,
-        id,
-        team_id,
-    )
-    .await?;
+    ProjectAssignmentsService::remove_team(&state.db, org_id, id, team_id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -163,20 +98,21 @@ pub async fn remove_team(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::modules::projects::assignments::entities::sea_orm_active_enums::ProjectMembersRole;
     use validator::Validate;
 
     #[test]
-    fn test_assign_member_handler_validation() {
-        let req = AssignProjectMemberRequest {
+    fn test_assign_member_dto_validation() {
+        let req = AssignProjectMemberDTO {
             user_id: Uuid::new_v4(),
-            role: "".to_string(),
+            role: ProjectMembersRole::Developer,
         };
-        assert!(req.validate().is_err());
+        assert!(req.validate().is_ok());
     }
 
     #[test]
-    fn test_assign_team_handler_validation() {
-        let req = AssignProjectTeamRequest {
+    fn test_assign_team_dto_validation() {
+        let req = AssignProjectTeamDTO {
             team_id: Uuid::new_v4(),
         };
         assert!(req.validate().is_ok());

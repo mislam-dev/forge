@@ -1,10 +1,10 @@
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::super::assignments::entities::project_member::{
+use super::super::assignments::entities::project_members::{
     Column as MemberColumn, Entity as MemberEntity,
 };
-use super::super::assignments::entities::project_team::{
+use super::super::assignments::entities::project_teams::{
     Column as ProjectTeamColumn, Entity as ProjectTeamEntity,
 };
 use super::super::projects::repository::ProjectsRepository;
@@ -57,8 +57,18 @@ impl ProjectPermissionsService {
             .one(db)
             .await?
         {
-            if let Ok(role) = member.role.parse::<ProjectRole>() {
-                return Ok(Some(role));
+            if let Some(role) = member.role {
+                match role {
+                    crate::modules::projects::assignments::entities::sea_orm_active_enums::ProjectMembersRole::Admin => {
+                        return Ok(Some(ProjectRole::Admin));
+                    }
+                    crate::modules::projects::assignments::entities::sea_orm_active_enums::ProjectMembersRole::Developer => {
+                        return Ok(Some(ProjectRole::Developer));
+                    }
+                    crate::modules::projects::assignments::entities::sea_orm_active_enums::ProjectMembersRole::Viewer => {
+                        return Ok(Some(ProjectRole::Viewer));
+                    }
+                }
             }
         }
 
