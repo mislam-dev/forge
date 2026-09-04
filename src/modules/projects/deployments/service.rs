@@ -54,6 +54,8 @@ impl DeploymentsService {
             DeploymentStatus::Queued,
         )
         .await?;
+
+        // todo: trigger an event send this event to rabbitmq
         Ok(DeploymentResponse::from_model(deployment))
     }
 
@@ -140,6 +142,7 @@ impl DeploymentsService {
             target.commit_hash,
             DeploymentStatus::Queued,
         )
+        // todo: trigger an event send this event to rabbitmq with status redeploy
         .await?;
         Ok(DeploymentResponse::from_model(deployment))
     }
@@ -202,12 +205,9 @@ impl DeploymentsService {
             .await?
             .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
 
-        let current_status = deployment
-            .status
-            .parse::<DeploymentStatus>()
-            .map_err(|e| AppError::InternalServerError(e))?;
+        let current_status = &deployment.status;
 
-        if !current_status.can_transition_to(target_status) {
+        if !current_status.can_transition_to(&target_status) {
             return Err(AppError::BadRequest(format!(
                 "Invalid deployment status transition from {} to {}",
                 current_status, target_status
@@ -274,13 +274,8 @@ mod tests {
     #[tokio::test]
     async fn test_get_deployment_project_not_found() {
         let db = setup_mock_db();
-        let result = DeploymentsService::get_deployment(
-            &db,
-            None,
-            Uuid::new_v4(),
-            Uuid::new_v4(),
-        )
-        .await;
+        let result =
+            DeploymentsService::get_deployment(&db, None, Uuid::new_v4(), Uuid::new_v4()).await;
         assert!(result.is_err());
     }
 }

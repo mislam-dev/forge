@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::super::entities::deployment::Model as DeploymentModel;
+use super::super::entities::deployments::Model as DeploymentModel;
+use super::super::status::DeploymentStatus;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeploymentResponse {
@@ -10,7 +11,7 @@ pub struct DeploymentResponse {
     pub triggered_by: Uuid,
     pub branch: String,
     pub commit_hash: String,
-    pub status: String,
+    pub status: DeploymentStatus,
     pub build_duration: Option<i32>,
     pub deploy_duration: Option<i32>,
     pub error_message: Option<String>,
@@ -54,7 +55,7 @@ mod tests {
             triggered_by,
             branch: "main".to_string(),
             commit_hash: "9f8e7d6".to_string(),
-            status: "Queued".to_string(),
+            status: DeploymentStatus::Queued,
             build_duration: None,
             deploy_duration: None,
             error_message: None,
@@ -64,7 +65,7 @@ mod tests {
 
         let res = DeploymentResponse::from_model(model);
         assert_eq!(res.id, id);
-        assert_eq!(res.status, "Queued");
+        assert_eq!(res.status, DeploymentStatus::Queued);
         assert_eq!(res.branch, "main");
     }
 }

@@ -1,16 +1,7 @@
-use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum DeploymentStatus {
-    Queued,
-    Building,
-    Deploying,
-    Running,
-    Failed,
-    Success,
-}
+pub use super::entities::sea_orm_active_enums::DeploymentStatus;
 
 impl DeploymentStatus {
     pub fn is_terminal(&self) -> bool {
@@ -21,7 +12,7 @@ impl DeploymentStatus {
         !self.is_terminal()
     }
 
-    pub fn can_transition_to(&self, next: DeploymentStatus) -> bool {
+    pub fn can_transition_to(&self, next: &DeploymentStatus) -> bool {
         if self.is_terminal() {
             return false; // Terminal states are strictly immutable
         }
@@ -34,7 +25,7 @@ impl DeploymentStatus {
             (DeploymentStatus::Deploying, DeploymentStatus::Failed) => true,
             (DeploymentStatus::Running, DeploymentStatus::Success) => true,
             (DeploymentStatus::Running, DeploymentStatus::Failed) => true,
-            (current, target) if current == &target => true,
+            (current, target) if current == target => true,
             _ => false,
         }
     }
@@ -87,14 +78,14 @@ mod tests {
 
     #[test]
     fn test_deployment_status_state_transitions() {
-        assert!(DeploymentStatus::Queued.can_transition_to(DeploymentStatus::Building));
-        assert!(DeploymentStatus::Building.can_transition_to(DeploymentStatus::Deploying));
-        assert!(DeploymentStatus::Deploying.can_transition_to(DeploymentStatus::Running));
-        assert!(DeploymentStatus::Running.can_transition_to(DeploymentStatus::Success));
+        assert!(DeploymentStatus::Queued.can_transition_to(&DeploymentStatus::Building));
+        assert!(DeploymentStatus::Building.can_transition_to(&DeploymentStatus::Deploying));
+        assert!(DeploymentStatus::Deploying.can_transition_to(&DeploymentStatus::Running));
+        assert!(DeploymentStatus::Running.can_transition_to(&DeploymentStatus::Success));
 
         // Terminal states cannot transition out
-        assert!(!DeploymentStatus::Success.can_transition_to(DeploymentStatus::Building));
-        assert!(!DeploymentStatus::Failed.can_transition_to(DeploymentStatus::Running));
+        assert!(!DeploymentStatus::Success.can_transition_to(&DeploymentStatus::Building));
+        assert!(!DeploymentStatus::Failed.can_transition_to(&DeploymentStatus::Running));
     }
 
     #[test]

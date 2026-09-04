@@ -3,7 +3,7 @@ use sea_orm::*;
 use uuid::Uuid;
 
 use super::dto::DeploymentHistoryQuery;
-use super::entities::deployment::{
+use super::entities::deployments::{
     ActiveModel as DeploymentActiveModel, Column as DeploymentColumn, Entity as DeploymentEntity,
     Model as DeploymentModel,
 };
@@ -37,7 +37,9 @@ impl DeploymentsRepository {
             .order_by_desc(DeploymentColumn::CreatedAt);
 
         if let Some(status) = query.status {
-            stmt = stmt.filter(DeploymentColumn::Status.eq(status));
+            if let Ok(st) = status.parse::<DeploymentStatus>() {
+                stmt = stmt.filter(DeploymentColumn::Status.eq(st));
+            }
         }
         if let Some(branch) = query.branch {
             stmt = stmt.filter(DeploymentColumn::Branch.eq(branch));
@@ -60,10 +62,10 @@ impl DeploymentsRepository {
         DeploymentEntity::find()
             .filter(DeploymentColumn::ProjectId.eq(project_id))
             .filter(DeploymentColumn::Status.is_in([
-                DeploymentStatus::Queued.as_str(),
-                DeploymentStatus::Building.as_str(),
-                DeploymentStatus::Deploying.as_str(),
-                DeploymentStatus::Running.as_str(),
+                DeploymentStatus::Queued,
+                DeploymentStatus::Building,
+                DeploymentStatus::Deploying,
+                DeploymentStatus::Running,
             ]))
             .one(db)
             .await
@@ -76,7 +78,7 @@ impl DeploymentsRepository {
     ) -> Result<Option<DeploymentModel>, AppError> {
         DeploymentEntity::find()
             .filter(DeploymentColumn::ProjectId.eq(project_id))
-            .filter(DeploymentColumn::Status.eq(DeploymentStatus::Success.as_str()))
+            .filter(DeploymentColumn::Status.eq(DeploymentStatus::Success))
             .order_by_desc(DeploymentColumn::CreatedAt)
             .one(db)
             .await
@@ -96,7 +98,7 @@ impl DeploymentsRepository {
             triggered_by: Set(triggered_by),
             branch: Set(branch),
             commit_hash: Set(commit_hash),
-            status: Set(status.as_str().to_string()),
+            status: Set(status),
             ..Default::default()
         };
 
@@ -112,7 +114,7 @@ impl DeploymentsRepository {
         error_message: Option<String>,
     ) -> Result<DeploymentModel, AppError> {
         let mut active_model: DeploymentActiveModel = deployment.into();
-        active_model.status = Set(target_status.as_str().to_string());
+        active_model.status = Set(target_status);
         active_model.updated_at = Set(Utc::now().into());
 
         if let Some(bd) = build_duration {
@@ -163,6 +165,28 @@ mod tests {
         assert!(result.is_err());
     }
 
+    fn mock_deployment_row(model: &DeploymentModel) -> std::collections::BTreeMap<String, Value> {
+        let mut map = std::collections::BTreeMap::new();
+        map.insert("id".to_string(), model.id.into());
+        map.insert("project_id".to_string(), model.project_id.into());
+        map.insert("triggered_by".to_string(), model.triggered_by.into());
+        map.insert("branch".to_string(), model.branch.clone().into());
+        map.insert("commit_hash".to_string(), model.commit_hash.clone().into());
+        map.insert(
+            "status".to_string(),
+            Value::String(Some(model.status.as_str().to_lowercase())),
+        );
+        map.insert("build_duration".to_string(), model.build_duration.into());
+        map.insert("deploy_duration".to_string(), model.deploy_duration.into());
+        map.insert(
+            "error_message".to_string(),
+            model.error_message.clone().into(),
+        );
+        map.insert("created_at".to_string(), model.created_at.into());
+        map.insert("updated_at".to_string(), model.updated_at.into());
+        map
+    }
+
     #[tokio::test]
     async fn test_create_deployment_success() {
         let id = Uuid::new_v4();
@@ -176,7 +200,7 @@ mod tests {
             triggered_by: user_id,
             branch: "main".to_string(),
             commit_hash: "abc1234".to_string(),
-            status: "Queued".to_string(),
+            status: DeploymentStatus::Queued,
             build_duration: None,
             deploy_duration: None,
             error_message: None,
@@ -185,7 +209,7 @@ mod tests {
         };
 
         let db = MockDatabase::new(DatabaseBackend::Postgres)
-            .append_query_results([vec![expected_model.clone()]])
+            .append_query_results([vec![mock_deployment_row(&expected_model)]])
             .into_connection();
 
         let result = DeploymentsRepository::create_deployment(
@@ -202,7 +226,7 @@ mod tests {
         let created = result.unwrap();
         assert_eq!(created.branch, "main");
         assert_eq!(created.commit_hash, "abc1234");
-        assert_eq!(created.status, "Queued");
+        assert_eq!(created.status, DeploymentStatus::Queued);
     }
 
     #[tokio::test]
@@ -218,7 +242,7 @@ mod tests {
             triggered_by: user_id,
             branch: "main".to_string(),
             commit_hash: "abc1234".to_string(),
-            status: "Queued".to_string(),
+            status: DeploymentStatus::Queued,
             build_duration: None,
             deploy_duration: None,
             error_message: None,
@@ -232,7 +256,7 @@ mod tests {
             triggered_by: user_id,
             branch: "main".to_string(),
             commit_hash: "abc1234".to_string(),
-            status: "Building".to_string(),
+            status: DeploymentStatus::Building,
             build_duration: Some(5000),
             deploy_duration: None,
             error_message: None,
@@ -241,7 +265,7 @@ mod tests {
         };
 
         let db = MockDatabase::new(DatabaseBackend::Postgres)
-            .append_query_results([vec![updated_model.clone()]])
+            .append_query_results([vec![mock_deployment_row(&updated_model)]])
             .into_connection();
 
         let result = DeploymentsRepository::update_status(
@@ -256,7 +280,7 @@ mod tests {
 
         assert!(result.is_ok());
         let updated = result.unwrap();
-        assert_eq!(updated.status, "Building");
+        assert_eq!(updated.status, DeploymentStatus::Building);
         assert_eq!(updated.build_duration, Some(5000));
     }
 }
