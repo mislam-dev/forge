@@ -1,4 +1,3 @@
-use chrono::Utc;
 use sea_orm::*;
 use uuid::Uuid;
 
@@ -6,29 +5,13 @@ use super::super::projects::repository::ProjectsRepository;
 use super::dto::{
     ConnectProjectRepositoryDTO, ProjectRepositoryResponse, UpdateProjectRepositoryDTO,
 };
-use super::entities::project_repository::ActiveModel as RepositoryActiveModel;
 use super::repository::ProjectRepositoriesRepository;
+use crate::modules::projects::repositories::utils::ATService;
 use crate::shared::error::AppError;
 
 pub struct ProjectRepositoriesService;
 
 impl ProjectRepositoriesService {
-    fn encrypt_token(raw_token: &str) -> String {
-        raw_token.bytes().map(|b| format!("{:02x}", b)).collect()
-    }
-
-    fn decrypt_token(encrypted_hex: &str) -> String {
-        let mut bytes = Vec::new();
-        for i in (0..encrypted_hex.len()).step_by(2) {
-            if i + 2 <= encrypted_hex.len() {
-                if let Ok(b) = u8::from_str_radix(&encrypted_hex[i..i + 2], 16) {
-                    bytes.push(b);
-                }
-            }
-        }
-        String::from_utf8(bytes).unwrap_or_default()
-    }
-
     pub async fn connect_repository(
         db: &DatabaseConnection,
         org_id: Option<Uuid>,
@@ -45,30 +28,15 @@ impl ProjectRepositoriesService {
             ));
         }
 
-        let auth_type = req.auth_type.unwrap_or_else(|| "none".to_string());
         let encrypted_token = req
             .access_token
             .as_ref()
-            .map(|t| Self::encrypt_token(t))
+            .map(|t| ATService::encrypt(t))
             .unwrap_or_default();
 
-        let now = Utc::now().into();
-        let active_model = RepositoryActiveModel {
-            id: Set(Uuid::new_v4()),
-            project_id: Set(project_id),
-            repository_url: Set(req.repository_url),
-            auth_type: Set(auth_type),
-            access_token_encrypted: Set(encrypted_token),
-            default_branch: Set(Some(
-                req.default_branch.unwrap_or_else(|| "main".to_string()),
-            )),
-            status: Set(Some("connected".to_string())),
-            created_at: Set(now),
-            updated_at: Set(now),
-        };
-
         let repository =
-            ProjectRepositoriesRepository::connect_repository(db, active_model).await?;
+            ProjectRepositoriesRepository::connect_repository(db, req, project_id, encrypted_token)
+                .await?;
         Ok(ProjectRepositoryResponse::from_model(repository))
     }
 
@@ -106,24 +74,7 @@ impl ProjectRepositoriesService {
                 AppError::NotFound("No repository connected to this project".to_string())
             })?;
 
-        let mut active_model: RepositoryActiveModel = repo.into();
-        let now = Utc::now().into();
-        active_model.updated_at = Set(now);
-
-        if let Some(url) = req.repository_url {
-            active_model.repository_url = Set(url);
-        }
-        if let Some(auth_type) = req.auth_type {
-            active_model.auth_type = Set(auth_type);
-        }
-        if let Some(token) = req.access_token {
-            active_model.access_token_encrypted = Set(Self::encrypt_token(&token));
-        }
-        if let Some(branch) = req.default_branch {
-            active_model.default_branch = Set(Some(branch));
-        }
-
-        let updated = ProjectRepositoriesRepository::update_repository(db, active_model).await?;
+        let updated = ProjectRepositoriesRepository::update_repository(db, repo, req).await?;
         Ok(ProjectRepositoryResponse::from_model(updated))
     }
 
@@ -142,12 +93,7 @@ impl ProjectRepositoriesService {
                 AppError::NotFound("No repository connected to this project".to_string())
             })?;
 
-        let mut active_model: RepositoryActiveModel = repo.into();
-        active_model.status = Set(Some("disconnected".to_string()));
-        active_model.access_token_encrypted = Set("".to_string());
-        active_model.updated_at = Set(Utc::now().into());
-
-        ProjectRepositoriesRepository::update_repository(db, active_model).await?;
+        ProjectRepositoriesRepository::disconnect_repository(db, repo).await?;
         Ok(())
     }
 
@@ -161,7 +107,7 @@ impl ProjectRepositoriesService {
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id).await?;
-        Ok(repo.map(|r| Self::decrypt_token(&r.access_token_encrypted)))
+        Ok(repo.map(|r| ATService::decrypt(&r.access_token_encrypted)))
     }
 }
 
@@ -171,15 +117,6 @@ mod tests {
 
     fn setup_mock_db() -> DatabaseConnection {
         MockDatabase::new(DatabaseBackend::Postgres).into_connection()
-    }
-
-    #[test]
-    fn test_token_encryption_decryption_roundtrip() {
-        let pat = "ghp_1234567890abcdefghijklmnopqrstuvwxyz";
-        let encrypted = ProjectRepositoriesService::encrypt_token(pat);
-        assert_ne!(pat, encrypted);
-        let decrypted = ProjectRepositoriesService::decrypt_token(&encrypted);
-        assert_eq!(pat, decrypted);
     }
 
     #[tokio::test]
