@@ -1,5 +1,4 @@
-use chrono::Utc;
-use sea_orm::*;
+use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
 use super::super::projects::repository::ProjectsRepository;
@@ -8,7 +7,6 @@ use super::dto::{
     DeploymentHistoryQuery, DeploymentResponse, TriggerDeploymentRequest,
     UpdateDeploymentStatusRequest,
 };
-use super::entities::deployment::ActiveModel as DeploymentActiveModel;
 use super::repository::DeploymentsRepository;
 use super::status::DeploymentStatus;
 use crate::config::AppConfig;
@@ -47,22 +45,15 @@ impl DeploymentsService {
             .unwrap_or_else(|| "main".to_string());
         let commit_hash = req.commit_hash.unwrap_or_else(|| "HEAD".to_string());
 
-        let now = Utc::now().into();
-        let active_model = DeploymentActiveModel {
-            id: Set(Uuid::new_v4()),
-            project_id: Set(project_id),
-            triggered_by: Set(triggered_by),
-            branch: Set(branch),
-            commit_hash: Set(commit_hash),
-            status: Set(DeploymentStatus::Queued.as_str().to_string()),
-            build_duration: Set(None),
-            deploy_duration: Set(None),
-            error_message: Set(None),
-            created_at: Set(now),
-            updated_at: Set(now),
-        };
-
-        let deployment = DeploymentsRepository::create_deployment(db, active_model).await?;
+        let deployment = DeploymentsRepository::create_deployment(
+            db,
+            project_id,
+            triggered_by,
+            branch,
+            commit_hash,
+            DeploymentStatus::Queued,
+        )
+        .await?;
         Ok(DeploymentResponse::from_model(deployment))
     }
 
@@ -141,22 +132,15 @@ impl DeploymentsService {
             ));
         }
 
-        let now = Utc::now().into();
-        let active_model = DeploymentActiveModel {
-            id: Set(Uuid::new_v4()),
-            project_id: Set(project_id),
-            triggered_by: Set(triggered_by),
-            branch: Set(target.branch),
-            commit_hash: Set(target.commit_hash),
-            status: Set(DeploymentStatus::Queued.as_str().to_string()),
-            build_duration: Set(None),
-            deploy_duration: Set(None),
-            error_message: Set(None),
-            created_at: Set(now),
-            updated_at: Set(now),
-        };
-
-        let deployment = DeploymentsRepository::create_deployment(db, active_model).await?;
+        let deployment = DeploymentsRepository::create_deployment(
+            db,
+            project_id,
+            triggered_by,
+            target.branch,
+            target.commit_hash,
+            DeploymentStatus::Queued,
+        )
+        .await?;
         Ok(DeploymentResponse::from_model(deployment))
     }
 
@@ -184,22 +168,15 @@ impl DeploymentsService {
                 )
             })?;
 
-        let now = Utc::now().into();
-        let active_model = DeploymentActiveModel {
-            id: Set(Uuid::new_v4()),
-            project_id: Set(project_id),
-            triggered_by: Set(triggered_by),
-            branch: Set(last_success.branch),
-            commit_hash: Set(last_success.commit_hash),
-            status: Set(DeploymentStatus::Queued.as_str().to_string()),
-            build_duration: Set(None),
-            deploy_duration: Set(None),
-            error_message: Set(None),
-            created_at: Set(now),
-            updated_at: Set(now),
-        };
-
-        let deployment = DeploymentsRepository::create_deployment(db, active_model).await?;
+        let deployment = DeploymentsRepository::create_deployment(
+            db,
+            project_id,
+            triggered_by,
+            last_success.branch,
+            last_success.commit_hash,
+            DeploymentStatus::Queued,
+        )
+        .await?;
         Ok(DeploymentResponse::from_model(deployment))
     }
 
@@ -237,21 +214,15 @@ impl DeploymentsService {
             )));
         }
 
-        let mut active_model: DeploymentActiveModel = deployment.into();
-        active_model.status = Set(target_status.as_str().to_string());
-        active_model.updated_at = Set(Utc::now().into());
-
-        if let Some(bd) = req.build_duration {
-            active_model.build_duration = Set(Some(bd));
-        }
-        if let Some(dd) = req.deploy_duration {
-            active_model.deploy_duration = Set(Some(dd));
-        }
-        if let Some(err) = req.error_message {
-            active_model.error_message = Set(Some(err));
-        }
-
-        let updated = DeploymentsRepository::update_deployment(db, active_model).await?;
+        let updated = DeploymentsRepository::update_deployment(
+            db,
+            deployment,
+            target_status,
+            req.build_duration,
+            req.deploy_duration,
+            req.error_message,
+        )
+        .await?;
         Ok(DeploymentResponse::from_model(updated))
     }
 }
@@ -259,6 +230,7 @@ impl DeploymentsService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sea_orm::{DatabaseBackend, MockDatabase};
 
     fn setup_mock_db() -> DatabaseConnection {
         MockDatabase::new(DatabaseBackend::Postgres).into_connection()
