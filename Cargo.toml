@@ -9,6 +9,8 @@ default-run = "forge"
 members = [".", "src/database/migrations/"]
 
 [dependencies]
+amqprs = "2.1.5"
+async-trait = "0.1.92"
 axum = "0.8.9"
 bcrypt = "0.19.3"
 chrono = { version = "0.4.45", features = ["serde"] }
