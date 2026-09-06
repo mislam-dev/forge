@@ -24,8 +24,15 @@ pub async fn trigger_deployment(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<TriggerDeploymentRequest>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let deployment =
-        DeploymentsService::trigger_deployment(&state.db, org_id, id, claims.sub, payload).await?;
+    let deployment = DeploymentsService::trigger_deployment(
+        &state.db,
+        state.queue,
+        org_id,
+        id,
+        claims.sub,
+        payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)

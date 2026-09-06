@@ -6,7 +6,7 @@ use uuid::Uuid;
 use super::connection::RabbitMq;
 use super::error::QueueError;
 use super::traits::{MessagePublisher, RabbitMqMessage};
-
+#[derive(Clone, Debug)]
 pub struct RabbitMqPublisher {
     rabbitmq: RabbitMq,
 }

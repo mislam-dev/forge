@@ -1,1 +1,1 @@
-mod deployments;
+pub mod deployments;

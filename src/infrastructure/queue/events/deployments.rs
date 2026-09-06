@@ -10,19 +10,19 @@ pub struct DeploymentJobCreated {
     pub repository_url: String,
     pub commit_hash: String,
     pub branch: String,
-    pub triggered_id: Uuid,
+    pub triggered_by: Uuid,
 }
 
 impl RabbitMqMessage for DeploymentJobCreated {
-    fn routing_key() -> &'static str {
-        "forge.deployment"
+    fn exchange() -> &'static str {
+        "forge.deployments"
     }
 
-    fn message_type() -> &'static str {
+    fn routing_key() -> &'static str {
         "job.build"
     }
 
-    fn exchange() -> &'static str {
-        "deployments.job.created"
+    fn message_type() -> &'static str {
+        "deployment.job.created"
     }
 }

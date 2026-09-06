@@ -6,6 +6,7 @@ use tower_http::trace::TraceLayer;
 use forge::{
     app::{app::create_app, state::AppState},
     config::AppConfig,
+    infrastructure::queue::{RabbitMq, RabbitMqConfig, RabbitMqTopology},
     shared::logger,
 };
 
@@ -23,6 +24,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tracing::info!("Starting appplication.....");
     let app_state = AppState::new().await?;
+
+    let rmq_config = RabbitMqConfig::from_env();
+
+    match RabbitMq::connect(&rmq_config).await {
+        Ok(rmq) => {
+            if let Err(err) = RabbitMqTopology::setup(&rmq).await {
+                tracing::error!(error = %err, "Failed to declare RabbitMQ topology");
+            } else {
+                tracing::info!("RabbitMQ topology verified successfully");
+            }
+        }
+        Err(e) => {
+            tracing::warn!(error = %e, "Could not connect to RabbitMQ broker on startup");
+        }
+    }
 
     let app = create_app(app_state).await?;
 

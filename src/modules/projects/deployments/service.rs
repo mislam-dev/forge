@@ -10,6 +10,8 @@ use super::dto::{
 use super::repository::DeploymentsRepository;
 use super::status::DeploymentStatus;
 use crate::config::AppConfig;
+use crate::infrastructure::queue::QueuePublisher;
+use crate::infrastructure::queue::events::deployments::DeploymentJobCreated;
 use crate::shared::error::AppError;
 use crate::shared::pagination::PaginatedResponse;
 
@@ -18,6 +20,7 @@ pub struct DeploymentsService;
 impl DeploymentsService {
     pub async fn trigger_deployment(
         db: &DatabaseConnection,
+        queue: QueuePublisher,
         org_id: Option<Uuid>,
         project_id: Uuid,
         triggered_by: Uuid,
@@ -55,8 +58,28 @@ impl DeploymentsService {
         )
         .await?;
 
-        // todo: trigger an event send this event to rabbitmq
-        Ok(DeploymentResponse::from_model(deployment))
+        let deployment_clone = deployment.clone();
+
+        let job_event = DeploymentJobCreated {
+            deployment_id: deployment.id,
+            project_id: deployment.project_id,
+            repository_url: repo.repository_url,
+            commit_hash: deployment.commit_hash,
+            branch: deployment.branch.clone(),
+            triggered_by: deployment.triggered_by,
+        };
+
+        if let Err(err) = queue.publish(&job_event).await {
+            tracing::error!(
+                error = %err,
+                deployment_id = %deployment.id,
+                "Failed to publish deployment job to queue"
+            );
+
+            // todo: update deployment status to failed
+        }
+
+        Ok(DeploymentResponse::from_model(deployment_clone))
     }
 
     pub async fn list_deployments(
@@ -230,6 +253,7 @@ impl DeploymentsService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::infrastructure::queue::MockMessagePublisher;
     use sea_orm::{DatabaseBackend, MockDatabase};
 
     fn setup_mock_db() -> DatabaseConnection {
@@ -239,8 +263,10 @@ mod tests {
     #[tokio::test]
     async fn test_trigger_deployment_project_not_found() {
         let db = setup_mock_db();
+        let queue = QueuePublisher::Mock(MockMessagePublisher::new());
         let result = DeploymentsService::trigger_deployment(
             &db,
+            queue,
             None,
             Uuid::new_v4(),
             Uuid::new_v4(),

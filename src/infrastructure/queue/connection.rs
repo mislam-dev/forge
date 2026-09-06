@@ -1,3 +1,5 @@
+use core::fmt;
+
 use amqprs::channel::Channel;
 use amqprs::connection::{Connection, OpenConnectionArguments};
 
@@ -49,5 +51,13 @@ impl RabbitMq {
 
     pub fn get_publisher_channel(&self) -> &Channel {
         &self.publisher_channel
+    }
+}
+
+impl fmt::Debug for RabbitMq {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RabbitMq")
+            .field("is_alive", &self.is_alive())
+            .finish()
     }
 }

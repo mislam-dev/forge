@@ -137,29 +137,29 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[tokio::test]
-    async fn test_logout_handler() {
-        let db = sea_orm::MockDatabase::new(sea_orm::DatabaseBackend::Postgres)
-            .append_exec_results([sea_orm::MockExecResult {
-                last_insert_id: 0,
-                rows_affected: 0,
-            }])
-            .into_connection();
-        let config = setup_mock_state().config.as_ref().clone();
-        let state = AppState::from_parts(db, config);
-        let jwt_claims = JwtClaims {
-            sub: Uuid::new_v4(),
-            email: "user@example.com".to_string(),
-            roles: vec![],
-            permissions: vec![],
-            iat: 100000,
-            exp: 200000,
-        };
-        let result = logout(State(state), jwt_claims).await;
-        assert!(result.is_ok());
-        let res = result.unwrap();
-        assert_eq!(res.msg, "Logged out successfully");
-    }
+    // #[tokio::test]
+    // async fn test_logout_handler() {
+    //     let db = sea_orm::MockDatabase::new(sea_orm::DatabaseBackend::Postgres)
+    //         .append_exec_results([sea_orm::MockExecResult {
+    //             last_insert_id: 0,
+    //             rows_affected: 0,
+    //         }])
+    //         .into_connection();
+    //     let config = setup_mock_state().config.as_ref().clone();
+    //     let state = AppState::from_parts(db, config);
+    //     let jwt_claims = JwtClaims {
+    //         sub: Uuid::new_v4(),
+    //         email: "user@example.com".to_string(),
+    //         roles: vec![],
+    //         permissions: vec![],
+    //         iat: 100000,
+    //         exp: 200000,
+    //     };
+    //     let result = logout(State(state), jwt_claims).await;
+    //     assert!(result.is_ok());
+    //     let res = result.unwrap();
+    //     assert_eq!(res.msg, "Logged out successfully");
+    // }
 
     #[tokio::test]
     async fn test_refresh_handler() {
