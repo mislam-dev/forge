@@ -12,6 +12,7 @@ use super::status::DeploymentStatus;
 use crate::config::AppConfig;
 use crate::infrastructure::queue::QueuePublisher;
 use crate::infrastructure::queue::events::deployments::DeploymentJobCreated;
+use crate::modules::projects::ProjectRepositoriesService;
 use crate::shared::error::AppError;
 use crate::shared::pagination::PaginatedResponse;
 
@@ -76,7 +77,15 @@ impl DeploymentsService {
                 "Failed to publish deployment job to queue"
             );
 
-            // todo: update deployment status to failed
+            let _ = DeploymentsRepository::update_status(
+                db,
+                deployment.id,
+                DeploymentStatus::Failed,
+                None,
+                None,
+                Some(err.to_string()),
+            )
+            .await;
         }
 
         Ok(DeploymentResponse::from_model(deployment_clone))
@@ -132,6 +141,7 @@ impl DeploymentsService {
 
     pub async fn redeploy(
         db: &DatabaseConnection,
+        queue: QueuePublisher,
         org_id: Option<Uuid>,
         project_id: Uuid,
         triggered_by: Uuid,
@@ -165,13 +175,44 @@ impl DeploymentsService {
             target.commit_hash,
             DeploymentStatus::Queued,
         )
-        // todo: trigger an event send this event to rabbitmq with status redeploy
         .await?;
-        Ok(DeploymentResponse::from_model(deployment))
+        let deployment_clone = deployment.clone();
+        // todo: trigger an event send this event to rabbitmq with status redeploy
+
+        let repo = ProjectRepositoriesService::get_repository(db, org_id, project_id).await?;
+
+        let job_event = DeploymentJobCreated {
+            deployment_id: deployment.id,
+            project_id: deployment.project_id,
+            repository_url: repo.repository_url,
+            commit_hash: deployment.commit_hash,
+            branch: deployment.branch.clone(),
+            triggered_by: deployment.triggered_by,
+        };
+
+        if let Err(err) = queue.publish(&job_event).await {
+            tracing::error!(
+                error = %err,
+                deployment_id = %deployment.id,
+                "Failed to publish deployment job to queue"
+            );
+
+            let _ = DeploymentsRepository::update_status(
+                db,
+                deployment.id,
+                DeploymentStatus::Failed,
+                None,
+                None,
+                Some(err.to_string()),
+            )
+            .await;
+        }
+        Ok(DeploymentResponse::from_model(deployment_clone))
     }
 
     pub async fn rollback(
         db: &DatabaseConnection,
+        queue: QueuePublisher,
         org_id: Option<Uuid>,
         project_id: Uuid,
         triggered_by: Uuid,
@@ -203,7 +244,37 @@ impl DeploymentsService {
             DeploymentStatus::Queued,
         )
         .await?;
-        Ok(DeploymentResponse::from_model(deployment))
+
+        let deployment_clone = deployment.clone();
+
+        let repo = ProjectRepositoriesService::get_repository(db, org_id, project_id).await?;
+
+        let job_event = DeploymentJobCreated {
+            deployment_id: deployment.id,
+            project_id: deployment.project_id,
+            repository_url: repo.repository_url,
+            commit_hash: deployment.commit_hash,
+            branch: deployment.branch.clone(),
+            triggered_by: deployment.triggered_by,
+        };
+        if let Err(err) = queue.publish(&job_event).await {
+            tracing::error!(
+                error = %err,
+                deployment_id = %deployment.id,
+                "Failed to publish deployment job to queue"
+            );
+
+            let _ = DeploymentsRepository::update_status(
+                db,
+                deployment.id,
+                DeploymentStatus::Failed,
+                None,
+                None,
+                Some(err.to_string()),
+            )
+            .await;
+        }
+        Ok(DeploymentResponse::from_model(deployment_clone))
     }
 
     pub async fn update_status_internal(

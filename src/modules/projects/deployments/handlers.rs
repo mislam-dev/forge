@@ -73,8 +73,15 @@ pub async fn redeploy(
     OrgValidationOptional(claims, org_id, _): OptionalOrgEditor,
     Path((id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let deployment =
-        DeploymentsService::redeploy(&state.db, org_id, id, claims.sub, deployment_id).await?;
+    let deployment = DeploymentsService::redeploy(
+        &state.db,
+        state.queue,
+        org_id,
+        id,
+        claims.sub,
+        deployment_id,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -87,7 +94,8 @@ pub async fn rollback(
     OrgValidationOptional(claims, org_id, _): OptionalOrgAdmin,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
-    let deployment = DeploymentsService::rollback(&state.db, org_id, id, claims.sub).await?;
+    let deployment =
+        DeploymentsService::rollback(&state.db, state.queue, org_id, id, claims.sub).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)

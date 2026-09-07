@@ -132,21 +132,31 @@ impl DeploymentsRepository {
 
     pub async fn update_status<C: ConnectionTrait>(
         db: &C,
-        deployment: DeploymentModel,
+        deployment_id: Uuid,
         target_status: DeploymentStatus,
         build_duration: Option<i32>,
         deploy_duration: Option<i32>,
         error_message: Option<String>,
     ) -> Result<DeploymentModel, AppError> {
-        Self::update_deployment(
-            db,
-            deployment,
-            target_status,
-            build_duration,
-            deploy_duration,
-            error_message,
-        )
-        .await
+        let deployment = Self::find_by_id(db, deployment_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+
+        let mut active_model: DeploymentActiveModel = deployment.into();
+        active_model.status = Set(target_status);
+        active_model.updated_at = Set(Utc::now().into());
+
+        if let Some(bd) = build_duration {
+            active_model.build_duration = Set(Some(bd));
+        }
+        if let Some(dd) = deploy_duration {
+            active_model.deploy_duration = Set(Some(dd));
+        }
+        if let Some(err) = error_message {
+            active_model.error_message = Set(Some(err));
+        }
+
+        active_model.update(db).await.map_err(AppError::from)
     }
 }
 
@@ -236,20 +246,6 @@ mod tests {
         let user_id = Uuid::new_v4();
         let now = Utc::now().into();
 
-        let initial_model = DeploymentModel {
-            id,
-            project_id,
-            triggered_by: user_id,
-            branch: "main".to_string(),
-            commit_hash: "abc1234".to_string(),
-            status: DeploymentStatus::Queued,
-            build_duration: None,
-            deploy_duration: None,
-            error_message: None,
-            created_at: now,
-            updated_at: now,
-        };
-
         let updated_model = DeploymentModel {
             id,
             project_id,
@@ -270,7 +266,7 @@ mod tests {
 
         let result = DeploymentsRepository::update_status(
             &db,
-            initial_model,
+            id,
             DeploymentStatus::Building,
             Some(5000),
             None,
