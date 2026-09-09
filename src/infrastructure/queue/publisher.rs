@@ -15,6 +15,10 @@ impl RabbitMqPublisher {
     pub fn new(rabbitmq: RabbitMq) -> Self {
         Self { rabbitmq }
     }
+
+    pub fn get_rabbitmq(&self) -> &RabbitMq {
+        &self.rabbitmq
+    }
 }
 
 impl MessagePublisher for RabbitMqPublisher {

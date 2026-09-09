@@ -261,7 +261,10 @@ mod tests {
         };
 
         let db = MockDatabase::new(DatabaseBackend::Postgres)
-            .append_query_results([vec![mock_deployment_row(&updated_model)]])
+            .append_query_results([
+                vec![mock_deployment_row(&updated_model)],
+                vec![mock_deployment_row(&updated_model)],
+            ])
             .into_connection();
 
         let result = DeploymentsRepository::update_status(

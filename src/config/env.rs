@@ -145,9 +145,13 @@ impl AppConfig {
 mod tests {
     use super::*;
     use std::env;
+    use std::sync::Mutex;
+
+    static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
     #[test]
     fn test_app_config_get_secrets_success() {
+        let _lock = ENV_MUTEX.lock().unwrap();
         unsafe {
             env::set_var("JWT_SECRET", "supersecretjwtkey");
             env::set_var("MASTER_ENCRYPTION_KEY", "0123456789abcdef0123456789abcdef");
@@ -164,6 +168,7 @@ mod tests {
 
     #[test]
     fn test_app_config_missing_required_secret() {
+        let _lock = ENV_MUTEX.lock().unwrap();
         unsafe {
             env::set_var("MASTER_ENCRYPTION_KEY", "0123456789abcdef0123456789abcdef");
             env::remove_var("JWT_SECRET");
@@ -175,6 +180,7 @@ mod tests {
 
     #[test]
     fn test_server_config_defaults() {
+        let _lock = ENV_MUTEX.lock().unwrap();
         unsafe {
             env::remove_var("SERVER_PORT");
             env::remove_var("SERVER_HOST");

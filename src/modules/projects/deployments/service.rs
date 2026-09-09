@@ -138,6 +138,16 @@ impl DeploymentsService {
 
         Ok(DeploymentResponse::from_model(deployment))
     }
+    pub async fn get_deployment_by_id_internal(
+        db: &DatabaseConnection,
+        deployment_id: Uuid,
+    ) -> Result<DeploymentResponse, AppError> {
+        let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+
+        Ok(DeploymentResponse::from_model(deployment))
+    }
 
     pub async fn redeploy(
         db: &DatabaseConnection,
@@ -373,6 +383,13 @@ mod tests {
         let db = setup_mock_db();
         let result =
             DeploymentsService::get_deployment(&db, None, Uuid::new_v4(), Uuid::new_v4()).await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_get_deployment_by_id_internal_not_found() {
+        let db = setup_mock_db();
+        let result = DeploymentsService::get_deployment_by_id_internal(&db, Uuid::new_v4()).await;
         assert!(result.is_err());
     }
 }

@@ -1,8 +1,8 @@
+use super::connection::RabbitMq;
 use super::error::QueueError;
-use super::traits::MessagePublisher;
-
 use super::mock::MockMessagePublisher;
 use super::publisher::RabbitMqPublisher;
+use super::traits::MessagePublisher;
 use super::traits::RabbitMqMessage;
 
 #[derive(Clone, Debug)]
@@ -17,5 +17,24 @@ impl QueuePublisher {
             Self::RabbitMq(q) => q.publish(message).await,
             Self::Mock(q) => q.publish(message).await,
         }
+    }
+
+    pub fn rabbitmq(&self) -> Option<&RabbitMq> {
+        match self {
+            Self::RabbitMq(p) => Some(p.get_rabbitmq()),
+            Self::Mock(_) => None,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_queue_publisher_mock_rabbitmq_accessor() {
+        let mock = MockMessagePublisher::new();
+        let queue = QueuePublisher::Mock(mock);
+        assert!(queue.rabbitmq().is_none());
     }
 }

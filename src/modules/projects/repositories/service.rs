@@ -58,6 +58,15 @@ impl ProjectRepositoriesService {
         Ok(ProjectRepositoryResponse::from_model(repo))
     }
 
+    pub async fn get_repository_by_project_id_internal(
+        db: &DatabaseConnection,
+        project_id: Uuid,
+    ) -> Result<Option<ProjectRepositoryResponse>, AppError> {
+        let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id).await?;
+
+        Ok(repo.map(|r| ProjectRepositoryResponse::from_model(r)))
+    }
+
     pub async fn update_repository(
         db: &DatabaseConnection,
         org_id: Option<Uuid>,

@@ -79,6 +79,16 @@ impl ProjectsService {
 
         Ok(ProjectResponse::from_model(project))
     }
+    pub async fn get_project_by_internal(
+        db: &DatabaseConnection,
+        project_id: Uuid,
+    ) -> Result<ProjectResponse, AppError> {
+        let project = ProjectsRepository::find_by_id(db, project_id)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+
+        Ok(ProjectResponse::from_model(project))
+    }
 
     pub async fn update_project(
         db: &DatabaseConnection,
@@ -183,5 +193,22 @@ impl ProjectsService {
 
         ProjectsRepository::delete_project(db, project_id).await?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sea_orm::{DatabaseBackend, MockDatabase};
+
+    #[tokio::test]
+    async fn test_get_project_by_internal_not_found() {
+        let db = MockDatabase::new(DatabaseBackend::Postgres)
+            .append_query_results([Vec::<crate::modules::projects::projects::entities::projects::Model>::new()])
+            .into_connection();
+
+        let result = ProjectsService::get_project_by_internal(&db, Uuid::new_v4()).await;
+        assert!(result.is_err());
+        assert!(matches!(result, Err(AppError::NotFound(_))));
     }
 }

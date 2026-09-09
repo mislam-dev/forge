@@ -6,7 +6,8 @@ use tower_http::trace::TraceLayer;
 use forge::{
     app::{app::create_app, state::AppState},
     config::AppConfig,
-    infrastructure::queue::{RabbitMq, RabbitMqConfig, RabbitMqTopology},
+    infrastructure::queue::{RabbitMq, RabbitMqConfig, RabbitMqConsumer, RabbitMqTopology},
+    modules::projects::BuildWorkerService,
     shared::logger,
 };
 
@@ -37,6 +38,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Err(e) => {
             tracing::warn!(error = %e, "Could not connect to RabbitMQ broker on startup");
+        }
+    }
+
+    // start build worker service
+    if let Some(rmq) = app_state.queue.rabbitmq() {
+        match rmq.open_channel().await {
+            Ok(worker_channel) => {
+                let handler =
+                    BuildWorkerService::new(app_state.db.clone(), app_state.config.clone());
+
+                match RabbitMqConsumer::start_consumer(
+                    &worker_channel,
+                    "forge.deployments.jobs",
+                    "forge.build_worker",
+                    2,
+                    handler,
+                )
+                .await
+                {
+                    Ok(tag) => {
+                        tracing::info!(consumer_tag = %tag, "Build worker consumer registered on forge.deployments.jobs");
+                    }
+                    Err(err) => {
+                        tracing::error!(error = %err, "Failed to register build worker consumer");
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "Failed to open RabbitMQ channel");
+            }
         }
     }
 

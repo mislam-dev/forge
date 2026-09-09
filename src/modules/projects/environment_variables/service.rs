@@ -121,6 +121,20 @@ impl ProjectEnvironmentVariablesService {
             .map(ProjectEnvVarResponse::from_model)
             .collect())
     }
+    pub async fn list_env_vars_internal(
+        db: &DatabaseConnection,
+        project_id: Uuid,
+        environment: Option<String>,
+    ) -> Result<Vec<ProjectEnvVarResponse>, AppError> {
+        let env_vars =
+            ProjectEnvironmentVariablesRepository::find_by_project_id(db, project_id, environment)
+                .await?;
+
+        Ok(env_vars
+            .into_iter()
+            .map(ProjectEnvVarResponse::from_model)
+            .collect())
+    }
 
     pub async fn update_env_var(
         db: &DatabaseConnection,
@@ -335,6 +349,19 @@ mod tests {
             None,
             Uuid::new_v4(),
             Uuid::new_v4(),
+        )
+        .await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_get_decrypted_env_vars_project_not_found() {
+        let db = setup_mock_db();
+        let result = ProjectEnvironmentVariablesService::get_decrypted_env_vars(
+            &db,
+            None,
+            Uuid::new_v4(),
+            "production",
         )
         .await;
         assert!(result.is_err());
