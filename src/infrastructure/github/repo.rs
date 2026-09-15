@@ -6,6 +6,7 @@ use url::Url;
 
 use super::error::GithubError;
 
+#[derive(Debug)]
 pub struct RepoCloneDto {
     pub url: String,
     pub token: Option<String>,
@@ -34,8 +35,10 @@ impl GithubRepo {
 
         let mut req = client.get(url);
 
-        if let Some(token) = dto.token.clone() {
-            req = req.bearer_auth(token);
+        if let Some(token) = &dto.token {
+            if token.clone() != "".to_string() {
+                req = req.bearer_auth(token);
+            }
         }
 
         let response = req
@@ -46,7 +49,7 @@ impl GithubRepo {
         return match response.status().as_u16() {
             200 => Ok(true),
             404 => Ok(false),
-            403 | 401 => Err(GithubError::AuthFailed("Auth Failed".to_string())),
+            403 | 401 => Err(GithubError::AuthFailed("Authentication Failed".to_string())),
             _ => Err(GithubError::InternalError("Internal Error".to_string())),
         };
     }
@@ -81,6 +84,7 @@ impl GithubRepo {
     }
 
     fn map_error(err: git2::Error) -> GithubError {
+        tracing::error!("Git Error: {err}");
         match err.code() {
             ErrorCode::NotFound => GithubError::NotFoundOrNoAccess,
             ErrorCode::Auth => GithubError::AuthFailed("Authentication Failed".to_string()),
@@ -165,7 +169,10 @@ mod tests {
         };
 
         let result = GithubRepo::clone(dto);
-        assert!(matches!(result, Err(GithubError::DestinationAlreadyExists(_))));
+        assert!(matches!(
+            result,
+            Err(GithubError::DestinationAlreadyExists(_))
+        ));
 
         let _ = std::fs::remove_dir_all(&temp_dir);
     }

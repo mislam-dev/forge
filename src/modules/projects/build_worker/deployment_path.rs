@@ -1,4 +1,4 @@
-use std::{fs, io, path::PathBuf};
+use std::{fmt::Debug, fs, io, path::PathBuf};
 
 pub enum OwnerType {
     Org,
@@ -31,6 +31,7 @@ impl Owner {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct DeploymentPath {
     pub root: PathBuf,
     pub source: PathBuf,
@@ -61,8 +62,8 @@ impl DeploymentPath {
         let root = PathBuf::from(base)
             .join(dto.owner.segment())
             .join(dto.owner.id)
-            .join(dto.project_id)
-            .join(dto.deployment_id);
+            .join(format!("project_{}", dto.project_id))
+            .join(format!("deployment_{}", dto.deployment_id));
 
         Self {
             source: root.join(SOURCE_DIR),

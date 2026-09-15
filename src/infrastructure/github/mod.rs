@@ -2,4 +2,4 @@ mod error;
 mod repo;
 
 pub use error::GithubError;
-pub use repo::GithubRepo;
+pub use repo::{GithubRepo, RepoCheckDto, RepoCloneDto};
