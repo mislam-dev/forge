@@ -27,7 +27,7 @@ ENV PORT={exposed_port}
 USER node
 
 # Copy only production dependencies and built application
-COPY --chown=node:node {lock_file} ./
+COPY --chown=node:node package.json {lock_file} ./
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/dist ./dist
 
