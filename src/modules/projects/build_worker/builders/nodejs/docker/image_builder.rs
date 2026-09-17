@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use tar::Builder;
 use tokio_stream::StreamExt;
 
+#[derive(Debug, Clone)]
 pub struct DockerImageDetails {
     pub id: String,
     pub tag: String,

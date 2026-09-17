@@ -1,6 +1,7 @@
 use super::builder::NodejsDockerBuilder;
 use super::client::NodejsDockerClient;
 use super::image_builder::DockerImageDetails;
+use super::image_runner::ImageRunner;
 use crate::shared::error::AppError;
 use bollard::Docker;
 use std::path::PathBuf;
@@ -35,6 +36,8 @@ impl NodejsDockerWorker {
         );
         let docker_image = builder.build().await?;
 
+        let runner = ImageRunner::new(self.client.clone(), docker_image.clone());
+        let b = runner.start().await?;
         // todo: deploy within a container
         // todo: heath check of the container
 
