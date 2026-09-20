@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use git2::{Cred, ErrorCode, FetchOptions, RemoteCallbacks, build::RepoBuilder};
 use reqwest::Client;
@@ -10,7 +10,7 @@ use super::error::GithubError;
 pub struct RepoCloneDto {
     pub url: String,
     pub token: Option<String>,
-    pub destination: String,
+    pub destination: PathBuf,
     pub branch: String,
 }
 
@@ -56,8 +56,8 @@ impl GithubRepo {
 
     pub fn clone(dto: RepoCloneDto) -> Result<(), GithubError> {
         let destination_path = Path::new(&dto.destination);
-
-        if destination_path.exists() {
+        println!("destination_pathL {:#?}", &destination_path);
+        if dto.destination.exists() {
             return Err(GithubError::DestinationAlreadyExists(
                 "Destination already exist".to_string(),
             ));
@@ -84,7 +84,7 @@ impl GithubRepo {
     }
 
     fn map_error(err: git2::Error) -> GithubError {
-        tracing::error!("Git Error: {err}");
+        tracing::error!("Git Error: {}", err);
         match err.code() {
             ErrorCode::NotFound => GithubError::NotFoundOrNoAccess,
             ErrorCode::Auth => GithubError::AuthFailed("Authentication Failed".to_string()),

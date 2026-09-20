@@ -1,17 +1,20 @@
-use crate::{modules::projects::build_worker::DeploymentPath, shared::error::AppError};
-use std::fs::read_to_string;
-use std::path::Path;
-
 use super::super::super::traits::ProjectBuilder;
-use super::docker::NodejsDockerWorker;
-use super::package_json::PackageJson;
+use super::file_generator::FileGenerator;
+use super::validation::Validation;
+use crate::{
+    modules::projects::build_worker::{DeploymentPath, docker_client::DockerClient},
+    shared::error::AppError,
+};
 use async_trait::async_trait;
+
+use super::builder::Builder;
 
 #[derive(Debug, Clone)]
 pub struct NodeJsBuilder {
     project_path: DeploymentPath,
     env_vars: Vec<(String, String)>,
     project_id: String,
+    docker_client: DockerClient,
 }
 
 impl NodeJsBuilder {
@@ -19,77 +22,72 @@ impl NodeJsBuilder {
         project_path: DeploymentPath,
         project_id: String,
         env_vars: Vec<(String, String)>,
-    ) -> Self
+    ) -> Result<Self, AppError>
     where
         Self: Sized,
     {
-        Self {
+        let client = DockerClient::new().map_err(|e| {
+            AppError::InternalServerError(format!(
+                "failed initialize docker client: {}",
+                e.to_string()
+            ))
+        })?;
+
+        Ok(Self {
             project_path,
             project_id,
             env_vars,
-        }
+            docker_client: client,
+        })
     }
 }
 
-const FILES: [&str; 1] = ["package.json"];
-
 #[async_trait]
 impl ProjectBuilder for NodeJsBuilder {
-    fn validate(&self) -> Result<(), AppError> {
-        let path = Path::new(&self.project_path.source);
-        if !path.exists() {
-            return Err(AppError::NotFound("Project source not found".to_string()));
-        }
-
-        for file in FILES {
-            if !path.join(file).exists() {
-                return Err(AppError::NotFound(
-                    format!("{} not found", file).to_string(),
-                ));
-            }
-        }
-
-        let package_file = read_to_string(path.join("package.json")).map_err(|e| {
-            AppError::NotFound(format!("Failed to read package.json: {}", e.to_string()))
-        })?;
-
-        let errors = PackageJson::new(package_file)?.validate()?;
-
-        if !errors.is_empty() {
-            return Err(AppError::BadRequest(format!(
-                "Invalid package.json file:\n{}",
-                errors.join("\n")
-            )));
-        }
+    async fn download_pkgs(&self) -> Result<(), AppError> {
+        Ok(())
+    }
+    async fn create_files(&self) -> Result<(), AppError> {
+        let file_gen = FileGenerator::new(self.project_path.source.clone());
+        file_gen.create_dockerfile().await?;
+        file_gen.create_dockerignore().await?;
 
         Ok(())
     }
 
-    async fn build(&self) -> Result<(), AppError> {
-        let source_path = Path::new(&self.project_path.source);
-        let _build_path = Path::new(&self.project_path.build);
-
-        let result = NodejsDockerWorker::new(source_path.to_path_buf(), self.project_id.clone())
-            .execute()
-            .await?;
-
-        Ok(())
+    async fn validate(&self) -> Result<(), AppError> {
+        Ok(Validation::validate(
+            &self.project_path.source.to_string_lossy().to_string(),
+        )?)
     }
 
-    fn deploy(&self) -> Result<(), AppError> {
+    async fn build(&self) -> Result<String, AppError> {
+        let builder = Builder::new(self.docker_client.clone(), self.project_path.source.clone());
+        let image_id = builder.build("image_name").await?;
+
+        Ok(image_id)
+    }
+
+    async fn deploy(&self, image_id: String) -> Result<String, AppError> {
+        // todo: deploy the builded image with proper port mapping
+        // todo: update deployment record
+
+        Ok("".to_string())
+    }
+    async fn run(&self, container_id: String) -> Result<(), AppError> {
         // todo: deploy the builded image with proper port mapping
         // todo: update deployment record
 
         Ok(())
     }
 
-    fn cleanup(&self) -> Result<(), AppError> {
+    async fn cleanup(&self) -> Result<(), AppError> {
         // todo: remove builded image
         // todo: remove docker container
         Ok(())
     }
 
-    fn health_check(&self) -> Result<(), AppError> {
+    async fn health_check(&self) -> Result<(), AppError> {
         Ok(())
     }
 }

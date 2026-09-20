@@ -1,5 +1,7 @@
 mod builders;
+mod cloning;
 mod deployment_path;
+mod docker_client;
 pub mod pipeline;
 pub mod service;
 mod traits;

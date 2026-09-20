@@ -1,6 +1,7 @@
-mod docker;
+mod builder;
+mod file_generator;
 mod nodejs;
-mod package_json;
 mod pkg_manager;
+mod validation;
 
 pub use nodejs::NodeJsBuilder;

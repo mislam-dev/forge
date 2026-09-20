@@ -1,14 +1,13 @@
 use super::super::pkg_manager::PkgManger;
 use crate::shared::error::AppError;
+use std::fs;
 use std::path::PathBuf;
 
-use std::fs;
-
-pub struct NodejsDockerFileGeneration {
+pub struct FileGenerator {
     project_path: PathBuf,
 }
 
-impl NodejsDockerFileGeneration {
+impl FileGenerator {
     pub fn new(project_path: PathBuf) -> Self {
         Self { project_path }
     }
@@ -22,23 +21,23 @@ impl NodejsDockerFileGeneration {
         let mut replaceable: Vec<(String, String)> = vec![
             (
                 String::from("{pkg_installer}"),
-                String::from(pkg_manager.install_command()),
+                String::from(pkg_manager.install()),
             ),
             (
                 String::from("{pkg_postinstaller}"),
-                String::from(pkg_manager.postinstall_command()),
+                String::from(pkg_manager.postinstall()),
             ),
             (
                 String::from("{pkg_builder}"),
-                String::from(pkg_manager.build_command()),
+                String::from(pkg_manager.build()),
             ),
             (
                 String::from("{pkg_prune}"),
-                String::from(pkg_manager.prune_command()),
+                String::from(pkg_manager.prune()),
             ),
             (
                 String::from("{lock_file}"),
-                String::from(pkg_manager.get_lock_file_name()),
+                String::from(pkg_manager.lock_file()),
             ),
             (
                 String::from("{exposed_port}"),
@@ -49,7 +48,7 @@ impl NodejsDockerFileGeneration {
                 String::from(format!(
                     "{:?}",
                     pkg_manager
-                        .start_command()
+                        .start()
                         .split_whitespace()
                         .map(|s| s.to_string())
                         .collect::<Vec<String>>()
@@ -73,6 +72,7 @@ impl NodejsDockerFileGeneration {
         })?;
         Ok(())
     }
+
     pub async fn create_dockerignore(&self) -> Result<(), AppError> {
         const DOCKERIGNORE_TEMPLATE: &str = include_str!("./assets/.dockerignore");
 
