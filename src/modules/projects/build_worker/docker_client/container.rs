@@ -36,10 +36,10 @@ impl DockerContainer {
     pub async fn start(
         &self,
         container_id: &str,
-        options: StartContainerOptions,
+        options: Option<StartContainerOptions>,
     ) -> Result<(), DockerClientError> {
         self.client
-            .start_container(container_id, Some(options))
+            .start_container(container_id, options)
             .await
             .map_err(|e| {
                 DockerClientError::ContainerError(format!(

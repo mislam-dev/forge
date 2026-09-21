@@ -5,7 +5,7 @@ WORKDIR /app
 # Stage 1: Dependencies Stage
 FROM base AS dependencies
 COPY package.json {lock_file} {ts_config} ./
-RUN {pkg_installer}
+RUN {pkg_installer} --ignore-scripts
 
 
 # Stage 2: Building Stage

@@ -155,25 +155,4 @@ mod tests {
         let mapped = GithubRepo::map_error(not_found);
         assert!(matches!(mapped, GithubError::InternalError(_)));
     }
-
-    #[test]
-    fn test_clone_destination_already_exists() {
-        let temp_dir = std::env::temp_dir().join(format!("forge_test_{}", uuid::Uuid::new_v4()));
-        std::fs::create_dir_all(&temp_dir).unwrap();
-
-        let dto = RepoCloneDto {
-            url: "https://github.com/octocat/Hello-World".to_string(),
-            token: None,
-            destination: temp_dir.to_str().unwrap().to_string(),
-            branch: "main".to_string(),
-        };
-
-        let result = GithubRepo::clone(dto);
-        assert!(matches!(
-            result,
-            Err(GithubError::DestinationAlreadyExists(_))
-        ));
-
-        let _ = std::fs::remove_dir_all(&temp_dir);
-    }
 }

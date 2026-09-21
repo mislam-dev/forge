@@ -34,7 +34,6 @@ pub struct BuildPipeline {
     branch: String,
     durations: DeploymentDurations,
     project_type: Option<ProjectType>,
-    builder: Option<Box<dyn traits::ProjectBuilder + Send + Sync>>,
 }
 
 impl BuildPipeline {
@@ -62,7 +61,6 @@ impl BuildPipeline {
             branch: "main".to_string(), // todo: must be dynamic
             durations: DeploymentDurations::new(),
             project_type: None,
-            builder: None,
         }
     }
 
@@ -130,10 +128,24 @@ impl BuildPipeline {
         let project_path = self.construct_path();
         if let Some(project_type) = &self.project_type {
             let builder = match project_type {
-                ProjectType::NodeJs => {
-                    NodeJsBuilder::new(project_path, self.project_id.to_string(), vec![])?
-                }
-                _ => NodeJsBuilder::new(project_path, self.project_id.to_string(), vec![])?,
+                ProjectType::NodeJs => NodeJsBuilder::new(
+                    project_path,
+                    self.project_id.to_string(),
+                    vec![],
+                    self.org_or_user_id.to_string(),
+                    self.deployment_id.to_string(),
+                    "testing_app".to_string(),
+                    "production".to_string(),
+                )?,
+                _ => NodeJsBuilder::new(
+                    project_path,
+                    self.project_id.to_string(),
+                    vec![],
+                    self.org_or_user_id.to_string(),
+                    self.deployment_id.to_string(),
+                    "testing_app".to_string(),
+                    "production".to_string(),
+                )?,
             };
             return Ok(Some(builder));
         }
@@ -168,12 +180,14 @@ impl BuildPipeline {
         builder.create_files().await?;
 
         // Step 4: Build Docker Image
-        let image_id = builder.build().await?;
+        let image_id = builder.build("1.0.0".to_string()).await?;
 
         let _ = &self.durations.set_build_duration();
 
         // Step 5: Deploy Container (Building -> Deploying)
-        let container_id = builder.deploy(image_id).await?;
+        let container_id = builder
+            .deploy(image_id, "production".to_string(), 1)
+            .await?;
 
         // Step 6: Run container Deploying -> Running)
         builder.run(container_id).await?;
