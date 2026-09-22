@@ -195,6 +195,9 @@ impl BuildPipeline {
         // Step 8: Cleanup
         builder.cleanup().await?;
 
+        self.update_status_internal(DeploymentStatus::Success)
+            .await?;
+
         Ok(())
     }
 
