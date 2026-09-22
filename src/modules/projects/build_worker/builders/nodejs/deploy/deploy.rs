@@ -35,8 +35,40 @@ impl Deploy {
     }
 
     pub async fn deploy(&self, dto: DeployDTO) -> Result<DeployResponse, AppError> {
-        // todo: check if container name is not used
-        // todo: if container name is used, need take decisions, didn't taken any
+        if let Some(container_summary) = self
+            .docker_client
+            .container
+            .exist(&dto.container_name)
+            .await
+            .map_err(|e| {
+                AppError::InternalServerError(format!("failed to get container: {}", e.to_string()))
+            })?
+        {
+            if let Some(container_id) = &container_summary.id {
+                self.docker_client
+                    .container
+                    .stop(&container_id)
+                    .await
+                    .map_err(|e| {
+                        AppError::InternalServerError(format!(
+                            "failed to stop existing '{}' container: {}",
+                            container_id,
+                            e.to_string()
+                        ))
+                    })?;
+                self.docker_client
+                    .container
+                    .remove(&container_id)
+                    .await
+                    .map_err(|e| {
+                        AppError::InternalServerError(format!(
+                            "failed to remove existing '{}' container: {}",
+                            container_id,
+                            e.to_string()
+                        ))
+                    })?;
+            }
+        }
 
         let options = CreateContainerOptions {
             name: Some(dto.container_name),

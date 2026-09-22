@@ -1,9 +1,11 @@
 use crate::modules::projects::build_worker::docker_client::errors::DockerClientError;
 use bollard::Docker;
-use bollard::plugin::ContainerCreateBody;
+use bollard::errors::Error::DockerResponseServerError;
+use bollard::plugin::{ContainerCreateBody, ContainerInspectResponse};
 use bollard::query_parameters::{
     CreateContainerOptions, RemoveContainerOptions, StartContainerOptions, StopContainerOptions,
 };
+
 #[derive(Clone)]
 pub struct DockerContainer {
     client: Docker,
@@ -83,5 +85,21 @@ impl DockerContainer {
                 ))
             })?;
         Ok(())
+    }
+
+    pub async fn exist(
+        &self,
+        name: &str,
+    ) -> Result<Option<ContainerInspectResponse>, DockerClientError> {
+        match self.client.inspect_container(name, None).await {
+            Ok(a) => Ok(Some(a)),
+            Err(DockerResponseServerError {
+                status_code: 404, ..
+            }) => Ok(None),
+            Err(e) => Err(DockerClientError::ContainerError(format!(
+                "failed to inspect container: {}",
+                e.to_string()
+            ))),
+        }
     }
 }

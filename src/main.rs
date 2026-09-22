@@ -26,9 +26,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!("Starting appplication.....");
     let app_state = AppState::new().await?;
 
-    tracing::info!("start processing build worker jobs dummy");
-    let _a = BuildWorkerService::process_job_dummy(&app_state.db, &app_config).await?;
-    tracing::info!("end processing build worker jobs dummy");
+    // tracing::info!("start processing build worker jobs dummy");
+    // let _a = BuildWorkerService::process_job_dummy(&app_state.db, &app_config).await?;
+    // tracing::info!("end processing build worker jobs dummy");
 
     let rmq_config = RabbitMqConfig::from_env();
 

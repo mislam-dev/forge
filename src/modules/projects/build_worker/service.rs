@@ -1,11 +1,3 @@
-use std::collections::HashMap;
-use std::str::FromStr;
-use std::sync::Arc;
-
-use async_trait::async_trait;
-use sea_orm::DatabaseConnection;
-use uuid::Uuid;
-
 use super::pipeline::BuildPipeline;
 use crate::config::AppConfig;
 use crate::infrastructure::queue::events::deployments::DeploymentJobCreated;
@@ -20,6 +12,12 @@ use crate::modules::projects::{
     DeploymentsService, ProjectEnvironmentVariablesService, ProjectsService,
 };
 use crate::shared::error::AppError;
+use async_trait::async_trait;
+use sea_orm::DatabaseConnection;
+use std::collections::HashMap;
+use std::str::FromStr;
+use std::sync::Arc;
+use uuid::Uuid;
 
 pub struct BuildWorkerService {
     db: Arc<DatabaseConnection>,
@@ -104,7 +102,7 @@ impl BuildWorkerService {
             config,
             Uuid::from_str("f573cd3d-d784-47ef-9764-b707349aeb32").unwrap(),
             Uuid::from_str("1fc0075a-d398-44bc-8f3a-b0d062b2c545").unwrap(),
-            Uuid::from_str("308274c2-29c0-4e25-8d91-73c2388a1366").unwrap(),
+            Uuid::from_str("308274c2-29c0-4e25-8d91-73c2388a1363").unwrap(),
             OwnerType::User,
             None,
             &env_vars,

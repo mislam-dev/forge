@@ -22,7 +22,6 @@ pub struct NodeJsBuilder {
     org_or_user_id: String,
     deployment_id: String,
     app_name: String,
-    environment: String,
 }
 
 impl NodeJsBuilder {
@@ -33,7 +32,6 @@ impl NodeJsBuilder {
         org_or_user_id: String,
         deployment_id: String,
         app_name: String,
-        environment: String,
     ) -> Result<Self, AppError>
     where
         Self: Sized,
@@ -53,7 +51,6 @@ impl NodeJsBuilder {
             org_or_user_id,
             deployment_id,
             app_name,
-            environment,
         })
     }
 }

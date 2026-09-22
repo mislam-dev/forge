@@ -16,7 +16,7 @@ pub fn init_tracing(rust_log: &str) -> WorkerGuard {
 
     tracing_subscriber::registry()
         .with(filter)
-        .with(fmt::layer().with_target(true).pretty())
+        .with(fmt::layer().with_target(false).compact())
         .with(
             fmt::layer()
                 .json()
