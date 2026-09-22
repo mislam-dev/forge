@@ -61,6 +61,11 @@ impl FileGenerator {
                 String::from("{ts_config}"),
                 String::from("tsconfig.json".to_string()),
             ));
+        } else {
+            replaceable.push((
+                String::from("{ts_config}"),
+                String::new(),
+            ));
         }
 
         for (key, value) in replaceable {

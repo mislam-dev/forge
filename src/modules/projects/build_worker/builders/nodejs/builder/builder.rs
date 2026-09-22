@@ -48,13 +48,6 @@ impl Builder {
         let mut archive = TarBuilder::new(Vec::new());
         let ignore = vec!["target", ".git", "logs", "node_modules", "dist"];
 
-        let tsconfig_path = &self.source_path.join("tsconfig.json");
-        if !tsconfig_path.exists() {
-            return Err(AppError::InternalServerError(
-                "tsconfig.json not found in build context".to_string(),
-            ));
-        }
-
         for entry in std::fs::read_dir(&self.source_path).map_err(|e| {
             AppError::InternalServerError(format!("Failed to read artifact tar: {}", e))
         })? {

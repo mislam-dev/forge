@@ -1,6 +1,8 @@
 use super::super::deployments::dto::UpdateDeploymentStatusRequest;
 use super::super::deployments::status::DeploymentStatus;
-use super::builders::NodeJsBuilder;
+use super::builders::{
+    DockerBuilder, GoBuilder, NodeJsBuilder, PythonBuilder, RustBuilder, StaticFilesBuilder,
+};
 use super::cloning::RepoCloning;
 use super::deployment_durations::DeploymentDurations;
 use super::deployment_path::{DeploymentPath, DeploymentPathDTO, Owner, OwnerType};
@@ -110,21 +112,53 @@ impl BuildPipeline {
         let project_path = self.construct_path();
 
         let builder: Box<dyn ProjectBuilder> = match project_type {
+            ProjectType::DockerContainer => Box::new(DockerBuilder::new(
+                project_path,
+                self.project_id.to_string(),
+                self.env_vars.clone(),
+                self.org_or_user_id.to_string(),
+                self.deployment_id.to_string(),
+                "app".to_string(),
+            )?),
             ProjectType::NodeJs => Box::new(NodeJsBuilder::new(
                 project_path,
                 self.project_id.to_string(),
                 self.env_vars.clone(),
                 self.org_or_user_id.to_string(),
                 self.deployment_id.to_string(),
-                "testing_app".to_string(),
+                "app".to_string(),
             )?),
-            _ => Box::new(NodeJsBuilder::new(
+            ProjectType::Go => Box::new(GoBuilder::new(
                 project_path,
                 self.project_id.to_string(),
                 self.env_vars.clone(),
                 self.org_or_user_id.to_string(),
                 self.deployment_id.to_string(),
-                "testing_app".to_string(),
+                "app".to_string(),
+            )?),
+            ProjectType::Rust => Box::new(RustBuilder::new(
+                project_path,
+                self.project_id.to_string(),
+                self.env_vars.clone(),
+                self.org_or_user_id.to_string(),
+                self.deployment_id.to_string(),
+                "app".to_string(),
+            )?),
+            ProjectType::Python => Box::new(PythonBuilder::new(
+                project_path,
+                self.project_id.to_string(),
+                self.env_vars.clone(),
+                self.org_or_user_id.to_string(),
+                self.deployment_id.to_string(),
+                "app".to_string(),
+            )?),
+            ProjectType::StaticFiles => Box::new(StaticFilesBuilder::new(
+                project_path,
+                self.project_id.to_string(),
+                self.env_vars.clone(),
+                self.org_or_user_id.to_string(),
+                self.deployment_id.to_string(),
+                "app".to_string(),
             )?),
         };
         return Ok(Some(builder));
