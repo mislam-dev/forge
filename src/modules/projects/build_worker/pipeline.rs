@@ -34,7 +34,6 @@ pub struct BuildPipeline {
     repo_url: String,
     branch: String,
     durations: DeploymentDurations,
-    project_type: Option<ProjectType>,
 }
 
 impl BuildPipeline {
@@ -46,9 +45,13 @@ impl BuildPipeline {
         org_or_user_id: Uuid,
         owner_type: OwnerType,
         pat_token: Option<&str>,
-        _env_vars: &[(&str, &str)], // todo: update this later
+        env_vars: &[(&str, &str)], // todo: update this later
         repo_url: String,
     ) -> Self {
+        let transformed_envs: Vec<(String, String)> = env_vars
+            .iter()
+            .map(|(key, value)| return (key.to_string(), value.to_string()))
+            .collect();
         Self {
             db: db.clone(),
             config: config.clone(),
@@ -57,11 +60,10 @@ impl BuildPipeline {
             org_or_user_id,
             owner_type,
             pat_token: pat_token.map(|s| s.to_string()),
-            env_vars: vec![],
+            env_vars: transformed_envs,
             repo_url,                   // todo: must be dynamic
             branch: "main".to_string(), // todo: must be dynamic
             durations: DeploymentDurations::new(),
-            project_type: None,
         }
     }
 
@@ -79,70 +81,53 @@ impl BuildPipeline {
         deployment_path
     }
 
-    fn infer_project_type(&mut self) -> Result<(), AppError> {
+    fn infer_project_type(&mut self) -> Result<ProjectType, AppError> {
         let path = self.construct_path();
         if !path.source.exists() {
             return Err(AppError::InternalServerError(
                 "Project directory does not exist.".to_string(),
             ));
         }
+        let mut project_type = ProjectType::StaticFiles;
 
         if path.source.join("Dockerfile").exists() {
-            self.project_type = Some(ProjectType::DockerContainer);
-            return Ok(());
+            project_type = ProjectType::DockerContainer;
+        } else if path.source.join("package.json").exists() {
+            project_type = ProjectType::NodeJs;
+        } else if path.source.join("Cargo.toml").exists() {
+            project_type = ProjectType::Rust;
+        } else if path.source.join("requirements.txt").exists() {
+            project_type = ProjectType::Python;
+        } else if path.source.join("go.mod").exists() {
+            project_type = ProjectType::Go;
         }
 
-        if path.source.join("package.json").exists() {
-            self.project_type = Some(ProjectType::NodeJs);
-            return Ok(());
-        }
-
-        if path.source.join("Cargo.toml").exists() {
-            self.project_type = Some(ProjectType::Rust);
-            return Ok(());
-        }
-
-        if path.source.join("requirements.txt").exists() {
-            self.project_type = Some(ProjectType::Python);
-            return Ok(());
-        }
-
-        if path.source.join("go.mod").exists() {
-            self.project_type = Some(ProjectType::Go);
-            return Ok(());
-        }
-
-        self.project_type = Some(ProjectType::StaticFiles);
-
-        Ok(())
+        Ok(project_type)
     }
 
-    fn get_builder(&mut self) -> Result<Option<NodeJsBuilder>, AppError> {
-        self.infer_project_type()?;
+    fn get_builder(&mut self) -> Result<Option<Box<dyn ProjectBuilder>>, AppError> {
+        let project_type = self.infer_project_type()?;
         let project_path = self.construct_path();
-        if let Some(project_type) = &self.project_type {
-            let builder = match project_type {
-                ProjectType::NodeJs => NodeJsBuilder::new(
-                    project_path,
-                    self.project_id.to_string(),
-                    self.env_vars.clone(),
-                    self.org_or_user_id.to_string(),
-                    self.deployment_id.to_string(),
-                    "testing_app".to_string(),
-                )?,
-                _ => NodeJsBuilder::new(
-                    project_path,
-                    self.project_id.to_string(),
-                    self.env_vars.clone(),
-                    self.org_or_user_id.to_string(),
-                    self.deployment_id.to_string(),
-                    "testing_app".to_string(),
-                )?,
-            };
-            return Ok(Some(builder));
-        }
 
-        Ok(None)
+        let builder: Box<dyn ProjectBuilder> = match project_type {
+            ProjectType::NodeJs => Box::new(NodeJsBuilder::new(
+                project_path,
+                self.project_id.to_string(),
+                self.env_vars.clone(),
+                self.org_or_user_id.to_string(),
+                self.deployment_id.to_string(),
+                "testing_app".to_string(),
+            )?),
+            _ => Box::new(NodeJsBuilder::new(
+                project_path,
+                self.project_id.to_string(),
+                self.env_vars.clone(),
+                self.org_or_user_id.to_string(),
+                self.deployment_id.to_string(),
+                "testing_app".to_string(),
+            )?),
+        };
+        return Ok(Some(builder));
     }
 
     pub async fn execute_pipeline(&mut self) -> Result<(), AppError> {
@@ -214,7 +199,7 @@ impl BuildPipeline {
     }
 
     fn log_info(&self, step: &str, log_line: &str) {
-        let log_v = format!("[{}]: {}", step, log_line);
+        let _log_v = format!("[{}]: {}", step, log_line);
         // todo: stream to log info to fe with SSE.
         tracing::info!("[{}]: {}", step, log_line);
     }
