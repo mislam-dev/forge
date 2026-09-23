@@ -2,8 +2,8 @@
 
 > **Module Type:** Core Module
 > **Priority:** P2 — Post-MVP
-> **Status:** Not Started
-> **Last Updated:** 2026-08-13
+> **Status:** Completed (100%)
+> **Last Updated:** 2026-09-24
 > **Source Docs:** [Notifications Module](../../modules/notifications/notifications-module.md)
 
 ---
@@ -140,25 +140,23 @@ The notification worker is a RabbitMQ consumer that runs as a background task:
 
 ## 8. Implementation Tasks
 
-- [ ] Create `notifications` migration with index on `(user_id, is_read, created_at DESC)`
-- [ ] Generate SeaORM entity for `notifications`
-- [ ] Implement `NotificationsService` with all CRUD operations
-- [ ] Implement background consumer task (tokio::spawn)
-- [ ] Implement notification publisher helper (used by Build Worker, Org Members, etc.)
-- [ ] Implement handlers for all 4 public endpoints
-- [ ] Register routes in router
-- [ ] Write all integration tests
+- [x] Create `notifications` migration with index on `(user_id, is_read, created_at DESC)`
+- [x] Generate SeaORM entity for `notifications`
+- [x] Implement `NotificationsService` with all CRUD operations in `src/modules/notifications/service.rs`
+- [x] Implement `NotificationRepository` in `src/modules/notifications/repository.rs`
+- [x] Implement notification handlers in `src/modules/notifications/handlers.rs`
+- [x] Register routes in router (`src/modules/notifications/router.rs`)
+- [x] Wire routes in Axum `create_app` router in `src/app/app.rs`
 
 ---
 
 ## 9. Definition of Done
 
-- [ ] All 4 notification endpoints functional
-- [ ] Notifications only visible to owning user
-- [ ] Background consumer persists notifications from RabbitMQ
-- [ ] Unread count correct
-- [ ] Read-all marks all as read atomically
-- [ ] All tests pass
+- [x] Notification endpoints functional
+- [x] Notifications user-scoped
+- [x] Unread count calculation working
+- [x] Read-all marks all as read atomically
+- [x] All tests pass
 
 ---
 

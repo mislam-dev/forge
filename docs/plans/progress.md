@@ -1,9 +1,9 @@
 # Forge Platform — Development Progress Tracker
 
 > **Document:** Development Progress Tracker
-> **Version:** 1.2
-> **Status:** Active — In Progress
-> **Last Updated:** 2026-08-19
+> **Version:** 1.3
+> **Status:** Active — Completed
+> **Last Updated:** 2026-09-24
 
 ---
 
@@ -15,7 +15,7 @@
 | Overall Progress | 100%                                                |
 | Current Phase    | Phase 4 — Notifications & Observability (Completed) |
 | Current Module   | All Modules (01-20) Completed                       |
-| Last Updated     | 2026-08-19                                          |
+| Last Updated     | 2026-09-24                                          |
 
 ---
 
@@ -133,7 +133,7 @@ Active ADRs governing implementation:
 
 | Area              | Status      | Notes                                                                                                                                  |
 | ----------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit Tests        | Completed   | 221 unit tests passing across all core module files                                                                                    |
+| Unit Tests        | Completed   | 260 unit tests passing across all core module files                                                                                    |
 | Integration Tests | Completed   | 74 integration tests passing (Auth: 19, RBAC: 6, Profile: 6, Foundation: 5, Organizations: 9, Teams: 10, Projects: 10, Deployments: 9) |
 | API Tests         | Completed   | Full API test suite passing across all routes                                                                                          |
 | E2E Tests         | Not Started |                                                                                                                                        |
@@ -150,10 +150,10 @@ Active ADRs governing implementation:
 | Configuration (.env / config) | Completed                                                                                       |
 | Database migrations           | Completed (25 migrations written and verified; connection pool ready)                           |
 | Encryption Infrastructure     | Completed (AES-256, secret masking `"••••••••"`, secret scrubbing layer)                        |
-| Testing Infrastructure        | Completed (295 passing tests)                                                                   |
+| Testing Infrastructure        | Completed (334 passing tests)                                                                   |
 | Build Worker Engine           | Completed (5-step build execution pipeline implemented in `src/modules/projects/build_worker/`) |
 | Redis connectivity            | Not Started                                                                                     |
-| RabbitMQ connectivity         | Not Started                                                                                     |
+| RabbitMQ connectivity         | Audit Completed & Planned                                                                       |
 | Loki log pipeline             | Not Started                                                                                     |
 | Docker Compose setup          | Completed                                                                                       |
 | CI/CD pipeline                | Not Started                                                                                     |
@@ -165,6 +165,7 @@ Active ADRs governing implementation:
 
 | Date       | Change                                                                                                                                                                                               | Author                    |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 2026-09-24 | Added route aliases (`/api/v1/*`, `/api/*`, `/*`) in `app.rs`, verified 334 passing unit & integration tests, updated RabbitMQ audit status, and updated documentation in `docs/plans/`               | Backend Architecture Team |
 | 2026-08-23 | Updated Permissions sub-module with paginated listing, standardized `ApiResponse` envelope, conflict error handling, route pluralization (`/permissions`), and updated tests & OpenAPI documentation | Backend Architecture Team |
 | 2026-08-19 | Completed Modules 14, 15, 16, and 17 (Deployments, Build Worker, Live Build Logs, Deployment History) with full unit & integration tests (295 passing tests)                                         | Backend Architecture Team |
 | 2026-08-19 | Completed Modules 09, 10, 11, 12, and 13 (Projects, Repository, Environment Variables, Assignments, Permissions) with full unit & integration tests (269 passing tests)                              | Backend Architecture Team |

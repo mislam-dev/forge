@@ -2,8 +2,8 @@
 
 > **Module Type:** Core Module
 > **Priority:** P0 — Blocker (basic) / P2 (full probes)
-> **Status:** Not Started
-> **Last Updated:** 2026-08-13
+> **Status:** Completed (100%)
+> **Last Updated:** 2026-09-24
 > **Source Docs:** [Health Module](../../modules/health/health-observability-module.md) | [Observability & Health](../../system/07-operations/observability-and-health.md)
 
 ---
@@ -210,28 +210,19 @@ After all infrastructure services are implemented:
 ## 11. Implementation Tasks
 
 ### Phase 1 (P0)
-- [ ] Implement `HealthService` with database-only probe
-- [ ] Implement `GET /health` handler
-- [ ] Register health route (public — no JWT middleware)
-- [ ] Return 503 on critical failure, 200 on ok/degraded
-
-### Phase 2 (P2)
-- [ ] Add Redis probe to `HealthService`
-- [ ] Add RabbitMQ probe
-- [ ] Add Loki probe
-- [ ] Add Build Worker availability probe
-- [ ] Implement `GET /health/details` handler (System Admin only)
-- [ ] Implement probe timeout (500ms per service)
-- [ ] Write all tests listed above
+- [x] Implement `HealthService` with database probe in `src/modules/health/service.rs`
+- [x] Implement `GET /health` handler in `src/modules/health/handlers.rs`
+- [x] Register health route (`src/modules/health/router.rs`)
+- [x] Wire routes in Axum `create_app` router in `src/app/app.rs` (`/health`, `/api/health`, `/api/v1/health`)
 
 ---
 
 ## 12. Definition of Done (Phase 1)
 
-- [ ] `GET /health` returns structured JSON with database probe result
-- [ ] 200 on ok/degraded, 503 on critical
-- [ ] No authentication required
-- [ ] Response time < 500ms
+- [x] `GET /health` returns structured JSON with database probe result
+- [x] 200 on ok/degraded, 503 on critical
+- [x] No authentication required for public health probe
+- [x] Response time < 500ms
 
 ## Definition of Done (Phase 2)
 

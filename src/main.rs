@@ -21,9 +21,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "info"
     };
 
-    let _guard = logger::init_tracing(log_filter);
+    let _guard = logger::init_tracing(log_filter); 
 
-    tracing::info!("Starting appplication.....");
+
+    tracing::info!("Starting application.....");
     let app_state = AppState::new().await?;
 
     // tracing::info!("start processing build worker jobs dummy");

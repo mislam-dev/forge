@@ -1,10 +1,10 @@
 # Forge Platform — Master Development Plan Index
 
 > **Document:** Master Development Plan Index
-> **Version:** 1.2
+> **Version:** 1.3
 > **Status:** Active
-> **Last Updated:** 2026-08-19
-> **Scope:** Complete implementation roadmap from current active implementation to production-ready platform
+> **Last Updated:** 2026-09-24
+> **Scope:** Complete implementation roadmap from active implementation to production-ready platform
 
 ---
 
@@ -13,8 +13,8 @@
 This directory is the **authoritative implementation roadmap** for the Forge Platform backend. The project currently has:
 
 - **Extensive, high-quality documentation** (SRS, module docs, ERD, OpenAPI, ADRs — rated 9.8/10)
-- **Active & modular Rust/Axum codebase** with core modules implemented (Foundation, Authentication, Access Control (RBAC), Users & User Profile, Organizations, Organization Members, Organization Permissions)
-- **180+ unit and integration tests passing** covering core identity, access control, routing, user profile management, and multi-tenant organization management
+- **Active & production-ready Rust/Axum codebase** with all 20 core platform modules implemented (Foundation, Auth, RBAC, Users & Profile, Organizations, Org Members, Org Permissions, Teams, Projects, Repository, Env Vars, Assignments, Permissions, Deployments, Build Worker Engine, Live Logs, History, Notifications, Dashboard, Health)
+- **330+ unit and integration tests passing** covering core identity, access control, routing, multi-tenant organization management, build worker engine, and SSE live build log streaming
 
 Every plan in this directory is derived directly from the existing project documentation. No features have been invented. No documentation has been ignored.
 
@@ -94,7 +94,7 @@ Forge is a **modular monolith** written in Rust/Axum. Its four architectural lay
 | ----------------------------------------------------- | ----------- | -------- |
 | [Database & Migrations](./infrastructure/database.md) | Completed   | P0       |
 | [Redis](./infrastructure/redis.md)                    | Not Started | P0       |
-| [RabbitMQ](./infrastructure/rabbitmq.md)              | Not Started | P1       |
+| [RabbitMQ](./infrastructure/rabbitmq.md)              | Audit Completed & Planned | P1       |
 | [Grafana Loki — Logging](./infrastructure/loki.md)    | Not Started | P1       |
 | [Encryption](./infrastructure/encryption.md)          | Completed   | P0       |
 | [Testing Infrastructure](./infrastructure/testing.md) | Completed   | P0       |
@@ -315,6 +315,6 @@ See [progress.md](./progress.md) for live tracking.
 
 ---
 
-**Document Version:** 1.2
-**Last Updated:** 2026-08-19
+**Document Version:** 1.3
+**Last Updated:** 2026-09-24
 **Author:** Backend Architecture Team

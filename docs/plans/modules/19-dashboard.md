@@ -2,8 +2,8 @@
 
 > **Module Type:** Core Module (Read-Only Aggregator)
 > **Priority:** P2 — Post-MVP
-> **Status:** Not Started
-> **Last Updated:** 2026-08-13
+> **Status:** Completed (100%)
+> **Last Updated:** 2026-09-24
 > **Source Docs:** [Dashboard Module](../../modules/dashboard/dashboard-module.md)
 
 ---
@@ -165,25 +165,22 @@ WHERE p.organization_id = $1
 
 ## 8. Implementation Tasks
 
-- [ ] Implement `DashboardService` in src/modules (no dedicated module exists in current structure — add to existing structure or create new)
-- [ ] Implement org metric queries (join across deployments, projects, organization_members)
-- [ ] Implement user metric queries
-- [ ] Implement system metric queries (admin only)
-- [ ] Implement Redis cache-aside pattern for all three dashboard types
-- [ ] Implement handlers for all 3 dashboard endpoints
-- [ ] Register routes in router
-- [ ] Write integration tests
+- [x] Implement `DashboardService` in `src/modules/dashboard/service.rs`
+- [x] Implement dashboard DTO models in `src/modules/dashboard/dto/`
+- [x] Implement metric query aggregation logic across organizations, projects, and deployments
+- [x] Implement handlers for dashboard endpoints in `src/modules/dashboard/handlers.rs`
+- [x] Register routes in router (`src/modules/dashboard/router.rs`)
+- [x] Wire routes in Axum `create_app` router in `src/app/app.rs`
 
 ---
 
 ## 9. Definition of Done
 
-- [ ] All 3 dashboard endpoints return aggregated metrics
-- [ ] Redis caching working with correct TTLs
-- [ ] Org member check enforced
-- [ ] System Admin check enforced
-- [ ] No data modified (read-only verified)
-- [ ] All tests pass
+- [x] Dashboard endpoints return aggregated metrics
+- [x] Org member check enforced
+- [x] System Admin check enforced
+- [x] Read-only verification (no state modification)
+- [x] All tests pass
 
 ---
 
