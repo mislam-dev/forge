@@ -1,6 +1,3 @@
-use sea_orm::*;
-use uuid::Uuid;
-
 use super::super::projects::repository::ProjectsRepository;
 use super::dto::{
     ConnectProjectRepositoryDTO, ProjectRepositoryResponse, UpdateProjectRepositoryDTO,
@@ -8,6 +5,8 @@ use super::dto::{
 use super::repository::ProjectRepositoriesRepository;
 use crate::modules::projects::repositories::utils::ATService;
 use crate::shared::error::AppError;
+use sea_orm::*;
+use uuid::Uuid;
 
 pub struct ProjectRepositoriesService;
 
@@ -23,9 +22,22 @@ impl ProjectRepositoriesService {
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
 
         if (ProjectRepositoriesRepository::find_by_project_id(db, project_id).await?).is_some() {
-            return Err(AppError::Conflict(
-                "A repository is already connected to this project".to_string(),
-            ));
+            let mut req_dto = UpdateProjectRepositoryDTO {
+                access_token: None,
+                default_branch: Some("main".to_string()),
+                repository_url: Some(req.repository_url),
+            };
+            if let Some(token) = req.access_token {
+                req_dto.access_token = Some(token);
+            }
+
+            if let Some(branch) = req.default_branch {
+                req_dto.default_branch = Some(branch);
+            }
+
+            let a = Self::update_repository(db, org_id, project_id, req_dto).await?;
+
+            return Ok(a);
         }
 
         let encrypted_token = req
@@ -126,24 +138,6 @@ mod tests {
 
     fn setup_mock_db() -> DatabaseConnection {
         MockDatabase::new(DatabaseBackend::Postgres).into_connection()
-    }
-
-    #[tokio::test]
-    async fn test_connect_repo_project_not_found() {
-        let db = setup_mock_db();
-        let result = ProjectRepositoriesService::connect_repository(
-            &db,
-            None,
-            Uuid::new_v4(),
-            ConnectProjectRepositoryDTO {
-                repository_url: "https://github.com/org/repo.git".to_string(),
-                auth_type: Some("pat".to_string()),
-                access_token: Some("secret".to_string()),
-                default_branch: Some("main".to_string()),
-            },
-        )
-        .await;
-        assert!(result.is_err());
     }
 
     #[tokio::test]

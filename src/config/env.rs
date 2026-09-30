@@ -127,7 +127,7 @@ impl AppConfig {
         let server_port: u16 = EnvConfig::var("SERVER_PORT")
             .ok()
             .and_then(|v| v.parse().ok())
-            .unwrap_or(3000);
+            .unwrap_or(9000);
         let server_host: IpAddr = EnvConfig::var("SERVER_HOST")
             .unwrap_or_else(|_| "127.0.0.1".to_string())
             .parse()

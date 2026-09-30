@@ -13,7 +13,6 @@ pub struct ProjectAssignmentsService;
 impl ProjectAssignmentsService {
     pub async fn assign_team(
         db: &DatabaseConnection,
-
         org_id: Uuid,
         project_id: Uuid,
         req: AssignProjectTeamDTO,
@@ -38,7 +37,7 @@ impl ProjectAssignmentsService {
             ));
         }
 
-        let project_team = TeamRepository::add_team(db, project_id, req.team_id).await?;
+        let project_team = TeamRepository::add_team(db, req.team_id, project_id).await?;
         Ok(ProjectTeamResponse::from_model(project_team, Some(team)))
     }
 

@@ -1,10 +1,8 @@
-use sea_orm::*;
-use uuid::Uuid;
-
-use super::entities::project_repository::{
+use super::entities::project_repositories::{
     ActiveModel as RepositoryActiveModel, Column as RepositoryColumn, Entity as RepositoryEntity,
     Model as RepositoryModel,
 };
+use super::entities::sea_orm_active_enums::{ProjectRepositoryStatus, ProjectRespositoryAuthType};
 use crate::{
     modules::projects::repositories::{
         dto::{ConnectProjectRepositoryDTO, UpdateProjectRepositoryDTO},
@@ -12,6 +10,8 @@ use crate::{
     },
     shared::error::AppError,
 };
+use sea_orm::*;
+use uuid::Uuid;
 
 pub struct ProjectRepositoriesRepository;
 
@@ -33,17 +33,21 @@ impl ProjectRepositoriesRepository {
         project_id: Uuid,
         token: String,
     ) -> Result<RepositoryModel, AppError> {
-        let active_model = RepositoryActiveModel {
+        let mut active_model = RepositoryActiveModel {
             project_id: Set(project_id),
             repository_url: Set(req.repository_url),
-            auth_type: Set(req.auth_type.unwrap_or_else(|| "none".to_string())),
             access_token_encrypted: Set(token),
             default_branch: Set(Some(
                 req.default_branch.unwrap_or_else(|| "main".to_string()),
             )),
-            status: Set(Some("connected".to_string())),
+            status: Set(Some(ProjectRepositoryStatus::Connected)),
             ..Default::default()
         };
+
+        if let Some(_) = req.access_token {
+            active_model.auth_type = Set(ProjectRespositoryAuthType::Pat);
+        }
+
         active_model.insert(db).await.map_err(AppError::from)
     }
 
@@ -57,11 +61,10 @@ impl ProjectRepositoriesRepository {
         if let Some(url) = req.repository_url {
             active_model.repository_url = Set(url);
         }
-        if let Some(auth_type) = req.auth_type {
-            active_model.auth_type = Set(auth_type);
-        }
+
         if let Some(token) = req.access_token {
             active_model.access_token_encrypted = Set(ATService::encrypt(&token));
+            active_model.auth_type = Set(ProjectRespositoryAuthType::Pat);
         }
         if let Some(branch) = req.default_branch {
             active_model.default_branch = Set(Some(branch));
@@ -74,7 +77,7 @@ impl ProjectRepositoriesRepository {
         repo: RepositoryModel,
     ) -> Result<RepositoryModel, AppError> {
         let mut active_model: RepositoryActiveModel = repo.into();
-        active_model.status = Set(Some("disconnected".to_string()));
+        active_model.status = Set(Some(ProjectRepositoryStatus::Disconnected));
         active_model.access_token_encrypted = Set("".to_string());
 
         active_model.update(db).await.map_err(AppError::from)

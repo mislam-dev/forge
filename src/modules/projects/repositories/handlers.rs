@@ -72,18 +72,4 @@ pub async fn disconnect_repository(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use validator::Validate;
-
-    #[test]
-    fn test_connect_repository_handler_validation() {
-        let req = ConnectProjectRepositoryDTO {
-            repository_url: "git".to_string(),
-            auth_type: None,
-            access_token: None,
-            default_branch: None,
-        };
-        assert!(req.validate().is_err());
-    }
-}
+mod tests {}

@@ -1,11 +1,11 @@
-use sea_orm::*;
-use uuid::Uuid;
-
-use super::entities::project_environment_variable::{
+use super::EnvironmentEnum;
+use super::entities::project_environment_variables::{
     ActiveModel as EnvVarActiveModel, Column as EnvVarColumn, Entity as EnvVarEntity,
     Model as EnvVarModel,
 };
 use crate::shared::error::AppError;
+use sea_orm::*;
+use uuid::Uuid;
 
 pub struct ProjectEnvironmentVariablesRepository;
 
@@ -36,12 +36,12 @@ impl ProjectEnvironmentVariablesRepository {
     pub async fn find_by_project_env_key<C: ConnectionTrait>(
         db: &C,
         project_id: Uuid,
-        environment: &str,
+        environment: &EnvironmentEnum,
         key: &str,
     ) -> Result<Option<EnvVarModel>, AppError> {
         EnvVarEntity::find()
             .filter(EnvVarColumn::ProjectId.eq(project_id))
-            .filter(EnvVarColumn::Environment.eq(environment))
+            .filter(EnvVarColumn::Environment.eq(environment.to_string()))
             .filter(EnvVarColumn::Key.eq(key))
             .one(db)
             .await

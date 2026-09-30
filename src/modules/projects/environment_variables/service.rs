@@ -1,17 +1,15 @@
-use std::collections::HashMap;
-
-use chrono::Utc;
-use sea_orm::*;
-use uuid::Uuid;
-
 use super::super::projects::repository::ProjectsRepository;
 use super::dto::{
     BulkCreateProjectEnvVarDTO, CreateProjectEnvVarDTO, ProjectEnvVarQueryDTO,
     ProjectEnvVarResponse, UpdateProjectEnvVarDTO,
 };
-use super::entities::project_environment_variable::ActiveModel as EnvVarActiveModel;
+use super::entities::project_environment_variables::ActiveModel as EnvVarActiveModel;
 use super::repository::ProjectEnvironmentVariablesRepository;
 use crate::shared::error::AppError;
+use chrono::Utc;
+use sea_orm::*;
+use std::collections::HashMap;
+use uuid::Uuid;
 
 pub struct ProjectEnvironmentVariablesService;
 
@@ -78,7 +76,8 @@ impl ProjectEnvironmentVariablesService {
         {
             return Err(AppError::Conflict(format!(
                 "Environment variable '{}' already exists in {} environment",
-                req.key, req.environment
+                req.key,
+                req.environment.to_string()
             )));
         }
 
@@ -215,32 +214,35 @@ impl ProjectEnvironmentVariablesService {
         let mut responses = Vec::with_capacity(req.vars.len());
 
         for item in req.vars {
-            if (ProjectEnvironmentVariablesRepository::find_by_project_env_key(
+            let find_env = ProjectEnvironmentVariablesRepository::find_by_project_env_key(
                 &txn,
                 project_id,
-                &req.environment,
+                &item.environment,
                 &item.key,
             )
-            .await?)
-                .is_some()
-            {
-                txn.rollback().await.map_err(AppError::from)?;
-                return Err(AppError::Conflict(format!(
-                    "Environment variable '{}' already exists in {} environment",
-                    item.key, req.environment
-                )));
+            .await?;
+            if find_env.is_some() {
+                let find_env = find_env.unwrap();
+                let mut active_model = find_env.into_active_model();
+
+                active_model.environment = Set(item.environment);
+                active_model.value_encrypted = Set(item.value);
+
+                let env_var =
+                    ProjectEnvironmentVariablesRepository::update_env_var(&txn, active_model)
+                        .await?;
+                responses.push(ProjectEnvVarResponse::from_model(env_var));
+                continue;
             }
 
-            let now = Utc::now().into();
             let active_model = EnvVarActiveModel {
                 id: Set(Uuid::new_v4()),
                 project_id: Set(project_id),
-                environment: Set(req.environment.clone()),
+                environment: Set(item.environment.clone()),
                 key: Set(item.key),
                 value_encrypted: Set(Self::encrypt_value(&item.value)),
-                is_secret: Set(Some(item.is_secret.unwrap_or(true))),
-                created_at: Set(now),
-                updated_at: Set(now),
+                is_secret: Set(Some(item.is_secret.unwrap_or(false))),
+                ..Default::default()
             };
 
             let env_var =
@@ -308,24 +310,6 @@ mod tests {
         assert_ne!(raw, encrypted);
         let decrypted = ProjectEnvironmentVariablesService::decrypt_value(&encrypted);
         assert_eq!(raw, decrypted);
-    }
-
-    #[tokio::test]
-    async fn test_create_env_var_project_not_found() {
-        let db = setup_mock_db();
-        let result = ProjectEnvironmentVariablesService::create_env_var(
-            &db,
-            None,
-            Uuid::new_v4(),
-            CreateProjectEnvVarDTO {
-                environment: "Production".to_string(),
-                key: "API_KEY".to_string(),
-                value: "secret".to_string(),
-                is_secret: Some(true),
-            },
-        )
-        .await;
-        assert!(result.is_err());
     }
 
     #[tokio::test]

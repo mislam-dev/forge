@@ -11,9 +11,13 @@ info:
     url: "https://opensource.org/licenses/MIT"
 
 servers:
-  - url: "http://localhost:3000/api/v1"
-    description: "Local Development Environment"
-  - url: "https://api.forge.dev"
+  - url: "http://localhost:9000/api/v1"
+    description: "Local Development Environment (Primary /api/v1)"
+  - url: "http://localhost:9000/api"
+    description: "Local Development Environment (Legacy /api Alias)"
+  - url: "http://localhost:9000"
+    description: "Local Development Environment (Root Alias)"
+  - url: "https://api.forge.dev/api/v1"
     description: "Production API Server"
 
 tags:
@@ -1769,202 +1773,216 @@ paths:
         '403':
           description: "Developer attempted to delete project owned by another user (PRJ_PERM_002)"
 
-  /projects/{id}/repository/validate:
-    post:
-      operationId: projects_id_repository_validate_post
-      tags:
-        - Repository
-      summary: "Validate Git repository connection"
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RepoValidationInput'
-            example:
-              repository_url: "https://github.com/mislam-dev/forge.git"
-              auth_type: "pat"
-              access_token: "github_pat_11ABCXYZ123456789"
-      responses:
-        '200':
-          description: "Validation result"
-          content:
-            application/json:
-              example:
-                message: "Repository validation successful."
-                data:
-                  is_valid: true
-                  default_branch: "main"
-                  branches:
-                    - "main"
-                    - "dev"
-                    - "feature/auth"
-
   /projects/{id}/repository:
     post:
       operationId: projects_id_repository_post
       tags:
         - Repository
-      summary: "Connect Git repository to project"
+      summary: "Connect or reconnect Git repository to project"
+      description: "Connects a Git repository to the project. If a repository is already connected, it idempotently updates the configuration."
       security:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RepoValidationInput'
+              $ref: '#/components/schemas/ConnectProjectRepositoryRequest'
       responses:
         '200':
-          description: "Repository connected"
+          description: "Repository connected or updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectRepository'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
     get:
       operationId: projects_id_repository_get
       tags:
         - Repository
       summary: "Get connected repository configuration"
+      description: "Retrieves the repository configuration for a project with the access token masked."
       security:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
       responses:
         '200':
-          description: "Repository config"
-
-  /projects/{id}/repository/clone:
-    post:
-      operationId: projects_id_repository_clone_post
+          description: "Repository configuration retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectRepository'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: projects_id_repository_patch
       tags:
         - Repository
-      summary: "Trigger manual repository clone/fetch"
+      summary: "Update connected repository configuration"
+      description: "Updates repository URL, access token, or default branch."
       security:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
-      responses:
-        '200':
-          description: "Repository clone triggered"
-
-  /projects/{id}/repository/commit:
-    get:
-      operationId: projects_id_repository_commit_get
-      tags:
-        - Repository
-      summary: "Fetch latest commit metadata"
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
-      responses:
-        '200':
-          description: "Latest commit details"
-
-  /projects/{id}/repository/branch:
-    put:
-      operationId: projects_id_repository_branch_put
-      tags:
-        - Repository
-      summary: "Change active working branch"
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - branch
-              properties:
-                branch:
-                  type: string
-            example:
-              branch: "dev"
+              $ref: '#/components/schemas/UpdateProjectRepositoryRequest'
       responses:
         '200':
-          description: "Active branch updated"
-
-  /projects/{id}/repository/branches:
-    get:
-      operationId: projects_id_repository_branches_get
+          description: "Repository configuration updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectRepository'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: projects_id_repository_delete
       tags:
         - Repository
-      summary: "List remote branches"
+      summary: "Disconnect repository from project"
+      description: "Disconnects the Git repository from the project, clears the stored access token, and sets status to disconnected."
       security:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
       responses:
         '200':
-          description: "List of remote branches"
+          description: "Repository disconnected successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectRepository'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /projects/{id}/env-vars:
     get:
       operationId: projects_id_env_vars_get
       tags:
         - Environment Variables
-      summary: "List environment variables (masked)"
+      summary: "List environment variables for project"
+      description: "Retrieves all environment variables for a project, optionally filtered by target environment."
       security:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
         - name: environment
           in: query
+          required: false
+          description: "Filter variables by target deployment environment (development, staging, production)"
           schema:
-            type: string
-            enum:
-              - "Development"
-              - "Preview"
-              - "Production"
+            $ref: '#/components/schemas/ProjectEnvironmentEnum'
       responses:
         '200':
-          description: "Variables list (secret values masked as ••••••••)"
+          description: "List of environment variables retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectEnvVarList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
       operationId: projects_id_env_vars_post
       tags:
         - Environment Variables
       summary: "Create an environment variable"
+      description: "Creates a single environment variable within the specified environment."
       security:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EnvVarInput'
-            example:
-              key: "DATABASE_URL"
-              value: "postgres://username:<password>@db.example.com:5432/database"
-              environment: "Production"
-              is_secret: true
+              $ref: '#/components/schemas/CreateProjectEnvVarRequest'
       responses:
         '201':
-          description: "Environment variable created"
+          description: "Environment variable created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectEnvVarSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /projects/{id}/env-vars/bulk:
+    post:
+      operationId: projects_id_env_vars_bulk_post
+      tags:
+        - Environment Variables
+      summary: "Bulk create or update environment variables"
+      description: "Atomically creates or updates (upserts) environment variables across environments."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkCreateProjectEnvVarRequest'
+      responses:
+        '201':
+          description: "Bulk environment variables upserted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectEnvVarList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /projects/{id}/env-vars/{env_id}:
-    put:
-      operationId: projects_id_env_vars_env_id_put
+    patch:
+      operationId: projects_id_env_vars_env_id_patch
       tags:
         - Environment Variables
       summary: "Update environment variable"
+      description: "Partially updates an existing environment variable's value or secrecy status."
       security:
         - bearerAuth: []
       parameters:
@@ -1976,20 +1994,32 @@ paths:
             type: string
             format: uuid
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EnvVarInput'
+              $ref: '#/components/schemas/UpdateProjectEnvVarRequest'
       responses:
         '200':
-          description: "Environment variable updated"
+          description: "Environment variable updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectEnvVarSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
     delete:
       operationId: projects_id_env_vars_env_id_delete
       tags:
         - Environment Variables
       summary: "Delete environment variable"
+      description: "Permanently deletes an environment variable."
       security:
         - bearerAuth: []
       parameters:
@@ -2001,34 +2031,18 @@ paths:
             type: string
             format: uuid
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
       responses:
         '200':
-          description: "Variable deleted"
-
-  /projects/{id}/env-vars/decrypt:
-    get:
-      operationId: projects_id_env_vars_decrypt_get
-      tags:
-        - Environment Variables
-      summary: "Decrypt secret values (Internal Runner / Project Owner)"
-      security:
-        - serviceTokenAuth: []
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
-        - name: environment
-          in: query
-          required: true
-          schema:
-            type: string
-            enum:
-              - "Development"
-              - "Preview"
-              - "Production"
-      responses:
-        '200':
-          description: "Decrypted plaintext environment variables"
+          description: "Environment variable deleted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseNull'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /projects/{id}/members:
     get:
@@ -2530,6 +2544,16 @@ components:
         format: uuid
       description: "Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context"
       example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    HeaderRequestId:
+      name: x-request-id
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: "Optional unique request correlation ID for tracing and debugging across middleware"
+      example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
 
     PathId:
       name: id
@@ -3647,23 +3671,108 @@ components:
         descriptions:
           type: string
 
-    RepoValidationInput:
+    ConnectProjectRepositoryRequest:
       type: object
       required:
         - repository_url
-        - auth_type
       properties:
         repository_url:
           type: string
-        auth_type:
-          type: string
-          enum:
-            - "public"
-            - "pat"
+          minLength: 5
+          example: "https://github.com/mislam-dev/forge.git"
         access_token:
           type: string
+          nullable: true
+          example: "github_pat_11ABCXYZ123456789"
+        default_branch:
+          type: string
+          nullable: true
+          default: "main"
+          example: "main"
 
-    EnvVarInput:
+    UpdateProjectRepositoryRequest:
+      type: object
+      properties:
+        repository_url:
+          type: string
+          minLength: 5
+          nullable: true
+          example: "https://github.com/mislam-dev/forge.git"
+        access_token:
+          type: string
+          nullable: true
+          example: "github_pat_11ABCXYZ123456789"
+        default_branch:
+          type: string
+          nullable: true
+          example: "main"
+
+    ProjectRepositoryStatus:
+      type: string
+      enum:
+        - "connected"
+        - "disconnected"
+      example: "connected"
+
+    ProjectRepositoryResponse:
+      type: object
+      required:
+        - id
+        - project_id
+        - repository_url
+        - access_token
+        - default_branch
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        project_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        repository_url:
+          type: string
+          example: "https://github.com/mislam-dev/forge.git"
+        access_token:
+          type: string
+          example: "••••••••"
+        default_branch:
+          type: string
+          example: "main"
+        status:
+          $ref: '#/components/schemas/ProjectRepositoryStatus'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ApiResponseProjectRepository:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully."
+        data:
+          $ref: '#/components/schemas/ProjectRepositoryResponse'
+
+    ProjectEnvironmentEnum:
+      type: string
+      enum:
+        - "development"
+        - "staging"
+        - "production"
+      example: "development"
+
+    CreateProjectEnvVarRequest:
       type: object
       required:
         - key
@@ -3672,18 +3781,128 @@ components:
       properties:
         key:
           type: string
+          minLength: 1
+          maxLength: 255
           pattern: "^[A-Z_][A-Z0-9_]*$"
+          example: "DATABASE_URL"
         value:
           type: string
+          example: "postgres://user:pass@localhost:5432/db"
         environment:
-          type: string
-          enum:
-            - "Development"
-            - "Preview"
-            - "Production"
+          $ref: '#/components/schemas/ProjectEnvironmentEnum'
         is_secret:
           type: boolean
-          default: true
+          default: false
+          example: false
+
+    ProjectEnvVarItemRequest:
+      type: object
+      required:
+        - key
+        - value
+        - environment
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: "^[A-Z_][A-Z0-9_]*$"
+          example: "PORT"
+        value:
+          type: string
+          example: "9000"
+        environment:
+          $ref: '#/components/schemas/ProjectEnvironmentEnum'
+        is_secret:
+          type: boolean
+          default: false
+          example: false
+
+    BulkCreateProjectEnvVarRequest:
+      type: object
+      required:
+        - vars
+      properties:
+        vars:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectEnvVarItemRequest'
+
+    UpdateProjectEnvVarRequest:
+      type: object
+      properties:
+        value:
+          type: string
+          nullable: true
+          example: "new_secret_value"
+        is_secret:
+          type: boolean
+          nullable: true
+          example: true
+
+    ProjectEnvVarResponse:
+      type: object
+      required:
+        - id
+        - project_id
+        - environment
+        - key
+        - value
+        - is_secret
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        project_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        environment:
+          $ref: '#/components/schemas/ProjectEnvironmentEnum'
+        key:
+          type: string
+          example: "DATABASE_URL"
+        value:
+          type: string
+          example: "postgres://user:pass@localhost:5432/db"
+        is_secret:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ApiResponseProjectEnvVarSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully."
+        data:
+          $ref: '#/components/schemas/ProjectEnvVarResponse'
+
+    ApiResponseProjectEnvVarList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully."
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectEnvVarResponse'
 
     TriggerDeploymentRequest:
       type: object

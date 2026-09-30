@@ -52,7 +52,6 @@ impl TeamMembersService {
 
     pub async fn update_member_role(
         db: &DatabaseConnection,
-
         team_id: Uuid,
         target_user_id: Uuid,
         req: UpdateTeamMemberRoleDTO,
