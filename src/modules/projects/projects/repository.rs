@@ -26,6 +26,16 @@ impl ProjectsRepository {
             .await
             .map_err(AppError::from)
     }
+    pub async fn find_by_id_internal(
+        db: &DatabaseConnection,
+        id: Uuid,
+    ) -> Result<Option<ProjectModel>, AppError> {
+        ProjectEntity::find()
+            .filter(ProjectColumn::Id.eq(id))
+            .one(db)
+            .await
+            .map_err(AppError::from)
+    }
     pub async fn find_by_id_with_org(
         db: &DatabaseConnection,
         id: Uuid,

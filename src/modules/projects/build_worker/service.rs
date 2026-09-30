@@ -9,7 +9,8 @@ use crate::modules::projects::projects::entities::sea_orm_active_enums::ProjectT
 use crate::modules::projects::repositories::repository::ProjectRepositoriesRepository;
 use crate::modules::projects::repositories::utils::ATService;
 use crate::modules::projects::{
-    DeploymentsService, ProjectEnvironmentVariablesService, ProjectsService,
+    DeploymentsService, ProjectEnvironmentVariablesService, ProjectRepositoriesService,
+    ProjectsService,
 };
 use crate::shared::error::AppError;
 use async_trait::async_trait;
@@ -72,6 +73,11 @@ impl BuildWorkerService {
             .iter()
             .map(|(k, v)| (k.as_str(), v.as_str()))
             .collect();
+
+        // todo: get repository url from the database.
+        let repository =
+            ProjectRepositoriesService::get_repository_by_id_internal(db, project_id).await?;
+
         let mut build_pipeline = BuildPipeline::new(
             db,
             config,
@@ -81,7 +87,7 @@ impl BuildWorkerService {
             owner_type,
             pat_token.as_deref(),
             &env_vars,
-            "".to_string(),
+            repository.repository_url,
         );
         build_pipeline.execute_pipeline().await
     }

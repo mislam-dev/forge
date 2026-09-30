@@ -1,3 +1,7 @@
 pub mod response;
 
-pub use response::{DetailedHealthResponse, HealthProbeResponse, ServiceHealthItem};
+pub use response::{
+    DeepHealthQuery, DeepHealthResponse, DependencyCheck, DetailedHealthResponse,
+    HealthProbeResponse, LivenessProbeResponse, ReadinessChecks, ReadinessProbeResponse,
+    ServiceHealthItem,
+};

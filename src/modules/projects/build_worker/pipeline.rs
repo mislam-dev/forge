@@ -242,6 +242,8 @@ impl BuildPipeline {
     }
 
     async fn update_status_internal(&self, status: DeploymentStatus) -> Result<(), AppError> {
+        tracing::info!("[deployment_status]: {}", status.as_str());
+
         let dto: UpdateDeploymentStatusRequest = match status {
             DeploymentStatus::Deploying => UpdateDeploymentStatusRequest {
                 status: status.as_str().to_string(),

@@ -2170,24 +2170,24 @@ paths:
         '200':
           description: "Team removed from project"
 
-  /deployments:
+  /projects/{id}/deployments:
     post:
-      operationId: deployments_post
+      operationId: projects_id_deployments_post
       tags:
         - Deployments
       summary: "Trigger a new project deployment"
       security:
         - bearerAuth: []
       parameters:
+        - $ref: '#/components/parameters/PathId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/TriggerDeploymentRequest'
             example:
-              project_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
               branch: "main"
               commit_hash: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
       responses:
@@ -2196,9 +2196,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeploymentResponse'
+                $ref: '#/components/schemas/ApiResponseDeployment'
               example:
-                message: "Deployment queued successfully."
+                message: "Deployment triggered successfully."
                 data:
                   id: "a1b2c3d4-e89b-12d3-a456-426614174000"
                   project_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
@@ -2206,24 +2206,11 @@ paths:
                   branch: "main"
                   commit_hash: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
                   status: "Queued"
+                  build_duration: null
+                  deploy_duration: null
+                  error_message: null
                   created_at: "2026-08-12T17:00:00Z"
-
-  /deployments/{id}:
-    get:
-      operationId: deployments_id_get
-      tags:
-        - Deployments
-      summary: "Get deployment details by ID"
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
-      responses:
-        '200':
-          description: "Deployment metadata retrieved"
-
-  /projects/{id}/deployments:
+                  updated_at: "2026-08-12T17:00:00Z"
     get:
       operationId: projects_id_deployments_get
       tags:
@@ -2247,48 +2234,77 @@ paths:
         - name: status
           in: query
           schema:
+            $ref: '#/components/schemas/DeploymentStatusEnum'
+        - name: branch
+          in: query
+          schema:
             type: string
       responses:
         '200':
           description: "Paginated deployment history"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePaginatedDeployment'
 
-  /deployments/{id}/status:
-    patch:
-      operationId: deployments_id_status_patch
+  /projects/{id}/deployments/{deployment_id}:
+    get:
+      operationId: projects_id_deployments_deployment_id_get
+      tags:
+        - Deployments
+      summary: "Get deployment details by ID"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "Deployment metadata retrieved"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDeployment'
+              example:
+                message: "Deployment details retrieved successfully."
+                data:
+                  id: "a1b2c3d4-e89b-12d3-a456-426614174000"
+                  project_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+                  triggered_by: "456e7890-e89b-12d3-a456-426614174000"
+                  branch: "main"
+                  commit_hash: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+                  status: "Success"
+                  build_duration: 45
+                  deploy_duration: 12
+                  error_message: null
+                  created_at: "2026-08-12T17:00:00Z"
+                  updated_at: "2026-08-12T17:01:00Z"
+
+  /projects/internal/deployments/{deployment_id}/status:
+    put:
+      operationId: projects_internal_deployments_deployment_id_status_put
       tags:
         - Deployments
       summary: "Update deployment status (Internal Build Worker Only)"
       security:
         - serviceTokenAuth: []
       parameters:
-        - $ref: '#/components/parameters/PathId'
-        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/PathDeploymentId'
+        - $ref: '#/components/parameters/HeaderServiceToken'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - status
-              properties:
-                status:
-                  type: string
-                  enum:
-                    - "Building"
-                    - "Deploying"
-                    - "Running"
-                    - "Success"
-                    - "Failed"
-                build_duration:
-                  type: integer
-                deploy_duration:
-                  type: integer
-                error_message:
-                  type: string
+              $ref: '#/components/schemas/UpdateDeploymentStatusRequest'
       responses:
         '200':
           description: "Deployment status updated"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDeployment'
 
   /deployments/{id}/logs/stream:
     get:
@@ -2381,9 +2397,9 @@ paths:
               schema:
                 type: string
 
-  /deployments/{id}/redeploy:
+  /projects/{id}/deployments/{deployment_id}/redeploy:
     post:
-      operationId: deployments_id_redeploy_post
+      operationId: projects_id_deployments_deployment_id_redeploy_post
       tags:
         - Deployment History
       summary: "Re-trigger deployment at same commit"
@@ -2391,14 +2407,33 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '201':
           description: "Redeploy queued"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDeployment'
+              example:
+                message: "Redeploy triggered successfully."
+                data:
+                  id: "b2c3d4e5-e89b-12d3-a456-426614174000"
+                  project_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+                  triggered_by: "456e7890-e89b-12d3-a456-426614174000"
+                  branch: "main"
+                  commit_hash: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+                  status: "Queued"
+                  build_duration: null
+                  deploy_duration: null
+                  error_message: null
+                  created_at: "2026-08-12T18:00:00Z"
+                  updated_at: "2026-08-12T18:00:00Z"
 
-  /projects/{id}/rollback:
+  /projects/{id}/deployments/rollback:
     post:
-      operationId: projects_id_rollback_post
+      operationId: projects_id_deployments_rollback_post
       tags:
         - Deployment History
       summary: "Rollback project to last successful deployment commit"
@@ -2410,6 +2445,24 @@ paths:
       responses:
         '201':
           description: "Rollback deployment queued"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDeployment'
+              example:
+                message: "Rollback deployment triggered successfully."
+                data:
+                  id: "c3d4e5f6-e89b-12d3-a456-426614174000"
+                  project_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+                  triggered_by: "456e7890-e89b-12d3-a456-426614174000"
+                  branch: "main"
+                  commit_hash: "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5"
+                  status: "Queued"
+                  build_duration: null
+                  deploy_duration: null
+                  error_message: null
+                  created_at: "2026-08-12T19:00:00Z"
+                  updated_at: "2026-08-12T19:00:00Z"
 
   /dashboard:
     get:
@@ -2520,9 +2573,9 @@ components:
       scheme: bearer
       bearerFormat: JWT
     serviceTokenAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: ServiceToken
+      type: apiKey
+      in: header
+      name: x-service-token
 
   parameters:
     HeaderOrganizationId:
@@ -2555,6 +2608,14 @@ components:
       description: "Optional unique request correlation ID for tracing and debugging across middleware"
       example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
 
+    HeaderServiceToken:
+      name: x-service-token
+      in: header
+      required: true
+      schema:
+        type: string
+      description: "Master service secret key for internal worker authentication"
+
     PathId:
       name: id
       in: path
@@ -2563,6 +2624,15 @@ components:
         type: string
         format: uuid
       example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    PathDeploymentId:
+      name: deployment_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: "a1b2c3d4-e89b-12d3-a456-426614174000"
 
     PageQueryParam:
       name: page
@@ -3904,48 +3974,149 @@ components:
           items:
             $ref: '#/components/schemas/ProjectEnvVarResponse'
 
+    DeploymentStatusEnum:
+      type: string
+      enum:
+        - "Queued"
+        - "Building"
+        - "Deploying"
+        - "Running"
+        - "Failed"
+        - "Success"
+      example: "Queued"
+
     TriggerDeploymentRequest:
       type: object
-      required:
-        - project_id
       properties:
-        project_id:
-          type: string
-          format: uuid
         branch:
           type: string
+          example: "main"
         commit_hash:
           type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+
+    UpdateDeploymentStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/DeploymentStatusEnum'
+        build_duration:
+          type: integer
+          nullable: true
+          example: 45
+        deploy_duration:
+          type: integer
+          nullable: true
+          example: 12
+        error_message:
+          type: string
+          nullable: true
+          example: null
 
     DeploymentResponse:
       type: object
+      required:
+        - id
+        - project_id
+        - triggered_by
+        - branch
+        - commit_hash
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e89b-12d3-a456-426614174000"
+        project_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        triggered_by:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        branch:
+          type: string
+          example: "main"
+        commit_hash:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+        status:
+          $ref: '#/components/schemas/DeploymentStatusEnum'
+        build_duration:
+          type: integer
+          nullable: true
+          example: 45
+        deploy_duration:
+          type: integer
+          nullable: true
+          example: 12
+        error_message:
+          type: string
+          nullable: true
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-08-12T17:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-08-12T17:01:00Z"
+
+    ApiResponseDeployment:
+      type: object
+      required:
+        - message
+        - data
       properties:
         message:
           type: string
+          example: "Operation completed successfully."
         data:
-          type: object
-          properties:
-            id:
-              type: string
-              format: uuid
-            project_id:
-              type: string
-              format: uuid
-            triggered_by:
-              type: string
-              format: uuid
-            branch:
-              type: string
-            commit_hash:
-              type: string
-            status:
-              type: string
-            build_duration:
-              type: integer
-            deploy_duration:
-              type: integer
-            created_at:
-              type: string
+          $ref: '#/components/schemas/DeploymentResponse'
+
+    PaginatedDeploymentData:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+        - data
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 42
+        total_pages:
+          type: integer
+          example: 5
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeploymentResponse'
+
+    ApiResponsePaginatedDeployment:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Deployments retrieved successfully."
+        data:
+          $ref: '#/components/schemas/PaginatedDeploymentData'
 
     ErrorResponse:
       type: object

@@ -83,7 +83,7 @@ impl ProjectsService {
         db: &DatabaseConnection,
         project_id: Uuid,
     ) -> Result<ProjectResponse, AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
+        let project = ProjectsRepository::find_by_id_internal(db, project_id)
             .await?
             .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
 
@@ -204,7 +204,9 @@ mod tests {
     #[tokio::test]
     async fn test_get_project_by_internal_not_found() {
         let db = MockDatabase::new(DatabaseBackend::Postgres)
-            .append_query_results([Vec::<crate::modules::projects::projects::entities::projects::Model>::new()])
+            .append_query_results([Vec::<
+                crate::modules::projects::projects::entities::projects::Model,
+            >::new()])
             .into_connection();
 
         let result = ProjectsService::get_project_by_internal(&db, Uuid::new_v4()).await;

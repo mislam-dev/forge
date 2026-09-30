@@ -21,8 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "info"
     };
 
-    let _guard = logger::init_tracing(log_filter); 
-
+    let _guard = logger::init_tracing(log_filter);
 
     tracing::info!("Starting application.....");
     let app_state = AppState::new().await?;
@@ -47,12 +46,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // start build worker service
-    if let Some(rmq) = app_state.queue.rabbitmq() {
+    tracing::info!("Starting builder worker service");
+    let _rabbitmq_worker_channel = if let Some(rmq) = app_state.queue.rabbitmq() {
+        tracing::info!("[rabbitmq]: opening channel");
         match rmq.open_channel().await {
             Ok(worker_channel) => {
+                tracing::info!("[rabbitmq]: channeld opened successfully!");
                 let handler =
                     BuildWorkerService::new(app_state.db.clone(), app_state.config.clone());
 
+                tracing::info!("[rabbitmq]: starting consumer");
                 match RabbitMqConsumer::start_consumer(
                     &worker_channel,
                     "forge.deployments.jobs",
@@ -68,13 +71,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Err(err) => {
                         tracing::error!(error = %err, "Failed to register build worker consumer");
                     }
-                }
+                };
+                Some(worker_channel)
             }
             Err(e) => {
                 tracing::error!(error = %e, "Failed to open RabbitMQ channel");
+                None
             }
         }
-    }
+    } else {
+        None
+    };
 
     let app = create_app(app_state).await?;
 

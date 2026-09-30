@@ -66,3 +66,135 @@ async fn test_health_details_unauthorized_without_jwt() {
     let response = app.oneshot(req).await.unwrap();
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
 }
+
+#[tokio::test]
+async fn test_health_liveness_probe() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let req = Request::builder()
+        .uri("/health/live")
+        .method("GET")
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(body["status"], "healthy");
+    assert_eq!(body["service"], "forge-platform");
+    assert_eq!(body["version"], "1.0.0");
+    assert_eq!(body["environment"], "production");
+    assert!(body["timestamp"].as_str().is_some());
+}
+
+#[tokio::test]
+async fn test_health_readiness_probe() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let req = Request::builder()
+        .uri("/health/ready")
+        .method("GET")
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(body["status"], "ready");
+    assert_eq!(body["service"], "forge-platform");
+    assert_eq!(body["checks"]["database"]["status"], "healthy");
+    assert_eq!(body["checks"]["database"]["latency_ms"], 4);
+    assert_eq!(body["checks"]["job_queue"]["status"], "healthy");
+    assert_eq!(body["checks"]["job_queue"]["latency_ms"], 2);
+    assert_eq!(body["checks"]["container_runtime"]["status"], "healthy");
+    assert_eq!(body["checks"]["container_runtime"]["latency_ms"], 8);
+}
+
+#[tokio::test]
+async fn test_health_deep_check_unauthorized_without_jwt() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    let req = Request::builder()
+        .uri("/health/deep")
+        .method("GET")
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn test_health_deep_check_forbidden_for_non_admin() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    use forge::modules::auth::token::{AuthTokenService, JwtPayload};
+    use uuid::Uuid;
+
+    let token = AuthTokenService::access(JwtPayload {
+        user_id: Uuid::new_v4(),
+        email: "dev@example.com".to_string(),
+        roles: vec!["developer".to_string()],
+        permissions: vec![],
+    })
+    .unwrap();
+
+    let req = Request::builder()
+        .uri("/health/deep")
+        .method("GET")
+        .header("Authorization", format!("Bearer {}", token))
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn test_health_deep_check_authorized_for_admin() {
+    let config = setup_test_config();
+    let state = AppState::mock(config);
+    let app = create_app(state).await.expect("App creation failed");
+
+    use forge::modules::auth::token::{AuthTokenService, JwtPayload};
+    use uuid::Uuid;
+
+    let token = AuthTokenService::access(JwtPayload {
+        user_id: Uuid::new_v4(),
+        email: "admin@example.com".to_string(),
+        roles: vec!["system_admin".to_string()],
+        permissions: vec![],
+    })
+    .unwrap();
+
+    let req = Request::builder()
+        .uri("/health/deep?timeout_ms=5000")
+        .method("GET")
+        .header("Authorization", format!("Bearer {}", token))
+        .body(Body::empty())
+        .unwrap();
+
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(body["status"], "healthy");
+    assert_eq!(body["service"], "forge-platform");
+    assert_eq!(body["version"], "1.0.0");
+    assert_eq!(body["uptime_seconds"], 864000);
+    assert!(body["timestamp"].as_str().is_some());
+}
+

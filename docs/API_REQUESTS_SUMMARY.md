@@ -540,40 +540,47 @@ All endpoints are available under the versioned prefix `/api/v1`, the legacy `/a
 
 ---
 
-## 12. Deployments & Build Worker APIs (`/deployments`)
+## 12. Deployments & Build Worker APIs (`/projects/{id}/deployments`)
 
-- **`POST /deployments`**
-  - **Description:** Triggers a new asynchronous build and deployment pipeline. Queues a job into RabbitMQ.
-  - **Auth:** 🔒 Developer+
+- **`POST /projects/{id}/deployments`**
+  - **Description:** Triggers a new asynchronous build and deployment pipeline for the specified project.
+  - **Auth:** 🔒 Authenticated (Bearer Token, Developer+)
+  - **Path Parameter:** `id` *(UUID, project ID)*
   - **Body (JSON):**
-    - `project_id` *(UUID, required)*
     - `branch` *(string, optional, defaults to project branch)*
     - `commit_hash` *(string, optional)*
-    - `environment` *(string: "development" | "staging" | "production")*
-  - **Success (202 Accepted):** Deployment job object with `status: "queued"`.
-- **`GET /deployments/{id}`**
-  - **Description:** Fetch detailed status, timing, commit info, and container state for a specific deployment.
-  - **Auth:** ✅ Project Viewer+
-  - **Success (200 OK):** Deployment object (`id`, `status`, `stage`, `started_at`, `finished_at`, `exit_code`).
+  - **Success (201 Created):** `{"message": "Deployment triggered successfully.", "data": DeploymentResponse}` with `status: "Queued"`.
 - **`GET /projects/{id}/deployments`**
   - **Description:** List paginated historical deployments for a given project.
-  - **Auth:** ✅ Project Viewer+
-  - **Query:** `page`, `limit`, `status`, `environment`.
-  - **Success (200 OK):** Paginated deployment records.
-- **`PATCH /deployments/{id}/status`**
-  - **Description:** Internal endpoint used by Build Worker to update execution stages and transitions (`queued` -> `cloning` -> `building` -> `running` -> `healthy` | `failed`).
-  - **Auth:** ⚙️ Build Worker Service Token
-  - **Body (JSON):** `status` *(string)*, `stage` *(string)*, `error_message` *(optional)*, `exit_code` *(optional)*.
-  - **Success (200 OK):** Updated deployment status.
-- **`POST /deployments/{id}/redeploy`**
+  - **Auth:** ✅ Project Viewer+ (Bearer Token)
+  - **Path Parameter:** `id` *(UUID, project ID)*
+  - **Query:** `page`, `limit`, `status`, `branch`.
+  - **Success (200 OK):** `{"message": "Deployments retrieved successfully.", "data": PaginatedResponse<DeploymentResponse>}`.
+- **`GET /projects/{id}/deployments/{deployment_id}`**
+  - **Description:** Fetch detailed status, timing, commit info, and execution metrics for a specific deployment.
+  - **Auth:** ✅ Project Viewer+ (Bearer Token)
+  - **Path Parameters:** `id` *(UUID, project ID)*, `deployment_id` *(UUID, deployment ID)*
+  - **Success (200 OK):** `{"message": "Deployment details retrieved successfully.", "data": DeploymentResponse}`.
+- **`POST /projects/{id}/deployments/{deployment_id}/redeploy`**
   - **Description:** Re-triggers a deployment using the identical commit and configuration of a past deployment.
-  - **Auth:** 🔒 Developer+
-  - **Success (202 Accepted):** New deployment job object.
-- **`POST /projects/{id}/rollback`**
-  - **Description:** Rollback production/staging to the most recent known healthy deployment.
-  - **Auth:** 🔒 Project Owner / Org Admin
-  - **Body (JSON):** `target_deployment_id` *(UUID, optional)*, `environment` *(string)*.
-  - **Success (202 Accepted):** Rollback deployment triggered.
+  - **Auth:** 🔒 Authenticated (Bearer Token, Developer+)
+  - **Path Parameters:** `id` *(UUID, project ID)*, `deployment_id` *(UUID, deployment ID)*
+  - **Success (201 Created):** `{"message": "Redeploy triggered successfully.", "data": DeploymentResponse}`.
+- **`POST /projects/{id}/deployments/rollback`**
+  - **Description:** Rollback project to the most recent known successful deployment.
+  - **Auth:** 🔒 Authenticated (Bearer Token, Project Owner / Org Admin)
+  - **Path Parameter:** `id` *(UUID, project ID)*
+  - **Success (201 Created):** `{"message": "Rollback deployment triggered successfully.", "data": DeploymentResponse}`.
+- **`PUT /projects/internal/deployments/{deployment_id}/status`**
+  - **Description:** Internal endpoint used by Build Worker to update execution stages and transitions (`Queued` -> `Building` -> `Deploying` -> `Running` -> `Success` | `Failed`).
+  - **Auth:** ⚙️ Build Worker Service Token (`x-service-token` header)
+  - **Path Parameter:** `deployment_id` *(UUID, deployment ID)*
+  - **Body (JSON):**
+    - `status` *(string, required: `"Queued"` | `"Building"` | `"Deploying"` | `"Running"` | `"Failed"` | `"Success"`)*
+    - `build_duration` *(integer, optional, in seconds)*
+    - `deploy_duration` *(integer, optional, in seconds)*
+    - `error_message` *(string, optional)*
+  - **Success (200 OK):** `{"message": "Deployment status updated successfully.", "data": DeploymentResponse}`.
 
 ---
 
@@ -742,12 +749,12 @@ All endpoints are available under the versioned prefix `/api/v1`, the legacy `/a
 | **Assignments** | `POST` | `/projects/{id}/teams` | Assign team to project | Project Owner / Admin |
 | **Assignments** | `GET` | `/projects/{id}/teams` | List assigned teams | Viewer |
 | **Assignments** | `DELETE` | `/projects/{id}/teams/{team_id}` | Remove team from project | Project Owner / Admin |
-| **Deployments** | `POST` | `/deployments` | Trigger async deployment | Developer |
-| **Deployments** | `GET` | `/deployments/{id}` | Get deployment status | Viewer |
+| **Deployments** | `POST` | `/projects/{id}/deployments` | Trigger async deployment | Developer |
 | **Deployments** | `GET` | `/projects/{id}/deployments` | List project deployments | Viewer |
-| **Deployments** | `PATCH` | `/deployments/{id}/status` | Update execution stage | Internal Build Worker |
-| **Deployments** | `POST` | `/deployments/{id}/redeploy` | Redeploy past deployment | Developer |
-| **Deployments** | `POST` | `/projects/{id}/rollback` | Rollback to healthy state | Project Owner / Admin |
+| **Deployments** | `GET` | `/projects/{id}/deployments/{deployment_id}` | Get deployment status | Viewer |
+| **Deployments** | `POST` | `/projects/{id}/deployments/{deployment_id}/redeploy` | Redeploy past deployment | Developer |
+| **Deployments** | `POST` | `/projects/{id}/deployments/rollback` | Rollback to healthy state | Project Owner / Admin |
+| **Deployments** | `PUT` | `/projects/internal/deployments/{deployment_id}/status` | Update execution stage | Internal Build Worker |
 | **Logs** | `GET` | `/deployments/{id}/logs/stream` | Stream live build logs (SSE) | Viewer |
 | **Logs** | `GET` | `/deployments/{id}/logs` | Query stored logs | Viewer |
 | **Logs** | `POST` | `/deployments/{id}/logs` | Ingest worker log batch | Internal Build Worker |

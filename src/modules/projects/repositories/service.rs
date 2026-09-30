@@ -69,6 +69,18 @@ impl ProjectRepositoriesService {
 
         Ok(ProjectRepositoryResponse::from_model(repo))
     }
+    pub async fn get_repository_by_id_internal(
+        db: &DatabaseConnection,
+        project_id: Uuid,
+    ) -> Result<ProjectRepositoryResponse, AppError> {
+        let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
+            .await?
+            .ok_or_else(|| {
+                AppError::NotFound("No repository connected to this project".to_string())
+            })?;
+
+        Ok(ProjectRepositoryResponse::from_model(repo))
+    }
 
     pub async fn get_repository_by_project_id_internal(
         db: &DatabaseConnection,

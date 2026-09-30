@@ -16,7 +16,7 @@ pub async fn connect_db(config: &DbConfig) -> Result<DatabaseConnection, DbErr> 
         .min_connections(config.min_connections)
         .connect_timeout(Duration::from_secs(config.connect_timeout_secs))
         .idle_timeout(Duration::from_secs(config.idle_timeout_secs))
-        .sqlx_logging(cfg!(debug_assertions));
+        .sqlx_logging(false);
 
     let max_retries = 5;
     let mut retries = 0;

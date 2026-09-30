@@ -5,10 +5,14 @@ use crate::app::state::AppState;
 use crate::modules::auth::token::JwtClaims;
 
 pub fn health_router() -> Router<AppState> {
-    let public_routes = Router::new().route("/", get(handlers::check_health));
+    let public_routes = Router::new()
+        .route("/", get(handlers::check_health))
+        .route("/live", get(handlers::health_liveness_probe))
+        .route("/ready", get(handlers::health_readiness_probe));
 
     let protected_routes = Router::new()
         .route("/details", get(handlers::check_health_details))
+        .route("/deep", get(handlers::health_deep_check))
         .route_layer(middleware::from_extractor::<JwtClaims>());
 
     Router::new().merge(public_routes).merge(protected_routes)
@@ -23,3 +27,4 @@ mod tests {
         let _router = health_router();
     }
 }
+
