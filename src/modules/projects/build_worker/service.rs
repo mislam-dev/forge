@@ -90,7 +90,7 @@ impl BuildWorkerService {
         let loki_transporter = LokiStreamTransporter::new();
         let sse_transporter: SseStreamTransporter = SseStreamTransporter::new(queue);
         let log_stream =
-            LogStream::new(vec![Box::new(loki_transporter), Box::new(sse_transporter)]);
+            LogStream::new(vec![Arc::new(loki_transporter), Arc::new(sse_transporter)]);
 
         let mut build_pipeline = BuildPipeline::new(
             db,
@@ -122,7 +122,7 @@ impl BuildWorkerService {
         let loki_transporter = LokiStreamTransporter::new();
         let sse_transporter = SseStreamTransporter::new(queue);
         let log_stream =
-            LogStream::new(vec![Box::new(loki_transporter), Box::new(sse_transporter)]);
+            LogStream::new(vec![Arc::new(loki_transporter), Arc::new(sse_transporter)]);
 
         let mut build_pipeline = BuildPipeline::new(
             db,

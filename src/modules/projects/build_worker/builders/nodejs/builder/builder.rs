@@ -1,25 +1,35 @@
+use super::super::super::common::tar::build_tar_context;
 use super::super::super::super::docker_client::DockerClient;
+use crate::modules::projects::build_worker::log_stream::LogStream;
 use crate::shared::error::AppError;
 use bollard::query_parameters::BuildImageOptions;
-use bytes::Bytes;
 use std::path::PathBuf;
-use tar::Builder as TarBuilder;
 
 pub struct Builder {
     source_path: PathBuf,
     docker_client: DockerClient,
+    log_stream: LogStream,
+    deployment_id: String,
 }
 
 impl Builder {
-    pub fn new(docker_client: DockerClient, source_path: PathBuf) -> Self {
+    pub fn new(
+        docker_client: DockerClient,
+        source_path: PathBuf,
+        log_stream: LogStream,
+        deployment_id: String,
+    ) -> Self {
         Self {
             source_path,
             docker_client,
+            log_stream,
+            deployment_id,
         }
     }
 
     pub async fn build(&self, image_name: &str) -> Result<String, AppError> {
-        let build_context_tar = self.build_tar_context()?;
+        let ignore = vec!["target", ".git", "logs", "node_modules", "dist"];
+        let build_context_tar = build_tar_context(&self.source_path, &ignore)?;
 
         let options = BuildImageOptions {
             t: Some(image_name.to_string()),
@@ -29,57 +39,31 @@ impl Builder {
             ..Default::default()
         };
 
+        let log_stream = self.log_stream.clone();
+        let deployment_id = self.deployment_id.clone();
+
         let image_id = self
             .docker_client
             .image
-            .create(image_name, options, build_context_tar)
+            .create_with_log_handler(image_name, options, build_context_tar, |chunk| {
+                let log_stream = log_stream.clone();
+                let deployment_id = deployment_id.clone();
+                async move {
+                    for line in chunk.lines() {
+                        let trimmed = line.trim();
+                        if !trimmed.is_empty() {
+                            log_stream
+                                .log_info(&deployment_id, "Build", trimmed)
+                                .await;
+                        }
+                    }
+                }
+            })
             .await
             .map_err(|e| {
-                AppError::InternalServerError(format!(
-                    "failed to create docker image: {}",
-                    e.to_string()
-                ))
+                AppError::InternalServerError(format!("failed to create docker image: {}", e))
             })?;
 
         Ok(image_id)
-    }
-
-    fn build_tar_context(&self) -> Result<Bytes, AppError> {
-        let mut archive = TarBuilder::new(Vec::new());
-        let ignore = vec!["target", ".git", "logs", "node_modules", "dist"];
-
-        for entry in std::fs::read_dir(&self.source_path).map_err(|e| {
-            AppError::InternalServerError(format!("Failed to read artifact tar: {}", e))
-        })? {
-            let entry = entry.map_err(|e| {
-                AppError::InternalServerError(format!("Failed to read artifact tar: {}", e))
-            })?;
-
-            let name = entry.file_name();
-            let name_str = name.to_string_lossy();
-
-            if ignore.iter().any(|i| name_str.starts_with(i)) {
-                continue;
-            }
-
-            let path = entry.path();
-            if path.is_dir() {
-                archive.append_dir_all(&name, &path).map_err(|e| {
-                    AppError::InternalServerError(format!("Failed to read artifact tar: {}", e))
-                })?;
-            } else {
-                archive.append_path_with_name(&path, &name).map_err(|e| {
-                    AppError::InternalServerError(format!("Failed to read artifact tar: {}", e))
-                })?;
-            }
-        }
-
-        let build_context_tar = archive.into_inner().map_err(|e| {
-            AppError::InternalServerError(format!("Failed to read artifact tar: {}", e))
-        })?;
-
-        let build_context_tar = Bytes::from(build_context_tar);
-
-        Ok(build_context_tar)
     }
 }

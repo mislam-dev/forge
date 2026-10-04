@@ -10,7 +10,7 @@ use super::log_stream::LogStream;
 use super::log_stream::{LogItem, LogLevel};
 use crate::config::AppConfig;
 use crate::modules::projects::DeploymentsService;
-use crate::modules::projects::build_worker::traits::ProjectBuilder;
+use crate::modules::projects::build_worker::traits::{BuilderConfig, ProjectBuilder};
 use crate::shared::error::AppError;
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
@@ -113,63 +113,46 @@ impl BuildPipeline {
     }
 
     fn get_builder(&mut self) -> Result<Option<Box<dyn ProjectBuilder>>, AppError> {
-        let project_type = self.infer_project_type()?;
-        let project_path = self.construct_path();
-
-        let builder: Box<dyn ProjectBuilder> = match project_type {
-            ProjectType::DockerContainer => Box::new(DockerBuilder::new(
-                project_path,
-                self.project_id.to_string(),
-                self.env_vars.clone(),
-                self.org_or_user_id.to_string(),
-                self.deployment_id.to_string(),
-                "app".to_string(),
-            )?),
-            ProjectType::NodeJs => Box::new(NodeJsBuilder::new(
-                project_path,
-                self.project_id.to_string(),
-                self.env_vars.clone(),
-                self.org_or_user_id.to_string(),
-                self.deployment_id.to_string(),
-                "app".to_string(),
-            )?),
-            ProjectType::Go => Box::new(GoBuilder::new(
-                project_path,
-                self.project_id.to_string(),
-                self.env_vars.clone(),
-                self.org_or_user_id.to_string(),
-                self.deployment_id.to_string(),
-                "app".to_string(),
-            )?),
-            ProjectType::Rust => Box::new(RustBuilder::new(
-                project_path,
-                self.project_id.to_string(),
-                self.env_vars.clone(),
-                self.org_or_user_id.to_string(),
-                self.deployment_id.to_string(),
-                "app".to_string(),
-            )?),
-            ProjectType::Python => Box::new(PythonBuilder::new(
-                project_path,
-                self.project_id.to_string(),
-                self.env_vars.clone(),
-                self.org_or_user_id.to_string(),
-                self.deployment_id.to_string(),
-                "app".to_string(),
-            )?),
-            ProjectType::StaticFiles => Box::new(StaticFilesBuilder::new(
-                project_path,
-                self.project_id.to_string(),
-                self.env_vars.clone(),
-                self.org_or_user_id.to_string(),
-                self.deployment_id.to_string(),
-                "app".to_string(),
-            )?),
+        let config = BuilderConfig {
+            project_path: self.construct_path(),
+            project_id: self.project_id.to_string(),
+            env_vars: self.env_vars.clone(),
+            org_or_user_id: self.org_or_user_id.to_string(),
+            deployment_id: self.deployment_id.to_string(),
+            app_name: "app".to_string(),
+            log_stream: self.log_stream.clone(),
+        };
+        let builder: Box<dyn ProjectBuilder> = match self.infer_project_type()? {
+            ProjectType::DockerContainer => Box::new(DockerBuilder::new(config)?),
+            ProjectType::NodeJs => Box::new(NodeJsBuilder::new(config)?),
+            ProjectType::Go => Box::new(GoBuilder::new(config)?),
+            ProjectType::Rust => Box::new(RustBuilder::new(config)?),
+            ProjectType::Python => Box::new(PythonBuilder::new(config)?),
+            ProjectType::StaticFiles => Box::new(StaticFilesBuilder::new(config)?),
         };
         return Ok(Some(builder));
     }
 
     pub async fn execute_pipeline(&mut self) -> Result<(), AppError> {
+        match self.execute_pipeline_internal().await {
+            Ok(()) => Ok(()),
+            Err(err) => {
+                let err_msg = err.to_string();
+                self.log_stream
+                    .log_error(
+                        &self.deployment_id.to_string(),
+                        "Failure",
+                        &format!("Pipeline execution failed: {}", err_msg),
+                        true,
+                    )
+                    .await;
+                let _ = self.update_status_failed(&err_msg).await;
+                Err(err)
+            }
+        }
+    }
+
+    async fn execute_pipeline_internal(&mut self) -> Result<(), AppError> {
         self.log_info("Start", "Executing pipelines...").await;
         let _ = &self.durations.set_start_time();
         // Step 1: Clone Repository (Queued -> Building)
@@ -238,6 +221,13 @@ impl BuildPipeline {
         self.update_status_internal(DeploymentStatus::Success)
             .await?;
 
+        self.log_stream
+            .log_end(
+                &self.deployment_id.to_string(),
+                "Success",
+                "Build completed successfully",
+            )
+            .await;
         Ok(())
     }
 
@@ -291,6 +281,29 @@ impl BuildPipeline {
         )
         .await?;
 
+        Ok(())
+    }
+
+    async fn update_status_failed(&self, error_message: &str) -> Result<(), AppError> {
+        tracing::error!("[deployment_status]: Failed - {}", error_message);
+        let dto = UpdateDeploymentStatusRequest {
+            status: DeploymentStatus::Failed.as_str().to_string(),
+            build_duration: if self.durations.build > 0 {
+                Some(self.durations.build)
+            } else {
+                None
+            },
+            deploy_duration: None,
+            error_message: Some(error_message.to_string()),
+        };
+        let _ = DeploymentsService::update_status_internal(
+            &self.db,
+            &self.config,
+            &self.config.secrets.master_encryption_key,
+            self.deployment_id,
+            dto,
+        )
+        .await;
         Ok(())
     }
 }
