@@ -2,6 +2,7 @@ mod builders;
 mod cloning;
 mod deployment_path;
 mod docker_client;
+pub mod log_stream;
 pub mod pipeline;
 mod port_manager;
 pub mod service;

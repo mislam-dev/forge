@@ -97,6 +97,32 @@ impl RabbitMqTopology {
             .await
             .map_err(|e| QueueError::TopologyError(e.to_string()))?;
 
+        // build logs streams
+        channel
+            .exchange_declare(ExchangeDeclareArguments::new(
+                "forge.deployments.logs",
+                &ExchangeType::Topic.to_string(),
+            ))
+            .await
+            .map_err(|e| QueueError::TopologyError(e.to_string()))?;
+
+        let mut build_logs_queue_args = QueueDeclareArguments::new("forge.deployments.log.jobs");
+        build_logs_queue_args.durable(true).finish();
+
+        channel
+            .queue_declare(build_logs_queue_args)
+            .await
+            .map_err(|e| QueueError::TopologyError(e.to_string()))?;
+
+        channel
+            .queue_bind(QueueBindArguments::new(
+                "forge.deployments.log.jobs",
+                "forge.deployments.logs",
+                "forge.deployments.logs.#",
+            ))
+            .await
+            .map_err(|e| QueueError::TopologyError(e.to_string()))?;
+
         Ok(())
     }
 }

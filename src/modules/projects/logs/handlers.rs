@@ -1,22 +1,23 @@
-use axum::{
-    extract::{Path, Query, State},
-    http::{HeaderMap, StatusCode, header},
-    response::{
-        IntoResponse, Response,
-        sse::{Event, Sse},
-    },
-};
-use std::convert::Infallible;
-use std::time::Duration;
-use tokio_stream::{self as stream, Stream};
-use uuid::Uuid;
-
 use super::dto::{BuildLogResponse, LogSearchQuery};
 use super::service::BuildLogsService;
 use crate::app::state::AppState;
 use crate::modules::auth::token::JwtClaims;
+use crate::modules::projects::logs::LogStreamConsumer;
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
+use axum::{
+    extract::{Path, Query, State},
+    http::{HeaderMap, StatusCode, header},
+    response::{IntoResponse, Response, sse::Sse},
+};
+
+use axum::response::sse::Event;
+use std::convert::Infallible;
+use std::time::Duration;
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::ReceiverStream;
+use tokio_stream::{self as stream, Stream};
+use uuid::Uuid;
 
 pub async fn get_logs(
     State(state): State<AppState>,
@@ -39,25 +40,21 @@ pub async fn get_logs(
 pub async fn stream_logs(
     State(state): State<AppState>,
     claims: JwtClaims,
-    Path((id, deployment_id)): Path<(Uuid, Uuid)>,
+    Path((_id, deployment_id)): Path<(Uuid, Uuid)>,
 ) -> Result<Sse<impl Stream<Item = Result<Event, Infallible>>>, AppError> {
-    let is_admin = claims
-        .roles
-        .iter()
-        .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
-    let logs_response =
-        BuildLogsService::get_logs(&state.db, claims.sub, is_admin, id, deployment_id).await?;
+    // let _is_admin = claims
+    //     .roles
+    //     .iter()
+    //     .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
 
-    let events: Vec<Result<Event, Infallible>> = logs_response
-        .logs
-        .into_iter()
-        .map(|item| {
-            let json = serde_json::to_string(&item).unwrap();
-            Ok(Event::default().data(json))
-        })
-        .collect();
+    let (tx, rx) = mpsc::channel::<Result<Event, Infallible>>(100);
 
-    let stream = stream::iter(events);
+    let logs_stream_consumer = LogStreamConsumer::new();
+    let _s = logs_stream_consumer
+        .start(state, deployment_id.to_string(), tx)
+        .await;
+
+    let stream = ReceiverStream::new(rx);
 
     Ok(Sse::new(stream)
         .keep_alive(axum::response::sse::KeepAlive::new().interval(Duration::from_secs(15))))

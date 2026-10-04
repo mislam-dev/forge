@@ -6,6 +6,8 @@ use super::builders::{
 use super::cloning::RepoCloning;
 use super::deployment_durations::DeploymentDurations;
 use super::deployment_path::{DeploymentPath, DeploymentPathDTO, Owner, OwnerType};
+use super::log_stream::LogStream;
+use super::log_stream::{LogItem, LogLevel};
 use crate::config::AppConfig;
 use crate::modules::projects::DeploymentsService;
 use crate::modules::projects::build_worker::traits::ProjectBuilder;
@@ -36,6 +38,7 @@ pub struct BuildPipeline {
     repo_url: String,
     branch: String,
     durations: DeploymentDurations,
+    log_stream: LogStream,
 }
 
 impl BuildPipeline {
@@ -49,6 +52,7 @@ impl BuildPipeline {
         pat_token: Option<&str>,
         env_vars: &[(&str, &str)], // todo: update this later
         repo_url: String,
+        log_stream: LogStream,
     ) -> Self {
         let transformed_envs: Vec<(String, String)> = env_vars
             .iter()
@@ -66,6 +70,7 @@ impl BuildPipeline {
             repo_url,                   // todo: must be dynamic
             branch: "main".to_string(), // todo: must be dynamic
             durations: DeploymentDurations::new(),
+            log_stream,
         }
     }
 
@@ -165,10 +170,10 @@ impl BuildPipeline {
     }
 
     pub async fn execute_pipeline(&mut self) -> Result<(), AppError> {
-        self.log_info("Start", "Executing pipelines...");
+        self.log_info("Start", "Executing pipelines...").await;
         let _ = &self.durations.set_start_time();
         // Step 1: Clone Repository (Queued -> Building)
-        self.log_info("Download", "Cloning repo data...");
+        self.log_info("Download", "Cloning repo data...").await;
         RepoCloning::new(
             self.pat_token.clone(),
             self.repo_url.clone(),
@@ -179,7 +184,7 @@ impl BuildPipeline {
         .await?;
         self.durations.set_clone_duration();
 
-        self.log_info("Build", "0/3 | Starting Build");
+        self.log_info("Build", "0/3 | Starting Build").await;
 
         self.update_status_internal(DeploymentStatus::Building)
             .await?;
@@ -192,40 +197,41 @@ impl BuildPipeline {
         let builder = builder.unwrap();
 
         // Step 2: Validation
-        self.log_info("Build", "1/7 | Validating...");
+        self.log_info("Build", "1/7 | Validating...").await;
         builder.validate().await?;
         self.durations.set_validate_duration();
 
         // Step 3: generate necessary files
         builder.create_files().await?;
-        self.log_info("Build", "2/7 | Creating necessary files...");
+        self.log_info("Build", "2/7 | Creating necessary files...")
+            .await;
 
         let version_tag = "1.0.0".to_string();
         // Step 4: Build Docker Image
-        self.log_info("Build", "3/7 | Building...");
+        self.log_info("Build", "3/7 | Building...").await;
         let image_id = builder.build(version_tag).await?;
         let _ = &self.durations.set_build_duration();
 
         // Step 5: Deploy Container (Building -> Deploying)
         self.update_status_internal(DeploymentStatus::Deploying)
             .await?;
-        self.log_info("Build", "4/7 | Deploying...");
+        self.log_info("Build", "4/7 | Deploying...").await;
         let container_id = builder
             .deploy(image_id, "production".to_string(), 1)
             .await?;
         self.durations.set_deploy_duration();
 
-        self.log_info("Build", "5/7 | Starting...");
+        self.log_info("Build", "5/7 | Starting...").await;
         // Step 6: Run container Deploying -> Running)
         builder.run(container_id).await?;
         self.update_status_internal(DeploymentStatus::Running)
             .await?;
-        self.log_info("Build", "6/7 | Checking...");
+        self.log_info("Build", "6/7 | Checking...").await;
         // Step 7: Health Check Probe (Running -> Success)
         builder.health_check().await?;
         self.durations.set_health_check_duration();
 
-        self.log_info("Build", "7/7 | Finishing...");
+        self.log_info("Build", "7/7 | Finishing...").await;
         // Step 8: Cleanup
         builder.cleanup().await?;
 
@@ -235,8 +241,19 @@ impl BuildPipeline {
         Ok(())
     }
 
-    fn log_info(&self, step: &str, log_line: &str) {
-        let _log_v = format!("[{}]: {}", step, log_line);
+    async fn log_info(&self, step: &str, log_line: &str) {
+        let log_v = format!("[{}]: {}", step, log_line);
+        let _a = self
+            .log_stream
+            .stream(LogItem {
+                level: LogLevel::Info,
+                step: step.to_string(),
+                message: log_v,
+                deployment_id: self.deployment_id.to_string(),
+                timestamp: chrono::Utc::now().to_string(),
+                is_end: false,
+            })
+            .await;
         // todo: stream to log info to fe with SSE.
         tracing::info!("[{}]: {}", step, log_line);
     }

@@ -29,8 +29,8 @@ impl MessagePublisher for MockMessagePublisher {
             serde_json::to_vec(message).map_err(|e| QueueError::SerializeError(e.to_string()))?;
 
         self.published.lock().await.push((
-            M::exchange().to_string(),
-            M::routing_key().to_string(),
+            message.exchange().to_string(),
+            message.routing_key().to_string(),
             payload,
         ));
 

@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 
 use tokio::signal;
 use tower_http::trace::TraceLayer;
@@ -7,7 +7,7 @@ use forge::{
     app::{app::create_app, state::AppState},
     config::AppConfig,
     infrastructure::queue::{RabbitMq, RabbitMqConfig, RabbitMqConsumer, RabbitMqTopology},
-    modules::projects::BuildWorkerService,
+    modules::projects::{BuildWorkerService, logs::LogStreamConsumer},
     shared::logger,
 };
 
@@ -44,16 +44,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             tracing::warn!(error = %e, "Could not connect to RabbitMQ broker on startup");
         }
     }
-
+    let queue = Arc::new(app_state.queue.clone());
     // start build worker service
     tracing::info!("Starting builder worker service");
-    let _rabbitmq_worker_channel = if let Some(rmq) = app_state.queue.rabbitmq() {
+    let _rabbitmq_worker_channel = if let Some(rmq) = queue.rabbitmq() {
         tracing::info!("[rabbitmq]: opening channel");
         match rmq.open_channel().await {
             Ok(worker_channel) => {
-                tracing::info!("[rabbitmq]: channeld opened successfully!");
+                tracing::info!("[rabbitmq]: channel opened successfully!");
                 let handler =
-                    BuildWorkerService::new(app_state.db.clone(), app_state.config.clone());
+                    BuildWorkerService::new(app_state.db.clone(), app_state.config.clone(), queue);
 
                 tracing::info!("[rabbitmq]: starting consumer");
                 match RabbitMqConsumer::start_consumer(

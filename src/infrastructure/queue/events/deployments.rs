@@ -14,15 +14,15 @@ pub struct DeploymentJobCreated {
 }
 
 impl RabbitMqMessage for DeploymentJobCreated {
-    fn exchange() -> &'static str {
+    fn exchange(&self) -> &'static str {
         "forge.deployments"
     }
 
-    fn routing_key() -> &'static str {
+    fn routing_key(&self) -> &'static str {
         "job.build"
     }
 
-    fn message_type() -> &'static str {
+    fn message_type(&self) -> &'static str {
         "deployment.job.created"
     }
 }

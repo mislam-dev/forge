@@ -278,12 +278,12 @@ sequenceDiagram
 
 # 11. API Endpoints
 
-| Method | Endpoint                             | Description                          |
-| ------ | ------------------------------------ | ------------------------------------ |
-| GET    | /deployments/:id/logs/stream         | Open live SSE log stream             |
-| GET    | /deployments/:id/logs                | Get stored logs (with filters)       |
-| GET    | /deployments/:id/logs/search         | Search logs by keyword               |
-| GET    | /deployments/:id/logs/download       | Download logs as `.log` file         |
+| Method | Endpoint                                              | Description                          |
+| ------ | ----------------------------------------------------- | ------------------------------------ |
+| GET    | /projects/:id/deployments/:deployment_id/logs/stream  | Open live SSE log stream             |
+| GET    | /projects/:id/deployments/:deployment_id/logs         | Get stored logs                      |
+| GET    | /projects/:id/deployments/:deployment_id/logs/search  | Search logs by keyword               |
+| GET    | /projects/:id/deployments/:deployment_id/logs/download| Download logs as `.log` file         |
 
 ---
 

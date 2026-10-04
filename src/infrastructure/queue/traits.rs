@@ -11,12 +11,18 @@ where
 }
 
 pub trait RabbitMqMessage: Serialize + Send + Sync {
-    fn exchange() -> &'static str;
-    fn routing_key() -> &'static str;
-    fn message_type() -> &'static str;
+    fn exchange(&self) -> &'static str;
+    fn routing_key(&self) -> &str;
+    fn message_type(&self) -> &'static str;
 
     fn content_type(&self) -> &'static str {
         "application/json"
+    }
+    fn delivery_mode(&self) -> u8 {
+        2
+    }
+    fn expiration(&self) -> Option<&'static str> {
+        None
     }
 }
 

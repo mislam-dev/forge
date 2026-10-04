@@ -584,32 +584,26 @@ All endpoints are available under the versioned prefix `/api/v1`, the legacy `/a
 
 ---
 
-## 13. Live Build Logs APIs (`/deployments/{id}/logs`)
+## 13. Live Build Logs APIs (`/projects/{id}/deployments/{deployment_id}/logs`)
 
-- **`GET /deployments/{id}/logs/stream`**
+- **`GET /projects/{id}/deployments/{deployment_id}/logs/stream`**
   - **Description:** Real-time Server-Sent Events (SSE) stream of live container build and run logs.
   - **Auth:** ✅ Project Viewer+
   - **Headers:** `Accept: text/event-stream`
-  - **Success (200 OK):** Continuous SSE stream (`data: {"line": 102, "text": "Compiling forge v0.1.0..."}\n\n`).
-- **`GET /deployments/{id}/logs`**
-  - **Description:** Query stored historical build logs with pagination and stage filtering.
+  - **Success (200 OK):** Continuous SSE stream (`event: message\ndata: ...\n\n`).
+- **`GET /projects/{id}/deployments/{deployment_id}/logs`**
+  - **Description:** Query stored historical build logs.
   - **Auth:** ✅ Project Viewer+
-  - **Query:** `stage` *(e.g. "build", "run")*, `limit`, `offset`.
-  - **Success (200 OK):** Array of log lines with timestamps and levels.
-- **`POST /deployments/{id}/logs`**
-  - **Description:** Internal ingestion endpoint for Build Worker / Docker runner to write log chunks.
-  - **Auth:** ⚙️ Build Worker Service Token
-  - **Body (JSON):** `lines` *(array of log line objects)*.
-  - **Success (200 OK):** Log lines ingested.
-- **`GET /deployments/{id}/logs/search`**
+  - **Success (200 OK):** Object containing `deployment_id` and array of `logs` items (`timestamp`, `level`, `step`, `message`).
+- **`GET /projects/{id}/deployments/{deployment_id}/logs/search`**
   - **Description:** Full-text keyword search across deployment log history.
   - **Auth:** ✅ Project Viewer+
-  - **Query:** `q` *(search term, required)*.
-  - **Success (200 OK):** Matched log lines with line numbers and contexts.
-- **`GET /deployments/{id}/logs/download`**
+  - **Query:** `q` *(search term, required)*, `page`, `per_page`.
+  - **Success (200 OK):** Object containing `deployment_id` and array of matched `logs` items.
+- **`GET /projects/{id}/deployments/{deployment_id}/logs/download`**
   - **Description:** Download the complete raw build and deployment log as a single plain text file (`.log`).
   - **Auth:** ✅ Project Viewer+
-  - **Success (200 OK):** Streamed `text/plain` file download (`Content-Disposition: attachment; filename="deployment-<id>.log"`).
+  - **Success (200 OK):** Streamed `text/plain` file download (`Content-Disposition: attachment; filename="deployment-<deployment_id>.log"`).
 
 ---
 
@@ -754,12 +748,10 @@ All endpoints are available under the versioned prefix `/api/v1`, the legacy `/a
 | **Deployments** | `GET` | `/projects/{id}/deployments/{deployment_id}` | Get deployment status | Viewer |
 | **Deployments** | `POST` | `/projects/{id}/deployments/{deployment_id}/redeploy` | Redeploy past deployment | Developer |
 | **Deployments** | `POST` | `/projects/{id}/deployments/rollback` | Rollback to healthy state | Project Owner / Admin |
-| **Deployments** | `PUT` | `/projects/internal/deployments/{deployment_id}/status` | Update execution stage | Internal Build Worker |
-| **Logs** | `GET` | `/deployments/{id}/logs/stream` | Stream live build logs (SSE) | Viewer |
-| **Logs** | `GET` | `/deployments/{id}/logs` | Query stored logs | Viewer |
-| **Logs** | `POST` | `/deployments/{id}/logs` | Ingest worker log batch | Internal Build Worker |
-| **Logs** | `GET` | `/deployments/{id}/logs/search` | Search log text | Viewer |
-| **Logs** | `GET` | `/deployments/{id}/logs/download` | Download raw `.log` file | Viewer |
+| **Logs** | `GET` | `/projects/{id}/deployments/{deployment_id}/logs/stream` | Stream live build logs (SSE) | Viewer |
+| **Logs** | `GET` | `/projects/{id}/deployments/{deployment_id}/logs` | Query stored logs | Viewer |
+| **Logs** | `GET` | `/projects/{id}/deployments/{deployment_id}/logs/search` | Search log text | Viewer |
+| **Logs** | `GET` | `/projects/{id}/deployments/{deployment_id}/logs/download` | Download raw `.log` file | Viewer |
 | **Dashboard** | `GET` | `/dashboard` | System-wide platform metrics | System Admin |
 | **Dashboard** | `GET` | `/dashboard/user` | User personalized overview | Authenticated |
 | **Dashboard** | `GET` | `/dashboard/org/{org_id}` | Org operational metrics | Org Viewer |

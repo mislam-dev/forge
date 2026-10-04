@@ -3,7 +3,7 @@ pub mod build_worker;
 pub mod deployments;
 pub mod environment_variables;
 pub mod extractors;
-// pub mod logs;
+pub mod logs;
 pub mod permissions;
 pub mod projects;
 pub mod repositories;

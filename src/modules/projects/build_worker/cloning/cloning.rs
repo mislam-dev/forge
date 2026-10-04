@@ -2,7 +2,7 @@ use crate::infrastructure::github::{GithubRepo, RepoCheckDto, RepoCloneDto};
 use crate::shared::error::AppError;
 use std::path::PathBuf;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct RepoCloning {
     pat_token: Option<String>,
     repo_url: String,

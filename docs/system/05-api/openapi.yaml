@@ -2306,9 +2306,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponseDeployment'
 
-  /deployments/{id}/logs/stream:
+  /projects/{id}/deployments/{deployment_id}/logs/stream:
     get:
-      operationId: deployments_id_logs_stream_get
+      operationId: projects_id_deployments_deployment_id_logs_stream_get
       tags:
         - Live Build Logs
       summary: "Open Server-Sent Events (SSE) log stream"
@@ -2316,6 +2316,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
@@ -2324,10 +2325,16 @@ paths:
             text/event-stream:
               schema:
                 type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
-  /deployments/{id}/logs:
+  /projects/{id}/deployments/{deployment_id}/logs:
     get:
-      operationId: deployments_id_logs_get
+      operationId: projects_id_deployments_deployment_id_logs_get
       tags:
         - Live Build Logs
       summary: "Get stored build logs"
@@ -2335,32 +2342,38 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
-        - name: step
-          in: query
-          schema:
-            type: string
-            enum:
-              - "clone"
-              - "build"
-              - "deploy"
-              - "health_check"
-        - name: level
-          in: query
-          schema:
-            type: string
-            enum:
-              - "INFO"
-              - "WARN"
-              - "ERROR"
-              - "DEBUG"
       responses:
         '200':
           description: "Stored log lines retrieved"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBuildLog'
+              example:
+                message: "Build logs retrieved successfully."
+                data:
+                  deployment_id: "a1b2c3d4-e89b-12d3-a456-426614174000"
+                  logs:
+                    - timestamp: "2026-08-19T10:00:00Z"
+                      level: "INFO"
+                      step: "clone"
+                      message: "Cloning repository..."
+                    - timestamp: "2026-08-19T10:00:05Z"
+                      level: "INFO"
+                      step: "build"
+                      message: "Docker build completed successfully."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
-  /deployments/{id}/logs/search:
+  /projects/{id}/deployments/{deployment_id}/logs/search:
     get:
-      operationId: deployments_id_logs_search_get
+      operationId: projects_id_deployments_deployment_id_logs_search_get
       tags:
         - Live Build Logs
       summary: "Search build logs by keyword"
@@ -2368,19 +2381,52 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
         - name: q
           in: query
           required: true
           schema:
             type: string
+          example: "error"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          example: 10
       responses:
         '200':
           description: "Filtered log results"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBuildLog'
+              example:
+                message: "Build log search completed successfully."
+                data:
+                  deployment_id: "a1b2c3d4-e89b-12d3-a456-426614174000"
+                  logs:
+                    - timestamp: "2026-08-19T10:00:05Z"
+                      level: "ERROR"
+                      step: "build"
+                      message: "error: failed to compile `app`"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
-  /deployments/{id}/logs/download:
+  /projects/{id}/deployments/{deployment_id}/logs/download:
     get:
-      operationId: deployments_id_logs_download_get
+      operationId: projects_id_deployments_deployment_id_logs_download_get
       tags:
         - Live Build Logs
       summary: "Download complete deployment log file"
@@ -2388,6 +2434,7 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
         - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
       responses:
         '200':
@@ -2396,6 +2443,12 @@ paths:
             text/plain:
               schema:
                 type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /projects/{id}/deployments/{deployment_id}/redeploy:
     post:
@@ -4117,6 +4170,54 @@ components:
           example: "Deployments retrieved successfully."
         data:
           $ref: '#/components/schemas/PaginatedDeploymentData'
+
+    LogItem:
+      type: object
+      required:
+        - timestamp
+        - level
+        - step
+        - message
+      properties:
+        timestamp:
+          type: string
+          example: "2026-08-19T10:00:00Z"
+        level:
+          type: string
+          example: "INFO"
+        step:
+          type: string
+          example: "clone"
+        message:
+          type: string
+          example: "Cloning repository..."
+
+    BuildLogResponse:
+      type: object
+      required:
+        - deployment_id
+        - logs
+      properties:
+        deployment_id:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e89b-12d3-a456-426614174000"
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogItem'
+
+    ApiResponseBuildLog:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Build logs retrieved successfully."
+        data:
+          $ref: '#/components/schemas/BuildLogResponse'
 
     ErrorResponse:
       type: object
