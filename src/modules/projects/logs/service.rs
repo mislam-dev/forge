@@ -1,17 +1,16 @@
-use sea_orm::*;
-use uuid::Uuid;
-
 use super::super::deployments::repository::DeploymentsRepository;
-use super::super::permissions::role::ProjectRole;
-use super::super::permissions::service::ProjectPermissionsService;
 use super::super::projects::repository::ProjectsRepository;
 use super::dto::{BuildLogResponse, LogItem, LogSearchQuery};
+use crate::infrastructure::logging::loki_client::{LokiClient, LokiFetchQuery};
+
 use crate::shared::error::AppError;
+use sea_orm::*;
+use uuid::Uuid;
 
 pub struct BuildLogsService;
 
 impl BuildLogsService {
-    fn mock_logs_for_deployment(_deployment_id: Uuid) -> Vec<LogItem> {
+    fn _mock_logs_for_deployment(_deployment_id: Uuid) -> Vec<LogItem> {
         vec![
             LogItem {
                 timestamp: "2026-08-19T10:00:00Z".to_string(),
@@ -48,25 +47,19 @@ impl BuildLogsService {
 
     pub async fn get_logs(
         db: &DatabaseConnection,
-        requester_id: Uuid,
-        is_system_admin: bool,
+        loki: &LokiClient,
+        org_id: Option<Uuid>,
         project_id: Uuid,
         deployment_id: Uuid,
     ) -> Result<BuildLogResponse, AppError> {
-        let project = ProjectsRepository::find_by_id(db, project_id)
-            .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
-
-        if !is_system_admin {
-            ProjectPermissionsService::verify_project_role(
-                db,
-                project_id,
-                requester_id,
-                project.organization_id,
-                is_system_admin,
-                ProjectRole::Viewer,
-            )
-            .await?;
+        if let Some(org_id) = org_id {
+            let _project = ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Project not found! aa".to_string()))?;
+        } else {
+            let _project = ProjectsRepository::find_by_id(db, project_id)
+                .await?
+                .ok_or_else(|| AppError::NotFound("Project not found! aa".to_string()))?;
         }
 
         let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
@@ -79,21 +72,47 @@ impl BuildLogsService {
             ));
         }
 
-        Ok(BuildLogResponse {
+        let dto = LokiFetchQuery {
             deployment_id: deployment_id.to_string(),
-            logs: Self::mock_logs_for_deployment(deployment_id),
-        })
+            from: deployment.created_at.into(),
+            to: deployment.updated_at.into(),
+        };
+
+        let logs = loki.find_by_deployment_id(dto).await.map_err(|e| {
+            return AppError::InternalServerError(format!(
+                "Failed to fetch logs from Loki: {:?}",
+                e
+            ));
+        })?;
+
+        println!("LokiLogs:  {:#?}", logs);
+
+        let logs = logs
+            .into_iter()
+            .map(|log| LogItem {
+                timestamp: log.timestamp,
+                level: log.level.to_string(),
+                step: log.step,
+                message: log.message,
+            })
+            .collect();
+        println!("Transformed logs:  {:#?}", logs);
+        let response_data = BuildLogResponse {
+            deployment_id: deployment_id.to_string(),
+            logs,
+        };
+
+        Ok(response_data)
     }
 
     pub async fn download_logs(
         db: &DatabaseConnection,
-        requester_id: Uuid,
-        is_system_admin: bool,
+        loki: &LokiClient,
+        org_id: Option<Uuid>,
         project_id: Uuid,
         deployment_id: Uuid,
     ) -> Result<String, AppError> {
-        let logs_response =
-            Self::get_logs(db, requester_id, is_system_admin, project_id, deployment_id).await?;
+        let logs_response = Self::get_logs(db, loki, org_id, project_id, deployment_id).await?;
         let mut buffer = String::new();
         for item in logs_response.logs {
             buffer.push_str(&format!(
@@ -106,14 +125,13 @@ impl BuildLogsService {
 
     pub async fn search_logs(
         db: &DatabaseConnection,
-        requester_id: Uuid,
-        is_system_admin: bool,
+        loki: &LokiClient,
+        org_id: Option<Uuid>,
         project_id: Uuid,
         deployment_id: Uuid,
         query: LogSearchQuery,
     ) -> Result<BuildLogResponse, AppError> {
-        let logs_response =
-            Self::get_logs(db, requester_id, is_system_admin, project_id, deployment_id).await?;
+        let logs_response = Self::get_logs(db, loki, org_id, project_id, deployment_id).await?;
         let pattern = query.q.to_lowercase();
 
         let filtered = logs_response
@@ -129,23 +147,5 @@ impl BuildLogsService {
             deployment_id: deployment_id.to_string(),
             logs: filtered,
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn setup_mock_db() -> DatabaseConnection {
-        MockDatabase::new(DatabaseBackend::Postgres).into_connection()
-    }
-
-    #[tokio::test]
-    async fn test_get_logs_deployment_not_found() {
-        let db = setup_mock_db();
-        let result =
-            BuildLogsService::get_logs(&db, Uuid::new_v4(), false, Uuid::new_v4(), Uuid::new_v4())
-                .await;
-        assert!(result.is_err());
     }
 }

@@ -14,8 +14,8 @@ use crate::shared::pagination::PaginatedResponse;
 pub struct DeploymentsRepository;
 
 impl DeploymentsRepository {
-    pub async fn find_by_id<C: ConnectionTrait>(
-        db: &C,
+    pub async fn find_by_id(
+        db: &DatabaseConnection,
         id: Uuid,
     ) -> Result<Option<DeploymentModel>, AppError> {
         DeploymentEntity::find_by_id(id)
@@ -24,8 +24,8 @@ impl DeploymentsRepository {
             .map_err(AppError::from)
     }
 
-    pub async fn find_by_project_id<C: ConnectionTrait>(
-        db: &C,
+    pub async fn find_by_project_id(
+        db: &DatabaseConnection,
         project_id: Uuid,
         query: DeploymentHistoryQuery,
     ) -> Result<PaginatedResponse<DeploymentModel>, AppError> {
@@ -130,8 +130,8 @@ impl DeploymentsRepository {
         active_model.update(db).await.map_err(AppError::from)
     }
 
-    pub async fn update_status<C: ConnectionTrait>(
-        db: &C,
+    pub async fn update_status(
+        db: &DatabaseConnection,
         deployment_id: Uuid,
         target_status: DeploymentStatus,
         build_duration: Option<i32>,

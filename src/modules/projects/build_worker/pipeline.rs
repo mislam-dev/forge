@@ -233,17 +233,14 @@ impl BuildPipeline {
 
     async fn log_info(&self, step: &str, log_line: &str) {
         let log_v = format!("[{}]: {}", step, log_line);
-        let _a = self
-            .log_stream
-            .stream(LogItem {
-                level: LogLevel::Info,
-                step: step.to_string(),
-                message: log_v,
-                deployment_id: self.deployment_id.to_string(),
-                timestamp: chrono::Utc::now().to_string(),
-                is_end: false,
-            })
-            .await;
+        let log_item = LogItem::new(
+            step,
+            LogLevel::Info,
+            log_v,
+            self.deployment_id.to_string(),
+            false,
+        );
+        let _a = self.log_stream.stream(log_item).await;
         // todo: stream to log info to fe with SSE.
         tracing::info!("[{}]: {}", step, log_line);
     }

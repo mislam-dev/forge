@@ -1,16 +1,16 @@
-use std::sync::Arc;
-
-use sea_orm::DatabaseConnection;
-
+use crate::infrastructure::logging::loki_client::LokiClient;
 use crate::infrastructure::queue::{
     MockMessagePublisher, QueuePublisher, RabbitMq, RabbitMqConfig, RabbitMqPublisher,
 };
 use crate::{config::AppConfig, database::connect_db};
+use sea_orm::DatabaseConnection;
+use std::sync::Arc;
 #[derive(Clone, Debug)]
 pub struct AppState {
     pub db: Arc<DatabaseConnection>,
     pub config: Arc<AppConfig>,
     pub queue: QueuePublisher,
+    pub loki: Arc<LokiClient>,
 }
 
 impl AppState {
@@ -29,10 +29,13 @@ impl AppState {
     }
 
     pub fn from_parts(db: DatabaseConnection, config: AppConfig, queue: QueuePublisher) -> Self {
+        let loki_client = Arc::new(LokiClient::new(config.infra.loki_url.to_string()));
+
         Self {
             db: Arc::new(db),
             config: Arc::new(config),
             queue,
+            loki: loki_client,
         }
     }
 

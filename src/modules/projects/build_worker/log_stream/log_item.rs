@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -31,8 +33,28 @@ impl LogItem {
             level,
             message,
             deployment_id,
-            timestamp: chrono::Utc::now().to_string(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
             is_end,
         }
+    }
+}
+
+impl Display for LogLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LogLevel::Error => write!(f, "error"),
+            LogLevel::Info => write!(f, "info"),
+            LogLevel::Warn => write!(f, "warn"),
+        }
+    }
+}
+
+impl Display for LogItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} {} {} {}",
+            self.timestamp, self.level, self.step, self.message
+        )
     }
 }

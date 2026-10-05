@@ -1,15 +1,13 @@
-use std::{net::SocketAddr, sync::Arc};
-
-use tokio::signal;
-use tower_http::trace::TraceLayer;
-
 use forge::{
     app::{app::create_app, state::AppState},
     config::AppConfig,
     infrastructure::queue::{RabbitMq, RabbitMqConfig, RabbitMqConsumer, RabbitMqTopology},
-    modules::projects::{BuildWorkerService, logs::LogStreamConsumer},
+    modules::projects::BuildWorkerService,
     shared::logger,
 };
+use std::{net::SocketAddr, sync::Arc};
+use tokio::signal;
+use tower_http::trace::TraceLayer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -25,10 +23,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tracing::info!("Starting application.....");
     let app_state = AppState::new().await?;
-
-    // tracing::info!("start processing build worker jobs dummy");
-    // let _a = BuildWorkerService::process_job_dummy(&app_state.db, &app_config).await?;
-    // tracing::info!("end processing build worker jobs dummy");
 
     let rmq_config = RabbitMqConfig::from_env();
 
@@ -94,7 +88,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let local_addr = listener.local_addr().unwrap();
 
-    tracing::info!("Server listening on {}", local_addr);
+    tracing::info!("Server listening on http://{}", local_addr);
 
     let _ = axum::serve(listener, app.layer(TraceLayer::new_for_http()))
         .with_graceful_shutdown(shutdown_signal())
