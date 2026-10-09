@@ -35,12 +35,20 @@ impl RefreshTokenRepository {
     }
 
     pub async fn fetch_refresh_token(db: &DatabaseConnection, token: &str) -> Result<(), AppError> {
-        let filter = Condition::all().add(RefreshColumn::Token.eq(token));
-        let _ = RefreshEntity::find()
+        let now = chrono::Utc::now();
+        let filter = Condition::all()
+            .add(RefreshColumn::Token.eq(token))
+            .add(RefreshColumn::ExpiresAt.gt(now));
+        let data = RefreshEntity::find()
             .filter(filter)
             .one(db)
             .await
             .map_err(AppError::Database)?;
+
+        if data.is_none() {
+            return Err(AppError::NotFound("Refresh token not found".to_string()));
+        }
+
         Ok(())
     }
 

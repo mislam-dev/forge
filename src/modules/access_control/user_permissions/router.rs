@@ -1,5 +1,5 @@
 use super::handlers::UserPermissionsHandlers;
-use crate::{app::state::AppState, modules::auth::token::JwtClaims};
+use crate::{app::state::AppState, modules::auth::token::AccessTokenClaims};
 use axum::{
     Router, middleware,
     routing::{get, post},
@@ -10,7 +10,7 @@ pub fn user_permissions_router() -> Router<AppState> {
         .route("/permission/assign", post(UserPermissionsHandlers::assign))
         .route("/permission/remove", post(UserPermissionsHandlers::remove))
         .route("/permissions/{id}", get(UserPermissionsHandlers::show))
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>())
 }
 
 #[cfg(test)]

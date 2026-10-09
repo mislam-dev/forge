@@ -5,7 +5,7 @@ use axum::{
 
 use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 
 pub fn environment_variables_router() -> Router<AppState> {
     Router::new()
@@ -18,7 +18,7 @@ pub fn environment_variables_router() -> Router<AppState> {
             "/{id}/env-vars/{env_id}",
             patch(handlers::update_env_var).delete(handlers::delete_env_var),
         )
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>())
 }
 
 #[cfg(test)]

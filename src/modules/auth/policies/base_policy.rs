@@ -1,15 +1,15 @@
-use crate::{modules::auth::token::JwtClaims, shared::error::AppError};
+use crate::{modules::auth::token::AccessTokenClaims, shared::error::AppError};
 use axum::extract::FromRequestParts;
 use std::marker::PhantomData;
 
 pub trait AuthPolicyTrait: Send + Sync + 'static {
-    fn check(claims: &JwtClaims) -> bool;
+    fn check(claims: &AccessTokenClaims) -> bool;
 }
 
-pub struct Guard<P>(pub JwtClaims, pub PhantomData<P>);
+pub struct Guard<P>(pub AccessTokenClaims, pub PhantomData<P>);
 
 impl<P> Guard<P> {
-    pub fn claims(self) -> JwtClaims {
+    pub fn claims(self) -> AccessTokenClaims {
         self.0
     }
 }
@@ -25,7 +25,7 @@ where
         parts: &mut axum::http::request::Parts,
         state: &S,
     ) -> Result<Self, Self::Rejection> {
-        let claims = JwtClaims::from_request_parts(parts, state).await?;
+        let claims = AccessTokenClaims::from_request_parts(parts, state).await?;
 
         if !P::check(&claims) {
             return Err(AppError::Forbidden("Forbidden".to_string()));

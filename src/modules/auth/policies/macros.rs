@@ -6,7 +6,7 @@ macro_rules! define_policy {
         pub struct $struct_name;
 
         impl $crate::modules::auth::policies::base_policy::AuthPolicyTrait for $struct_name {
-            fn check(claims: &$crate::modules::auth::token::JwtClaims) -> bool {
+            fn check(claims: &$crate::modules::auth::token::AccessTokenClaims) -> bool {
                 claims.permissions.iter().any(|p| p == $perm_value)
             }
         }
@@ -17,7 +17,7 @@ pub use define_policy;
 
 #[cfg(test)]
 mod tests {
-    use crate::modules::auth::{policies::base_policy::AuthPolicyTrait, token::JwtClaims};
+    use crate::modules::auth::{policies::base_policy::AuthPolicyTrait, token::AccessTokenClaims};
     use uuid::Uuid;
 
     define_policy!(
@@ -26,8 +26,8 @@ mod tests {
         "Test policy for macro verification"
     );
 
-    fn make_claims(permissions: Vec<&str>) -> JwtClaims {
-        JwtClaims {
+    fn make_claims(permissions: Vec<&str>) -> AccessTokenClaims {
+        AccessTokenClaims {
             sub: Uuid::new_v4(),
             email: "macro_test@example.com".to_string(),
             roles: vec![],

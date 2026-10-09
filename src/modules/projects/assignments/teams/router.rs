@@ -2,7 +2,7 @@ use axum::{Router, middleware, routing::post};
 
 use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 
 pub fn teams_router() -> Router<AppState> {
     Router::new()
@@ -14,7 +14,7 @@ pub fn teams_router() -> Router<AppState> {
             "/{id}/teams/{team_id}",
             axum::routing::delete(handlers::remove_team),
         )
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>())
 }
 
 #[cfg(test)]

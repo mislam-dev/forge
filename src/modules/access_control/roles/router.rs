@@ -1,5 +1,5 @@
 use super::handlers::RolesHandlers;
-use crate::{app::state::AppState, modules::auth::token::JwtClaims};
+use crate::{app::state::AppState, modules::auth::token::AccessTokenClaims};
 use axum::{
     Router, middleware,
     routing::{delete, get, patch, post},
@@ -12,7 +12,7 @@ pub fn roles_router() -> Router<AppState> {
         .route("/", post(RolesHandlers::add))
         .route("/{id}", patch(RolesHandlers::update))
         .route("/{id}", delete(RolesHandlers::remove))
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>())
 }
 
 #[cfg(test)]

@@ -10,7 +10,7 @@ use super::dto::{
 };
 use super::service::HealthService;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 
@@ -34,7 +34,7 @@ pub async fn check_health(
 
 pub async fn check_health_details(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
 ) -> Result<ApiResponse<DetailedHealthResponse>, AppError> {
     let is_admin = claims
         .roles
@@ -90,7 +90,7 @@ pub async fn health_readiness_probe() -> (StatusCode, Json<ReadinessProbeRespons
 }
 
 pub async fn health_deep_check(
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
     Query(_query): Query<DeepHealthQuery>,
 ) -> Result<(StatusCode, Json<DeepHealthResponse>), AppError> {
     let is_admin = claims
@@ -153,7 +153,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_health_deep_check_admin_authorized() {
-        let admin_claims = JwtClaims {
+        let admin_claims = AccessTokenClaims {
             sub: Uuid::new_v4(),
             email: "admin@example.com".to_string(),
             roles: vec!["system_admin".to_string()],
@@ -173,7 +173,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_health_deep_check_non_admin_forbidden() {
-        let user_claims = JwtClaims {
+        let user_claims = AccessTokenClaims {
             sub: Uuid::new_v4(),
             email: "user@example.com".to_string(),
             roles: vec!["developer".to_string()],

@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::{
     app::state::AppState,
     modules::{
-        auth::token::JwtClaims,
+        auth::token::AccessTokenClaims,
         organization::{permissions::role::OrgRole, service::OrgPermissionsService},
     },
     shared::error::AppError,
@@ -16,7 +16,7 @@ pub trait OrgRoleRequirements: Send + Sync + 'static {
     fn required_roles() -> Vec<OrgRole>;
 }
 
-pub struct RequireOrgRole<R: OrgRoleRequirements>(pub JwtClaims, pub PhantomData<R>);
+pub struct RequireOrgRole<R: OrgRoleRequirements>(pub AccessTokenClaims, pub PhantomData<R>);
 
 impl<R: OrgRoleRequirements> std::fmt::Debug for RequireOrgRole<R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -25,7 +25,7 @@ impl<R: OrgRoleRequirements> std::fmt::Debug for RequireOrgRole<R> {
 }
 
 impl<R: OrgRoleRequirements> RequireOrgRole<R> {
-    pub fn into_claims(self) -> JwtClaims {
+    pub fn into_claims(self) -> AccessTokenClaims {
         self.0
     }
 }
@@ -42,7 +42,7 @@ where
         parts: &mut axum::http::request::Parts,
         state: &S,
     ) -> Result<Self, Self::Rejection> {
-        let claims = JwtClaims::from_request_parts(parts, state).await?;
+        let claims = AccessTokenClaims::from_request_parts(parts, state).await?;
         let required_roles = R::required_roles();
         let user_id = claims.sub;
 
@@ -71,7 +71,7 @@ where
 mod tests {
     use super::*;
     use crate::config::AppConfig;
-    use crate::modules::auth::token::{AuthTokenService, JwtPayload};
+    use crate::modules::auth::token::{AccessTokenDto, AccessTokenService};
     use axum::http::Request;
 
     struct TestViewerRole;
@@ -92,7 +92,7 @@ mod tests {
     }
 
     fn generate_valid_jwt() -> String {
-        AuthTokenService::access(JwtPayload {
+        AccessTokenService::generate(AccessTokenDto {
             user_id: Uuid::new_v4(),
             email: "test@example.com".to_string(),
             roles: vec!["User".to_string()],

@@ -7,7 +7,7 @@ use crate::modules::auth::dto::response::{
     LoginResponseDto, MeResponseDto, RefreshTokenResponseDto, RegisterResponseDto,
 };
 use crate::modules::auth::service::AuthService;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 use crate::shared::{error::AppError, response::ApiResponse, validation::JsonValidate};
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -36,7 +36,7 @@ pub async fn login(
 
 pub async fn logout(
     State(state): State<AppState>,
-    jwt_claims: JwtClaims,
+    jwt_claims: AccessTokenClaims,
 ) -> Result<ApiResponse<()>, AppError> {
     AuthService::logout(&state.db, jwt_claims.sub).await?;
     Ok(ApiResponse::new()
@@ -58,7 +58,7 @@ pub async fn refresh(
 
 pub async fn me(
     State(state): State<AppState>,
-    jwt_claims: JwtClaims,
+    jwt_claims: AccessTokenClaims,
 ) -> Result<ApiResponse<MeResponseDto>, AppError> {
     let res = AuthService::me(&state.db, jwt_claims).await?;
     Ok(ApiResponse::new()
@@ -174,7 +174,7 @@ mod tests {
     #[tokio::test]
     async fn test_me_handler() {
         let state = setup_mock_state();
-        let jwt_claims = JwtClaims {
+        let jwt_claims = AccessTokenClaims {
             sub: Uuid::new_v4(),
             email: "user@example.com".to_string(),
             roles: vec![],

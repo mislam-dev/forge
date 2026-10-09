@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use crate::{
     app::state::AppState,
     modules::{
-        auth::token::JwtClaims,
+        auth::token::AccessTokenClaims,
         organization::{
             permissions::{extractors::OrgIdHeaderOptional, role::OrgRole},
             service::OrgPermissionsService,
@@ -19,7 +19,7 @@ trait OrgValidationRequiredRoles: Send + Sync + 'static {
 }
 
 #[derive(Debug)]
-pub struct OrgValidationRequired<R>(pub JwtClaims, pub Uuid, pub PhantomData<R>);
+pub struct OrgValidationRequired<R>(pub AccessTokenClaims, pub Uuid, pub PhantomData<R>);
 
 impl<R, S> FromRequestParts<S> for OrgValidationRequired<R>
 where
@@ -33,7 +33,7 @@ where
         parts: &mut axum::http::request::Parts,
         state: &S,
     ) -> Result<Self, Self::Rejection> {
-        let claims = JwtClaims::from_request_parts(parts, state).await?;
+        let claims = AccessTokenClaims::from_request_parts(parts, state).await?;
         let org_id = OrgIdHeaderOptional::from_request_parts(parts, state).await?;
 
         if org_id.0.is_none() {

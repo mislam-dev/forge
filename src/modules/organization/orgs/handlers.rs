@@ -9,7 +9,7 @@ use super::dto::request::{CreateOrganizationRequest, UpdateOrganizationRequest};
 use super::dto::response::OrganizationResponse;
 use super::service::OrganizationService;
 use crate::modules::{
-    auth::token::JwtClaims,
+    auth::token::AccessTokenClaims,
     organization::permissions::extractors::{RequireOwner, RequireViewer},
 };
 use crate::shared::error::AppError;
@@ -22,7 +22,7 @@ use crate::{
 
 pub async fn create(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
     JsonValidate(mut payload): JsonValidate<CreateOrganizationRequest>,
 ) -> Result<ApiResponse<OrganizationResponse>, AppError> {
     let is_admin = claims.roles.iter().any(|r| r.eq_ignore_ascii_case("admin"));
@@ -50,7 +50,7 @@ pub async fn create(
 
 pub async fn list(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
 ) -> Result<ApiResponse<Vec<OrganizationResponse>>, AppError> {
     let is_admin = claims.roles.iter().any(|r| r.eq_ignore_ascii_case("admin"));
 

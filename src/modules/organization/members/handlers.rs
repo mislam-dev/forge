@@ -9,7 +9,7 @@ use super::dto::request::{InviteMemberRequest, UpdateMemberRoleRequest};
 use super::dto::response::{InvitationResponse, MemberResponse};
 use super::service::OrganizationMembersService;
 use crate::modules::{
-    auth::token::JwtClaims,
+    auth::token::AccessTokenClaims,
     organization::permissions::extractors::{RequireAdmin, RequireOrgRole},
 };
 use crate::shared::error::AppError;
@@ -51,7 +51,7 @@ pub async fn list_invitations(
 
 pub async fn accept_invitation(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
     Path(token): Path<String>,
 ) -> Result<ApiResponse<MemberResponse>, AppError> {
     let res = OrganizationMembersService::accept_invitation(&state.db, &token, claims.sub).await?;

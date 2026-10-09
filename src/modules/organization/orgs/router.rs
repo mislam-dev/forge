@@ -5,7 +5,7 @@ use axum::{
 
 use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 
 pub fn orgs_router() -> Router<AppState> {
     Router::new()
@@ -14,7 +14,7 @@ pub fn orgs_router() -> Router<AppState> {
         .route("/{id}", get(handlers::show))
         .route("/{id}", patch(handlers::update))
         .route("/{id}", delete(handlers::remove))
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>())
 }
 
 #[cfg(test)]

@@ -5,7 +5,6 @@ use uuid::Uuid;
 pub struct LoginResponseDto {
     pub access_token: String,
     pub refresh_token: String,
-    pub expires_in: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -19,7 +18,6 @@ pub struct RegisterResponseDto {
 pub struct RefreshTokenResponseDto {
     pub access_token: String,
     pub refresh_token: String,
-    pub expires_in: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

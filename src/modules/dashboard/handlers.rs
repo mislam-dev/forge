@@ -7,13 +7,13 @@ use uuid::Uuid;
 use super::dto::{OrgDashboardResponse, SystemDashboardResponse, UserDashboardResponse};
 use super::service::DashboardService;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 use crate::shared::error::AppError;
 use crate::shared::response::ApiResponse;
 
 pub async fn get_org_dashboard(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
     Path(org_id): Path<Uuid>,
 ) -> Result<ApiResponse<OrgDashboardResponse>, AppError> {
     let is_admin = claims
@@ -31,7 +31,7 @@ pub async fn get_org_dashboard(
 
 pub async fn get_user_dashboard(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
 ) -> Result<ApiResponse<UserDashboardResponse>, AppError> {
     let dashboard = DashboardService::get_user_dashboard(&state.db, claims.sub).await?;
 
@@ -43,7 +43,7 @@ pub async fn get_user_dashboard(
 
 pub async fn get_system_dashboard(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
 ) -> Result<ApiResponse<SystemDashboardResponse>, AppError> {
     let is_admin = claims
         .roles

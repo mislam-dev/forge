@@ -7,7 +7,7 @@ use forge::{
     config::AppConfig,
     modules::{
         auth::token::{
-            AuthTokenService, JwtPayload, PasswordResetToken, RefreshTokenPayload, ResetTokenData,
+            AuthTokenService, JwtPayload, PasswordResetToken, RefreshTokenDto, ResetTokenData,
         },
         users::password::PasswordService,
     },
@@ -88,7 +88,7 @@ fn test_auth_token_service_refresh_token() {
     let user_id = Uuid::new_v4();
     let email = "refreshuser@example.com".to_string();
 
-    let payload = RefreshTokenPayload {
+    let payload = RefreshTokenDto {
         user_id,
         email: email.clone(),
     };

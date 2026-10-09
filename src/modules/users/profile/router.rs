@@ -4,13 +4,13 @@ use axum::{
 };
 
 use super::handlers::{get_profile, update_profile};
-use crate::{app::state::AppState, modules::auth::token::JwtClaims};
+use crate::{app::state::AppState, modules::auth::token::AccessTokenClaims};
 
 pub fn profile_router() -> Router<AppState> {
     Router::new()
         .route("/{id}/profile", get(get_profile))
         .route("/{id}/profile", put(update_profile))
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>())
 }
 
 #[cfg(test)]

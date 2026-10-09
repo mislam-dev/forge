@@ -2,7 +2,7 @@ use axum::{Router, middleware, routing::get};
 
 use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 
 pub fn logs_router() -> Router<AppState> {
     Router::new()
@@ -22,7 +22,7 @@ pub fn logs_router() -> Router<AppState> {
             "/{id}/deployments/{deployment_id}/logs/search",
             get(handlers::search_logs),
         )
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>())
 }
 
 #[cfg(test)]

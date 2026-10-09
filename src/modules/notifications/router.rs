@@ -5,7 +5,7 @@ use axum::{
 
 use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 
 pub fn notifications_router() -> Router<AppState> {
     let internal_routes =
@@ -16,7 +16,7 @@ pub fn notifications_router() -> Router<AppState> {
         .route("/unread-count", get(handlers::get_unread_count))
         .route("/{id}/read", patch(handlers::mark_as_read))
         .route("/read-all", patch(handlers::mark_all_as_read))
-        .route_layer(middleware::from_extractor::<JwtClaims>());
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>());
 
     Router::new().merge(internal_routes).merge(protected_routes)
 }

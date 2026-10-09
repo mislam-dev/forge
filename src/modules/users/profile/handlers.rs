@@ -5,7 +5,7 @@ use super::dto::request::UpdateUserProfileDto;
 use super::dto::response::UserProfileResponse;
 use super::service::UserProfileService;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 use crate::shared::{
     error::AppError, response::ApiResponse, utils::IdParams, validation::JsonValidate,
 };
@@ -24,7 +24,7 @@ pub async fn get_profile(
 pub async fn update_profile(
     State(state): State<AppState>,
     Path(id): Path<IdParams>,
-    jwt_claims: JwtClaims,
+    jwt_claims: AccessTokenClaims,
     JsonValidate(payload): JsonValidate<UpdateUserProfileDto>,
 ) -> Result<ApiResponse<UserProfileResponse>, AppError> {
     let is_admin = jwt_claims
@@ -73,7 +73,7 @@ mod tests {
         let state = setup_mock_state();
         let user_id = Uuid::new_v4();
         let other_user_id = Uuid::new_v4();
-        let claims = JwtClaims {
+        let claims = AccessTokenClaims {
             sub: user_id,
             email: "user@example.com".to_string(),
             roles: vec!["User".to_string()],

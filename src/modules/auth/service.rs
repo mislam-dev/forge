@@ -1,18 +1,19 @@
-use crate::modules::access_control::service::AccessControlService;
-use crate::modules::auth::dto::request::{
+use super::dto::request::{
     ForgotPasswordDto, LoginUserDto, RefreshTokenDto, RegisterUserDto, ResetPasswordDto,
     VerifyEmailDto,
 };
-use crate::modules::auth::dto::response::{
+use super::dto::response::{
     LoginResponseDto, MeResponseDto, RefreshTokenResponseDto, RegisterResponseDto,
 };
-use crate::modules::auth::repository::{
+use super::repository::{
     PasswordResetToken, PasswordResetTokenRepository, RefreshToken, RefreshTokenRepository,
 };
-use crate::modules::auth::token::{
-    AuthTokenService, JwtClaims, JwtPayload, PasswordResetToken as PasswordResetTokenService,
-    RefreshTokenPayload, ResetTokenData,
+use super::token::{
+    AccessTokenClaims, AccessTokenDto as AuthAccessTokenDto, AccessTokenService,
+    PasswordResetToken as PasswordResetTokenService, RefreshTokenDto as AuthRefreshTokenDto,
+    RefreshTokenService, ResetTokenData,
 };
+use crate::modules::access_control::service::AccessControlService;
 use crate::modules::users::dto::request::CreateUserDto;
 use crate::modules::users::entities::sea_orm_active_enums::UserStatus;
 use crate::modules::users::password::PasswordService;
@@ -42,14 +43,14 @@ impl AuthService {
 
         let permissions = AccessControlService::resolve_user_permissions(db, user.id).await?;
         let roles = AccessControlService::get_user_roles_by_user_id(db, user.id).await?;
-        let access_token = AuthTokenService::access(JwtPayload {
+        let access_token = AccessTokenService::generate(AuthAccessTokenDto {
             user_id: user.id,
             email: user.email.clone(),
             permissions: permissions.iter().map(|p| p.to_string()).collect(),
             roles: roles.iter().map(|r| r.value.clone()).collect(),
         })?;
 
-        let refresh_token = AuthTokenService::refresh(RefreshTokenPayload {
+        let refresh_token = RefreshTokenService::generate(AuthRefreshTokenDto {
             user_id: user.id,
             email: user.email.clone(),
         })?;
@@ -69,7 +70,6 @@ impl AuthService {
         Ok(LoginResponseDto {
             access_token,
             refresh_token,
-            expires_in: 3600,
         })
     }
 
@@ -110,7 +110,7 @@ impl AuthService {
         db: &DatabaseConnection,
         dto: RefreshTokenDto,
     ) -> Result<RefreshTokenResponseDto, AppError> {
-        let token_decode = AuthTokenService::verify(&dto.refresh_token)
+        let token_decode = RefreshTokenService::verify(&dto.refresh_token)
             .map_err(|err| AppError::Unauthorized(err.to_string()))?;
 
         let _token = RefreshTokenRepository::fetch_refresh_token(db, &dto.refresh_token)
@@ -121,14 +121,17 @@ impl AuthService {
             .await
             .map_err(|err| AppError::Unauthorized(err.to_string()))?;
 
-        let access_token = AuthTokenService::access(JwtPayload {
+        let permissions = AccessControlService::resolve_user_permissions(db, user.id).await?;
+        let roles = AccessControlService::get_user_roles_by_user_id(db, user.id).await?;
+
+        let access_token = AccessTokenService::generate(AuthAccessTokenDto {
             user_id: user.id,
             email: user.email.clone(),
-            permissions: vec![],
-            roles: vec![],
+            permissions: permissions.iter().map(|p| p.to_string()).collect(),
+            roles: roles.iter().map(|r| r.value.clone()).collect(),
         })?;
 
-        let refresh_token = AuthTokenService::refresh(RefreshTokenPayload {
+        let refresh_token = RefreshTokenService::generate(AuthRefreshTokenDto {
             user_id: user.id,
             email: user.email.clone(),
         })?;
@@ -148,13 +151,12 @@ impl AuthService {
         Ok(RefreshTokenResponseDto {
             access_token,
             refresh_token,
-            expires_in: 3600,
         })
     }
 
     pub async fn me(
         db: &DatabaseConnection,
-        jwt_claims: JwtClaims,
+        jwt_claims: AccessTokenClaims,
     ) -> Result<MeResponseDto, AppError> {
         let user = UserService::find_one(db, jwt_claims.sub)
             .await
@@ -180,14 +182,12 @@ impl AuthService {
                     AppError::InternalServerError("Failed to create reset token".to_string())
                 })?;
 
-            println!("reset_token: {}", &reset_token);
-
             PasswordResetTokenRepository::create(
                 db,
                 PasswordResetToken {
                     user_id: user.id,
                     token: reset_token,
-                    expires_at: 3600,
+                    expires_at: (chrono::Utc::now() + chrono::Duration::hours(1)).fixed_offset(),
                 },
             )
             .await
@@ -204,28 +204,21 @@ impl AuthService {
         db: &DatabaseConnection,
         dto: ResetPasswordDto,
     ) -> Result<(), AppError> {
-        // Validate passwords match before doing any DB work
         if dto.new_password != dto.confirm_password {
             return Err(AppError::BadRequest("Passwords do not match".to_string()));
         }
 
-        // Verify token and check expiration (PasswordResetToken::verify handles exp check)
         let claims = PasswordResetTokenService::verify(&dto.token)
             .map_err(|_| AppError::BadRequest("Invalid or expired reset token".to_string()))?;
 
-        // Confirm the token exists in the DB (single-use guard)
         let _db_token = PasswordResetTokenRepository::find_one(db, &dto.token)
             .await?
-            .ok_or_else(|| {
-                AppError::BadRequest("Reset token not found or already used".to_string())
-            })?;
+            .ok_or_else(|| AppError::BadRequest("Invalid or expired reset token".to_string()))?;
 
-        // Hash the new password and persist it
         UserRepository::update_password(db, claims.sub, &dto.new_password)
             .await
             .map_err(|_| AppError::InternalServerError("Failed to update password".to_string()))?;
 
-        // Invalidate the token so it cannot be reused
         PasswordResetTokenRepository::remove_by_user_id(db, claims.sub)
             .await
             .map_err(|_| {
@@ -335,7 +328,7 @@ mod tests {
     #[tokio::test]
     async fn test_me_user_not_found() {
         let db = setup_mock_db();
-        let claims = JwtClaims {
+        let claims = AccessTokenClaims {
             sub: Uuid::new_v4(),
             email: "nobody@example.com".to_string(),
             roles: vec![],

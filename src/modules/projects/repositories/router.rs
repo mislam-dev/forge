@@ -2,7 +2,7 @@ use axum::{Router, middleware, routing::post};
 
 use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 
 pub fn repositories_router() -> Router<AppState> {
     Router::new()
@@ -13,7 +13,7 @@ pub fn repositories_router() -> Router<AppState> {
                 .patch(handlers::update_repository)
                 .delete(handlers::disconnect_repository),
         )
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>())
 }
 
 #[cfg(test)]

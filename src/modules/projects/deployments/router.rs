@@ -5,7 +5,7 @@ use axum::{
 
 use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 
 pub fn deployments_router() -> Router<AppState> {
     let public_deployments_router = Router::new()
@@ -25,7 +25,7 @@ pub fn deployments_router() -> Router<AppState> {
             "/{id}/deployments/rollback",
             post(handlers::rollback),
         )
-        .route_layer(middleware::from_extractor::<JwtClaims>());
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>());
 
     let internal_deployments_router = Router::new().route(
         "/internal/deployments/{deployment_id}/status",

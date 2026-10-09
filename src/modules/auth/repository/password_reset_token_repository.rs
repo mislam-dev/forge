@@ -2,8 +2,8 @@ use crate::modules::auth::entities::password_resets::{
     ActiveModel as PasswordResetActiveModel, Column as PasswordResetColumn,
     Entity as PasswordResetEntity, Model as PasswordResethModel,
 };
-
 use crate::shared::error::AppError;
+use chrono::{DateTime, FixedOffset};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
     QueryFilter,
@@ -14,7 +14,7 @@ use uuid::Uuid;
 pub struct PasswordResetToken {
     pub token: String,
     pub user_id: Uuid,
-    pub expires_at: i64,
+    pub expires_at: DateTime<FixedOffset>,
 }
 
 pub struct PasswordResetTokenRepository;
@@ -27,7 +27,7 @@ impl PasswordResetTokenRepository {
         let token = PasswordResetActiveModel {
             token: Set(dto.token),
             user_id: Set(dto.user_id),
-            // expires_at: Set(dto.expires_at),
+            expires_at: Set(dto.expires_at),
             ..Default::default()
         };
         token.insert(db).await.map_err(AppError::Database)
@@ -63,13 +63,14 @@ mod tests {
     #[test]
     fn test_password_reset_token_struct_creation() {
         let user_id = Uuid::new_v4();
+        let expires_at = chrono::Utc::now().fixed_offset();
         let dto = PasswordResetToken {
             token: "reset_token_sample".to_string(),
             user_id,
-            expires_at: 3600,
+            expires_at,
         };
         assert_eq!(dto.token, "reset_token_sample");
         assert_eq!(dto.user_id, user_id);
-        assert_eq!(dto.expires_at, 3600);
+        assert_eq!(dto.expires_at, expires_at);
     }
 }

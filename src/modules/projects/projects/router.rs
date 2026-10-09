@@ -5,7 +5,7 @@ use axum::{
 
 use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 
 pub fn projects_core_router() -> Router<AppState> {
     Router::new()
@@ -19,7 +19,7 @@ pub fn projects_core_router() -> Router<AppState> {
                 .patch(handlers::update_project)
                 .delete(handlers::delete_project),
         )
-        .route_layer(middleware::from_extractor::<JwtClaims>())
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>())
 }
 
 #[cfg(test)]

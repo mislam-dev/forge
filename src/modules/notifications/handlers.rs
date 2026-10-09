@@ -9,7 +9,7 @@ use super::dto::{
 };
 use super::service::NotificationsService;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 use crate::shared::error::AppError;
 use crate::shared::pagination::PaginatedResponse;
 use crate::shared::response::ApiResponse;
@@ -17,7 +17,7 @@ use crate::shared::validation::JsonValidate;
 
 pub async fn list_notifications(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
     Query(query): Query<NotificationQuery>,
 ) -> Result<ApiResponse<PaginatedResponse<NotificationResponse>>, AppError> {
     let paginated =
@@ -31,7 +31,7 @@ pub async fn list_notifications(
 
 pub async fn get_unread_count(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
 ) -> Result<ApiResponse<UnreadCountResponse>, AppError> {
     let count = NotificationsService::get_unread_count(&state.db, claims.sub).await?;
 
@@ -43,7 +43,7 @@ pub async fn get_unread_count(
 
 pub async fn mark_as_read(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<NotificationResponse>, AppError> {
     let notification = NotificationsService::mark_as_read(&state.db, claims.sub, id).await?;
@@ -56,7 +56,7 @@ pub async fn mark_as_read(
 
 pub async fn mark_all_as_read(
     State(state): State<AppState>,
-    claims: JwtClaims,
+    claims: AccessTokenClaims,
 ) -> Result<ApiResponse<()>, AppError> {
     let count = NotificationsService::mark_all_as_read(&state.db, claims.sub).await?;
 

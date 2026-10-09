@@ -2,7 +2,7 @@ use axum::{Router, middleware, routing::get};
 
 use super::handlers;
 use crate::app::state::AppState;
-use crate::modules::auth::token::JwtClaims;
+use crate::modules::auth::token::AccessTokenClaims;
 
 pub fn health_router() -> Router<AppState> {
     let public_routes = Router::new()
@@ -13,7 +13,7 @@ pub fn health_router() -> Router<AppState> {
     let protected_routes = Router::new()
         .route("/details", get(handlers::check_health_details))
         .route("/deep", get(handlers::health_deep_check))
-        .route_layer(middleware::from_extractor::<JwtClaims>());
+        .route_layer(middleware::from_extractor::<AccessTokenClaims>());
 
     Router::new().merge(public_routes).merge(protected_routes)
 }
