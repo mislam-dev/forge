@@ -1,0 +1,90 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/projects/:id"
+method: PUT
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: Content-Type
+    value: application/json
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "name": "string",
+      "repository_url": "string",
+      "default_branch": "string",
+      "runtime": "string",
+      "framework": "string",
+      "status": "archived",
+      "descriptions": "string"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "repository_url": {
+          "type": "string"
+        },
+        "default_branch": {
+          "type": "string"
+        },
+        "runtime": {
+          "type": "string"
+        },
+        "framework": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived",
+            "draft"
+          ]
+        },
+        "descriptions": {
+          "type": "string"
+        }
+      }
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Update project configuration.resources/examples
+order: 2000

@@ -1,0 +1,56 @@
+$kind: http-example
+name: Authorization Denied / Insufficient Privileges
+request:
+  url: "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    deployment_id: a1b2c3d4-e89b-12d3-a456-426614174000
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "is_error": true,
+        "code": "PRJ_PERM_001",
+        "message": "Access denied. Viewers cannot perform write operations"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "is_error": {
+            "type": "boolean",
+            "example": true
+          },
+          "code": {
+            "type": "string",
+            "example": "PRJ_PERM_002"
+          },
+          "message": {
+            "type": "string",
+            "example": "Access denied. Developers can only delete projects created by themselves."
+          },
+          "errors": {
+            "type": "object"
+          }
+        }
+      }
+order: 3000

@@ -1,0 +1,44 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/access-control/roles"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "key": "System Admin",
+      "value": "admin",
+      "description": "Full system administrative access"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "example": "System Admin"
+        },
+        "value": {
+          "type": "string",
+          "example": "admin"
+        },
+        "description": {
+          "type": "string",
+          "example": "Full system administrative access"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Create a system role.resources/examples
+order: 2000

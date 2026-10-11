@@ -1,0 +1,28 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/auth/refresh"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refresh_token": "rfr_890a7b6c5d4e3f2a1b0c..."
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "refresh_token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "refresh_token"
+      ]
+    }
+settings: {}
+examples: ./.resources/Refresh JWT access token.resources/examples
+order: 1000

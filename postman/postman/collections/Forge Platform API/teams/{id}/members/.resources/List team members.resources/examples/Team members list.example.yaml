@@ -1,0 +1,121 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/teams/:id/members"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID required in the header for tenant-scoped role-based authorization
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": [
+          {
+            "team_id": "b0ca3e73-bc22-9ff8-5101-3f45bda7695d",
+            "user_id": "1047d1b3-6e52-c6c0-e38b-91afbade4f6e",
+            "role": "string",
+            "joined_at": "1982-02-06T06:20:18.019Z",
+            "user": {
+              "message": "string",
+              "data": {
+                "id": "c69234cb-adc7-f730-cf92-e99fdf41665d",
+                "name": "string",
+                "email": "string",
+                "created_at": "string"
+              }
+            }
+          },
+          {
+            "team_id": "8a0d8732-affd-4018-dd00-74f134d21bb7",
+            "user_id": "a1881d3c-7885-f09b-21a9-8efc4d1d5bc3",
+            "role": "string",
+            "joined_at": "1953-03-19T13:56:15.500Z",
+            "user": {
+              "message": "string",
+              "data": {
+                "id": "0c3b5ffa-fc00-019d-ddc7-e8860ddf8069",
+                "name": "string",
+                "email": "string",
+                "created_at": "string"
+              }
+            }
+          }
+        ]
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "team_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "user_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "role": {
+                  "type": "string"
+                },
+                "joined_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "user": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+order: 1000

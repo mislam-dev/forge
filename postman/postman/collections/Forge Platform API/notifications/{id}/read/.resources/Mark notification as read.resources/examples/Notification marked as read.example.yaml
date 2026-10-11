@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/notifications/:id/read"
+  method: PATCH
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Notification marked as read.",
+        "data": {
+          "id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+          "is_read": true,
+          "read_at": "2026-08-12T18:00:00Z"
+        }
+      }
+order: 1000

@@ -1,0 +1,79 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/access-control/roles/permissions/assign"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "role_id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+        "permission_ids": [
+          "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+        ]
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Permissions assigned to the role",
+        "data": [
+          {
+            "role_id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+            "permission_id": "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+          },
+          {
+            "role_id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+            "permission_id": "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+          }
+        ]
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Permissions assigned to the role"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role_id": {
+                  "type": "string",
+                  "example": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                  "format": "uuid"
+                },
+                "permission_id": {
+                  "type": "string",
+                  "example": "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7",
+                  "format": "uuid"
+                }
+              },
+              "required": [
+                "role_id",
+                "permission_id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+order: 1000

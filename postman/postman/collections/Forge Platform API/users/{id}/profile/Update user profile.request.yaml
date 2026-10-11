@@ -1,0 +1,79 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/users/:id/profile"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "first_name": "John",
+      "last_name": "Doe",
+      "phone": "+1234567890",
+      "date_of_birth": "1990-01-15",
+      "gender": "male",
+      "image": "https://storage.example.com/avatars/john.png"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "first_name": {
+          "type": "string",
+          "example": "Monirul"
+        },
+        "last_name": {
+          "type": "string",
+          "example": "Islam"
+        },
+        "phone": {
+          "type": "string",
+          "example": "+1234567890"
+        },
+        "date_of_birth": {
+          "type": "string",
+          "example": "1990-01-15",
+          "format": "date"
+        },
+        "gender": {
+          "type": "string",
+          "enum": [
+            "male",
+            "female",
+            "other"
+          ],
+          "example": "male"
+        },
+        "image": {
+          "type": "string",
+          "example": "https://example.com/avatar.png"
+        }
+      }
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Update user profile.resources/examples
+order: 2000

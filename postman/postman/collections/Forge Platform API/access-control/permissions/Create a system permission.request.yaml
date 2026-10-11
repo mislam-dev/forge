@@ -1,0 +1,44 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/access-control/permissions"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "key": "Create User",
+      "value": "create-user",
+      "descriptions": "Ability to create new users"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "example": "Create User"
+        },
+        "value": {
+          "type": "string",
+          "example": "create-user"
+        },
+        "descriptions": {
+          "type": "string",
+          "example": "Ability to create new users"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Create a system permission.resources/examples
+order: 2000

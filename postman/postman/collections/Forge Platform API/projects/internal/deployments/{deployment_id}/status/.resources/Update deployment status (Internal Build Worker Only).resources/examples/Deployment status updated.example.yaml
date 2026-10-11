@@ -1,0 +1,138 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/projects/internal/deployments/:deployment_id/status"
+  method: PUT
+  headers:
+    - key: x-service-token
+      value: string
+      disabled: false
+      description: Master service secret key for internal worker authentication
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: x-service-token
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  pathVariables:
+    deployment_id: a1b2c3d4-e89b-12d3-a456-426614174000
+  body:
+    type: json
+    content: |-
+      {
+        "status": "Queued",
+        "build_duration": 45,
+        "deploy_duration": 12,
+        "error_message": null
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Operation completed successfully.",
+        "data": {
+          "id": "a1b2c3d4-e89b-12d3-a456-426614174000",
+          "project_id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+          "triggered_by": "456e7890-e89b-12d3-a456-426614174000",
+          "branch": "main",
+          "commit_hash": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+          "status": "Queued",
+          "created_at": "2026-08-12T17:00:00Z",
+          "updated_at": "2026-08-12T17:01:00Z",
+          "build_duration": 45,
+          "deploy_duration": 12,
+          "error_message": null
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Operation completed successfully."
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "a1b2c3d4-e89b-12d3-a456-426614174000",
+                "format": "uuid"
+              },
+              "project_id": {
+                "type": "string",
+                "example": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                "format": "uuid"
+              },
+              "triggered_by": {
+                "type": "string",
+                "example": "456e7890-e89b-12d3-a456-426614174000",
+                "format": "uuid"
+              },
+              "branch": {
+                "type": "string",
+                "example": "main"
+              },
+              "commit_hash": {
+                "type": "string",
+                "example": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "Queued",
+                  "Building",
+                  "Deploying",
+                  "Running",
+                  "Failed",
+                  "Success"
+                ],
+                "example": "Queued"
+              },
+              "build_duration": {
+                "type": "integer",
+                "example": 45
+              },
+              "deploy_duration": {
+                "type": "integer",
+                "example": 12
+              },
+              "error_message": {
+                "type": "string",
+                "example": null
+              },
+              "created_at": {
+                "type": "string",
+                "example": "2026-08-12T17:00:00Z",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "example": "2026-08-12T17:01:00Z",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "project_id",
+              "triggered_by",
+              "branch",
+              "commit_hash",
+              "status",
+              "created_at",
+              "updated_at"
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+order: 1000

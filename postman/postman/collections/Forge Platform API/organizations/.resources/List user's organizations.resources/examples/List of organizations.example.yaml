@@ -1,0 +1,99 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/organizations"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": [
+          {
+            "message": "string",
+            "data": {
+              "id": "5fbb8468-3977-b507-4be2-c37413d73cf8",
+              "name": "string",
+              "type": "string",
+              "descriptions": "string",
+              "owner_user_id": "57247f17-b664-26c0-afa0-35b1bac3ba42",
+              "created_at": "string",
+              "updated_at": "string"
+            }
+          },
+          {
+            "message": "string",
+            "data": {
+              "id": "b75509c2-c639-cfb1-7428-609f12b5ed9d",
+              "name": "string",
+              "type": "string",
+              "descriptions": "string",
+              "owner_user_id": "7f6e8b51-2ef1-f059-c4e8-6292467e8f22",
+              "created_at": "string",
+              "updated_at": "string"
+            }
+          }
+        ]
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "descriptions": {
+                      "type": "string"
+                    },
+                    "owner_user_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+order: 1000

@@ -1,0 +1,69 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/teams/:id/members/:user_id"
+method: DELETE
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: Organization UUID required in the header for tenant-scoped role-based authorization
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: Accept
+    value: application/json
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: user_id
+    value: 1a11e467-74ee-e84f-4cb0-e1363101656f
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Remove user from team.resources/examples
+order: 2000

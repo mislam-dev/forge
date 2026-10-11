@@ -1,0 +1,107 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    deployment_id: a1b2c3d4-e89b-12d3-a456-426614174000
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Build logs retrieved successfully.",
+        "data": {
+          "deployment_id": "a1b2c3d4-e89b-12d3-a456-426614174000",
+          "logs": [
+            {
+              "timestamp": "2026-08-19T10:00:00Z",
+              "level": "INFO",
+              "step": "clone",
+              "message": "Cloning repository..."
+            },
+            {
+              "timestamp": "2026-08-19T10:00:05Z",
+              "level": "INFO",
+              "step": "build",
+              "message": "Docker build completed successfully."
+            }
+          ]
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Build logs retrieved successfully."
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "deployment_id": {
+                "type": "string",
+                "example": "a1b2c3d4-e89b-12d3-a456-426614174000",
+                "format": "uuid"
+              },
+              "logs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "timestamp": {
+                      "type": "string",
+                      "example": "2026-08-19T10:00:00Z"
+                    },
+                    "level": {
+                      "type": "string",
+                      "example": "INFO"
+                    },
+                    "step": {
+                      "type": "string",
+                      "example": "clone"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cloning repository..."
+                    }
+                  },
+                  "required": [
+                    "timestamp",
+                    "level",
+                    "step",
+                    "message"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "deployment_id",
+              "logs"
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+order: 1000

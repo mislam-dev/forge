@@ -1,0 +1,59 @@
+$kind: http-example
+name: Authentication Required / Invalid Token
+request:
+  url: "{{baseUrl}}/projects/:id/repository"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    - key: x-request-id
+      value: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+      disabled: false
+      description: Optional unique request correlation ID for tracing and debugging across middleware
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "is_error": true,
+        "code": "AUTH_000",
+        "message": "Authentication token missing or invalid"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "is_error": {
+            "type": "boolean",
+            "example": true
+          },
+          "code": {
+            "type": "string",
+            "example": "PRJ_PERM_002"
+          },
+          "message": {
+            "type": "string",
+            "example": "Access denied. Developers can only delete projects created by themselves."
+          },
+          "errors": {
+            "type": "object"
+          }
+        }
+      }
+order: 2000

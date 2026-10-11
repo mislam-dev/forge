@@ -1,0 +1,49 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/teams?organization_id=1a11e467-74ee-e84f-4cb0-e1363101656f"
+method: GET
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: Organization UUID required in the header for tenant-scoped role-based authorization
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: Accept
+    value: application/json
+queryParams:
+  - key: organization_id
+    value: 1a11e467-74ee-e84f-4cb0-e1363101656f
+    disabled: false
+    description: Optional organization ID query parameter
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/List teams in organization.resources/examples
+order: 1000

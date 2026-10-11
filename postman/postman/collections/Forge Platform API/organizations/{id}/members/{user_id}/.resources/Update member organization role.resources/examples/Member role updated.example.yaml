@@ -1,0 +1,83 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/organizations/:id/members/:user_id"
+  method: PATCH
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID required in the header for tenant-scoped role-based authorization
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    user_id: 1a11e467-74ee-e84f-4cb0-e1363101656f
+  body:
+    type: json
+    content: |-
+      {
+        "role": "admin"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": {
+          "organization_id": "ac6629d2-e920-5e1c-b74a-51985dd4fa74",
+          "user_id": "453d1c24-413d-a801-1ff7-b3b3bf90ed34",
+          "email": "YtHXidscI9@mFR.zkwy",
+          "role": "admin",
+          "joined_at": "1983-03-30T20:55:52.229Z"
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "organization_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "viewer",
+                  "editor",
+                  "admin",
+                  "owner"
+                ]
+              },
+              "joined_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+order: 1000

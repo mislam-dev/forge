@@ -1,0 +1,65 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/projects/:id/teams"
+method: POST
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: Content-Type
+    value: application/json
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "team_id": "987f6543-e21b-32d1-b654-987654321000"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "team_id"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Assign team to project.resources/examples
+order: 2000

@@ -1,0 +1,29 @@
+$kind: http-request
+description: Validates the email verification token sent to the user during registration. This endpoint is typically accessed by clicking a link in the verification email. Upon success, the user's account is activated.
+url: "{{baseUrl}}/auth/verify-email?token=vrfy_a1b2c3d4e5f6g7h8..."
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: token
+    value: vrfy_a1b2c3d4e5f6g7h8...
+    disabled: false
+    description: Email verification token sent via registration email
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Verify user email address.resources/examples
+order: 1000

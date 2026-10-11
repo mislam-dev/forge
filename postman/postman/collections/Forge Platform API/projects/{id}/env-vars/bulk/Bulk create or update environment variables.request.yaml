@@ -1,0 +1,127 @@
+$kind: http-request
+description: Atomically creates or updates (upserts) environment variables across environments.
+url: "{{baseUrl}}/projects/:id/env-vars/bulk"
+method: POST
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: x-request-id
+    value: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+    disabled: false
+    description: Optional unique request correlation ID for tracing and debugging across middleware
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "vars": [
+        {
+          "key": "PORT",
+          "value": "9000",
+          "environment": "development",
+          "is_secret": false
+        },
+        {
+          "key": "PORT",
+          "value": "9000",
+          "environment": "development",
+          "is_secret": false
+        }
+      ]
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "vars": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[A-Z_][A-Z0-9_]*$",
+                "example": "PORT"
+              },
+              "value": {
+                "type": "string",
+                "example": "9000"
+              },
+              "environment": {
+                "type": "string",
+                "enum": [
+                  "development",
+                  "staging",
+                  "production"
+                ],
+                "example": "development"
+              },
+              "is_secret": {
+                "type": "boolean",
+                "example": false
+              }
+            },
+            "required": [
+              "key",
+              "value",
+              "environment"
+            ]
+          }
+        }
+      },
+      "required": [
+        "vars"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Bulk create or update environment variables.resources/examples
+order: 1000

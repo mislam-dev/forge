@@ -1,0 +1,80 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/access-control/roles/:id"
+  method: PATCH
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: json
+    content: |-
+      {
+        "key": "Updated Admin",
+        "value": "updated_admin"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Role fetched successfully",
+        "data": {
+          "id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+          "key": "System Admin",
+          "value": "admin",
+          "description": "Full system administrative access"
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Role fetched successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                "format": "uuid"
+              },
+              "key": {
+                "type": "string",
+                "example": "System Admin"
+              },
+              "value": {
+                "type": "string",
+                "example": "admin"
+              },
+              "description": {
+                "type": "string",
+                "example": "Full system administrative access"
+              }
+            },
+            "required": [
+              "id",
+              "key",
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+order: 1000

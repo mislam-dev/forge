@@ -1,0 +1,94 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/projects/internal/deployments/:deployment_id/status"
+method: PUT
+headers:
+  - key: x-service-token
+    value: string
+    disabled: false
+    description: Master service secret key for internal worker authentication
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+pathVariables:
+  - key: deployment_id
+    value: a1b2c3d4-e89b-12d3-a456-426614174000
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "status": "Queued",
+      "build_duration": 45,
+      "deploy_duration": 12,
+      "error_message": null
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Queued",
+            "Building",
+            "Deploying",
+            "Running",
+            "Failed",
+            "Success"
+          ],
+          "example": "Queued"
+        },
+        "build_duration": {
+          "type": "integer",
+          "example": 45
+        },
+        "deploy_duration": {
+          "type": "integer",
+          "example": 12
+        },
+        "error_message": {
+          "type": "string",
+          "example": null
+        }
+      },
+      "required": [
+        "status"
+      ]
+    }
+auth:
+  type: apikey
+  credentials:
+    key: x-service-token
+    value: "{{apiKey}}"
+    in: header
+settings: {}
+examples: ./.resources/Update deployment status (Internal Build Worker Only).resources/examples
+order: 1000

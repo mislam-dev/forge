@@ -1,0 +1,49 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/users"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Monirul Islam",
+      "email": "monirul@example.com",
+      "password": "StrongPassword123!"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "example": "Monirul Islam"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 1,
+          "example": "monirul@example.com",
+          "format": "email"
+        },
+        "password": {
+          "type": "string",
+          "minLength": 8,
+          "example": "StrongPassword123!"
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "password"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Create a new platform user.resources/examples
+order: 2000

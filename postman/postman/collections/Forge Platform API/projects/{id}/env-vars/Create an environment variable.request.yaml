@@ -1,0 +1,106 @@
+$kind: http-request
+description: Creates a single environment variable within the specified environment.
+url: "{{baseUrl}}/projects/:id/env-vars"
+method: POST
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: x-request-id
+    value: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+    disabled: false
+    description: Optional unique request correlation ID for tracing and debugging across middleware
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "key": "DATABASE_URL",
+      "value": "postgres://user:pass@localhost:5432/db",
+      "environment": "development",
+      "is_secret": false
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[A-Z_][A-Z0-9_]*$",
+          "example": "DATABASE_URL"
+        },
+        "value": {
+          "type": "string",
+          "example": "postgres://user:pass@localhost:5432/db"
+        },
+        "environment": {
+          "type": "string",
+          "enum": [
+            "development",
+            "staging",
+            "production"
+          ],
+          "example": "development"
+        },
+        "is_secret": {
+          "type": "boolean",
+          "example": false
+        }
+      },
+      "required": [
+        "key",
+        "value",
+        "environment"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Create an environment variable.resources/examples
+order: 2000

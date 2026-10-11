@@ -1,0 +1,48 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/access-control/users/permission/assign"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "user_id": "456e7890-e89b-12d3-a456-426614174000",
+      "permission_ids": [
+        "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+      ]
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "example": "456e7890-e89b-12d3-a456-426614174000",
+          "format": "uuid"
+        },
+        "permission_ids": {
+          "type": "array",
+          "example": [
+            "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+          ],
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "required": [
+        "user_id",
+        "permission_ids"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Assign direct permissions to a user.resources/examples
+order: 1000

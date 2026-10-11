@@ -1,0 +1,31 @@
+$kind: http-request
+description: Aggregated deep operational health check evaluating all internal modules and external integrations. Restricted to System Admin.
+url: "{{baseUrl}}/health/deep?timeout_ms=3000"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: timeout_ms
+    value: "3000"
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "default": 3000
+          }
+        }
+      }
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Deep health check — all internal services and dependencies.resources/examples
+order: 1000

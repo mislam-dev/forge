@@ -1,0 +1,92 @@
+$kind: http-request
+description: Connects a Git repository to the project. If a repository is already connected, it idempotently updates the configuration.
+url: "{{baseUrl}}/projects/:id/repository"
+method: POST
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: x-request-id
+    value: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+    disabled: false
+    description: Optional unique request correlation ID for tracing and debugging across middleware
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "repository_url": "https://github.com/mislam-dev/forge.git",
+      "access_token": "github_pat_11ABCXYZ123456789",
+      "default_branch": "main"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "repository_url": {
+          "type": "string",
+          "minLength": 5,
+          "example": "https://github.com/mislam-dev/forge.git"
+        },
+        "access_token": {
+          "type": "string",
+          "example": "github_pat_11ABCXYZ123456789"
+        },
+        "default_branch": {
+          "type": "string",
+          "example": "main"
+        }
+      },
+      "required": [
+        "repository_url"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Connect or reconnect Git repository to project.resources/examples
+order: 1000

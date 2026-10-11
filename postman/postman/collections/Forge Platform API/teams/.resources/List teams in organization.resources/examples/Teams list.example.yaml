@@ -1,0 +1,96 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/teams?organization_id=1a11e467-74ee-e84f-4cb0-e1363101656f"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID required in the header for tenant-scoped role-based authorization
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: organization_id
+      value: 1a11e467-74ee-e84f-4cb0-e1363101656f
+      disabled: false
+      description: Optional organization ID query parameter
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": [
+          {
+            "id": "6db17817-e34a-e8de-cf67-5b257241c637",
+            "organization_id": "69b7a0b1-12ee-47bf-7bea-fb4181ce0043",
+            "name": "string",
+            "descriptions": "string",
+            "member_count": 6711,
+            "created_at": "1986-04-25T06:40:14.837Z",
+            "updated_at": "1971-08-01T02:23:05.998Z"
+          },
+          {
+            "id": "7d8b1e6d-18a8-180d-ade9-838afb18dd21",
+            "organization_id": "f730bc7f-657e-18e2-2679-df5e32472bfd",
+            "name": "string",
+            "descriptions": "string",
+            "member_count": 6038,
+            "created_at": "2025-07-20T06:07:31.844Z",
+            "updated_at": "1985-10-12T21:33:34.257Z"
+          }
+        ]
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "organization_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "descriptions": {
+                  "type": "string"
+                },
+                "member_count": {
+                  "type": "integer"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      }
+order: 1000

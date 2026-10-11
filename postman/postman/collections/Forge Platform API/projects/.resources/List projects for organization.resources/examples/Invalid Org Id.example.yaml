@@ -1,0 +1,29 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/projects"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    content-type: application/json
+    access-control-expose-headers: x-request-id
+    access-control-allow-origin: "*"
+    x-request-id: 4a61f14b-e31b-4f36-ac8a-3ef6b9e094a9
+    content-length: "55"
+    date: Sun, 11 Oct 2026 13:06:14 GMT
+  body:
+    type: json
+    content: |-
+      {
+        "message": "You are not a member of this organization"
+      }
+order: 2000

@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/projects"
+  method: POST
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "organization_id": "123e4567-e89b-12d3-a456-426614174000",
+        "name": "Forge Backend",
+        "type": "repo",
+        "repository_url": "https://github.com/mislam-dev/forge.git",
+        "default_branch": "main",
+        "runtime": "Rust",
+        "framework": "Actix Web",
+        "descriptions": "Main Rust API backend service"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  body:
+    type: text
+    content: ""
+order: 1000

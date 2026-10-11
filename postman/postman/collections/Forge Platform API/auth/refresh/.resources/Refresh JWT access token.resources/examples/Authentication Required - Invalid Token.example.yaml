@@ -1,0 +1,49 @@
+$kind: http-example
+name: Authentication Required / Invalid Token
+request:
+  url: "{{baseUrl}}/auth/refresh"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "refresh_token": "rfr_890a7b6c5d4e3f2a1b0c..."
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "is_error": true,
+        "code": "AUTH_000",
+        "message": "Authentication token missing or invalid"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "is_error": {
+            "type": "boolean",
+            "example": true
+          },
+          "code": {
+            "type": "string",
+            "example": "PRJ_PERM_002"
+          },
+          "message": {
+            "type": "string",
+            "example": "Access denied. Developers can only delete projects created by themselves."
+          },
+          "errors": {
+            "type": "object"
+          }
+        }
+      }
+order: 2000

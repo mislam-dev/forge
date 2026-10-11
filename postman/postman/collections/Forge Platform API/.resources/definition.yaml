@@ -1,0 +1,9 @@
+$kind: collection
+description: |-
+  Complete OpenAPI 3.0 specification for the Forge Developer Deployment & Project Management Platform.
+
+  Contact Support:
+   Name: Forge Engineering Team
+   Email: support@forge.dev
+variables:
+  baseUrl: http://localhost:9000/api/v1

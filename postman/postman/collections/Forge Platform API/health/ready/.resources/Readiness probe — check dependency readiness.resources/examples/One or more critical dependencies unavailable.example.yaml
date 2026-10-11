@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/health/ready"
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 503
+  statusText: Service Unavailable
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": "not_ready",
+        "service": "forge-platform",
+        "timestamp": "2026-08-12T21:00:00Z",
+        "checks": {
+          "database": {
+            "status": "unhealthy",
+            "latency_ms": null,
+            "message": "Connection refused on port 5432"
+          }
+        }
+      }
+order: 2000

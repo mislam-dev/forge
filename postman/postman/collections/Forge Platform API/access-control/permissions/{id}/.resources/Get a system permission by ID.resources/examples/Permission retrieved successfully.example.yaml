@@ -1,0 +1,74 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/access-control/permissions/:id"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Permissions fetch successfully",
+        "data": {
+          "id": "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7",
+          "key": "Create User",
+          "value": "create-user",
+          "descriptions": "Ability to create new users"
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Permissions fetch successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7",
+                "format": "uuid"
+              },
+              "key": {
+                "type": "string",
+                "example": "Create User"
+              },
+              "value": {
+                "type": "string",
+                "example": "create-user"
+              },
+              "descriptions": {
+                "type": "string",
+                "example": "Ability to create new users"
+              }
+            },
+            "required": [
+              "id",
+              "key",
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+order: 1000

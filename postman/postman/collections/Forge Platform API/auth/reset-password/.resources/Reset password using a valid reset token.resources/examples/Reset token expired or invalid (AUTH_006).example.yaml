@@ -1,0 +1,51 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/auth/reset-password"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "token": "rst_a1b2c3d4e5f6...",
+        "new_password": "NewStrongPassword456!",
+        "confirm_password": "NewStrongPassword456!"
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "is_error": true,
+        "code": "AUTH_006",
+        "message": "Reset token has expired or is invalid.",
+        "errors": {}
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "is_error": {
+            "type": "boolean",
+            "example": true
+          },
+          "code": {
+            "type": "string",
+            "example": "PRJ_PERM_002"
+          },
+          "message": {
+            "type": "string",
+            "example": "Access denied. Developers can only delete projects created by themselves."
+          },
+          "errors": {
+            "type": "object"
+          }
+        }
+      }
+order: 3000

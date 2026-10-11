@@ -1,0 +1,61 @@
+$kind: http-example
+name: Authorization Denied / Insufficient Privileges
+request:
+  url: "{{baseUrl}}/users/:id/profile"
+  method: PUT
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: json
+    content: |-
+      {
+        "first_name": "John",
+        "last_name": "Doe",
+        "phone": "+1234567890",
+        "date_of_birth": "1990-01-15",
+        "gender": "male",
+        "image": "https://storage.example.com/avatars/john.png"
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "is_error": true,
+        "code": "PRJ_PERM_001",
+        "message": "Access denied. Viewers cannot perform write operations"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "is_error": {
+            "type": "boolean",
+            "example": true
+          },
+          "code": {
+            "type": "string",
+            "example": "PRJ_PERM_002"
+          },
+          "message": {
+            "type": "string",
+            "example": "Access denied. Developers can only delete projects created by themselves."
+          },
+          "errors": {
+            "type": "object"
+          }
+        }
+      }
+order: 4000

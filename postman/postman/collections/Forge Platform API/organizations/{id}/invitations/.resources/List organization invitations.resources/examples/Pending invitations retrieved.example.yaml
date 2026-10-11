@@ -1,0 +1,110 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/organizations/:id/invitations"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID required in the header for tenant-scoped role-based authorization
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": [
+          {
+            "id": "6c7f90ef-d580-12a9-12b8-c357aff3e55f",
+            "organization_id": "3f11bfc1-f077-df58-6c00-565fb79a30cc",
+            "email": "F6JxE1wmYaSxL1@zHNvtsGtKoBNsXxx.dgd",
+            "role": "admin",
+            "token": "string",
+            "status": "rejected",
+            "expires_at": "1975-12-20T14:53:26.177Z",
+            "created_at": "2020-12-07T05:44:50.426Z"
+          },
+          {
+            "id": "3e5fa090-75d5-90be-e88e-3e83c5f52b5f",
+            "organization_id": "9b22958e-f3ae-6ce5-48ca-88e08e27d3e3",
+            "email": "HHvg8yi@XlTBCeGDEdt.zr",
+            "role": "editor",
+            "token": "string",
+            "status": "rejected",
+            "expires_at": "2006-07-26T06:59:22.284Z",
+            "created_at": "1965-04-25T06:07:47.025Z"
+          }
+        ]
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "organization_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "viewer",
+                    "editor",
+                    "admin",
+                    "owner"
+                  ]
+                },
+                "token": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "rejected"
+                  ]
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      }
+order: 1000

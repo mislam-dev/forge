@@ -1,0 +1,101 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/organizations/:id/invitations"
+  method: POST
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID required in the header for tenant-scoped role-based authorization
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: json
+    content: |-
+      {
+        "email": "colleague@example.com",
+        "role": "editor"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": {
+          "id": "5bc6eb68-c31d-3244-c37d-45342c9fd678",
+          "organization_id": "9e0eba22-754f-6c33-cc67-eeba7aa114c5",
+          "email": "oow@xphJFoAfrtIwTqBysevnJa.cyjc",
+          "role": "viewer",
+          "token": "string",
+          "status": "pending",
+          "expires_at": "2015-03-02T10:55:23.908Z",
+          "created_at": "2024-03-15T02:15:07.107Z"
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "organization_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "viewer",
+                  "editor",
+                  "admin",
+                  "owner"
+                ]
+              },
+              "token": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "accepted",
+                  "rejected"
+                ]
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+order: 1000

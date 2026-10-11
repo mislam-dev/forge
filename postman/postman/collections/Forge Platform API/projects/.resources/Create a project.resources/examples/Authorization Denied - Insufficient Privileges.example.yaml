@@ -1,0 +1,65 @@
+$kind: http-example
+name: Authorization Denied / Insufficient Privileges
+request:
+  url: "{{baseUrl}}/projects"
+  method: POST
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "organization_id": "123e4567-e89b-12d3-a456-426614174000",
+        "name": "Forge Backend",
+        "type": "repo",
+        "repository_url": "https://github.com/mislam-dev/forge.git",
+        "default_branch": "main",
+        "runtime": "Rust",
+        "framework": "Actix Web",
+        "descriptions": "Main Rust API backend service"
+      }
+response:
+  statusCode: 403
+  statusText: Forbidden
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "is_error": true,
+        "code": "PRJ_PERM_001",
+        "message": "Access denied. Viewers cannot perform write operations"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "is_error": {
+            "type": "boolean",
+            "example": true
+          },
+          "code": {
+            "type": "string",
+            "example": "PRJ_PERM_002"
+          },
+          "message": {
+            "type": "string",
+            "example": "Access denied. Developers can only delete projects created by themselves."
+          },
+          "errors": {
+            "type": "object"
+          }
+        }
+      }
+order: 2000

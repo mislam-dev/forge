@@ -1,0 +1,4291 @@
+openapi: 3.0.3
+info:
+  title: "Forge Platform API"
+  description: "Complete OpenAPI 3.0 specification for the Forge Developer Deployment & Project Management Platform."
+  version: "1.0.0"
+  contact:
+    name: "Forge Engineering Team"
+    email: "support@forge.dev"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+
+servers:
+  - url: "http://localhost:9000/api/v1"
+    description: "Local Development Environment (Primary /api/v1)"
+  - url: "http://localhost:9000/api"
+    description: "Local Development Environment (Legacy /api Alias)"
+  - url: "http://localhost:9000"
+    description: "Local Development Environment (Root Alias)"
+  - url: "https://api.forge.dev/api/v1"
+    description: "Production API Server"
+
+tags:
+  - name: Authentication
+    description: "User registration, login, logout, profile identity, and token refresh"
+  - name: "Access Control: Roles"
+    description: "System role definitions and management (System Admin)"
+  - name: "Access Control: Permissions"
+    description: "Atomic system permissions management (System Admin)"
+  - name: "Access Control: Role Permissions"
+    description: "Mapping permissions to system roles (System Admin)"
+  - name: "Access Control: User Roles"
+    description: "Assigning and removing system roles for users (System Admin)"
+  - name: "Access Control: User Permissions"
+    description: "Direct user permission overrides and assignments (System Admin)"
+  - name: Users
+
+x-tagGroups:
+  - name: Access Control
+    tags:
+      - "Access Control: Roles"
+      - "Access Control: Permissions"
+      - "Access Control: Role Permissions"
+      - "Access Control: User Roles"
+      - "Access Control: User Permissions"
+    description: "User management and account profile configuration"
+  - name: Notifications
+    description: "In-app user event notifications"
+  - name: Organizations
+    description: "Organization lifecycle and tenant management"
+  - name: Org Members
+    description: "Organization member joining, role updates, and removal"
+  - name: Teams
+    description: "Team management within organizations"
+  - name: Projects
+    description: "Project creation, configuration, and lifecycle"
+  - name: Repository
+    description: "Git repository connections, branch management, and commit fetching"
+  - name: Environment Variables
+    description: "Encrypted key-value configuration per target environment"
+  - name: Project Assignments
+    description: "Assigning users and teams to projects"
+  - name: Deployments
+    description: "Triggering and tracking async deployment lifecycles"
+  - name: Live Build Logs
+    description: "Real-time SSE streaming and stored log retrieval"
+  - name: Deployment History
+    description: "Historical deployments, redeploy, and rollback operations"
+  - name: Dashboard
+    description: "Aggregated cross-domain platform metrics"
+  - name: Health
+    description: "System-wide health monitoring and probe aggregation"
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      operationId: auth_register
+      summary: "Register a new user account"
+      security: []
+      description: "Creates a new user record with hashed password and assigns default system role."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              name: "Monirul Islam"
+              email: "monirul@example.com"
+              password: "StrongPassword123!"
+      responses:
+        '201':
+          description: "User created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              example:
+                message: "User registered successfully."
+                data:
+                  id: "456e7890-e89b-12d3-a456-426614174000"
+                  name: "Monirul Islam"
+                  email: "monirul@example.com"
+                  created_at: "2026-08-12T17:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      operationId: auth_login
+      summary: "Authenticate user credentials"
+      security: []
+      description: "Validates email and password, returning short-lived JWT access token and refresh token session."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              admin:
+                summary: "System Administrator"
+                value:
+                  email: "admin1@forge.local"
+                  password: "Password123!"
+              developer:
+                summary: "Developer"
+                value:
+                  email: "dev1@forge.local"
+                  password: "Password123!"
+              viewer:
+                summary: "Viewer"
+                value:
+                  email: "viewer1@forge.local"
+                  password: "Password123!"
+      responses:
+        '200':
+          description: "Authentication successful"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+              example:
+                message: "Login successful."
+                data:
+                  access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refresh_token: "rfr_890a7b6c5d4e3f2a1b0c..."
+                  expires_in: 900
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      operationId: auth_logout
+      summary: "Invalidate user session"
+      security:
+        - bearerAuth: []
+      description: "Revokes the refresh token session associated with the active token."
+      responses:
+        '200':
+          description: "Session invalidated"
+          content:
+            application/json:
+              example:
+                message: "Logged out successfully."
+                data: {}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      operationId: auth_refresh_token
+      summary: "Refresh JWT access token"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+            example:
+              refresh_token: "rfr_890a7b6c5d4e3f2a1b0c..."
+      responses:
+        '200':
+          description: "Token refreshed"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      operationId: auth_forgot_password
+      summary: "Request password reset email"
+      security: []
+      description: "Generates a password reset token and sends it to the user's registered email. Always returns 200 to prevent user enumeration."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+            example:
+              email: "monirul@example.com"
+      responses:
+        '200':
+          description: "Reset email sent (or silently ignored if email not found)"
+          content:
+            application/json:
+              example:
+                message: "If this email is registered, a password reset link has been sent."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      operationId: auth_reset_password
+      summary: "Reset password using a valid reset token"
+      security: []
+      description: "Validates the reset token, updates the user's password, and invalidates the token."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+            example:
+              token: "rst_a1b2c3d4e5f6..."
+              new_password: "NewStrongPassword456!"
+              confirm_password: "NewStrongPassword456!"
+      responses:
+        '200':
+          description: "Password reset successfully"
+          content:
+            application/json:
+              example:
+                message: "Password has been reset successfully."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: "Reset token expired or invalid (AUTH_006)"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                is_error: true
+                code: "AUTH_006"
+                message: "Reset token has expired or is invalid."
+                errors: {}
+
+  /auth/verify-email:
+    get:
+      tags:
+        - Authentication
+      operationId: auth_verify_email
+      summary: "Verify user email address"
+      security: []
+      description: "Validates the email verification token sent to the user during registration. This endpoint is typically accessed by clicking a link in the verification email. Upon success, the user's account is activated."
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: "Email verification token sent via registration email"
+          schema:
+            type: string
+          example: "vrfy_a1b2c3d4e5f6g7h8..."
+      responses:
+        '200':
+          description: "Email verified successfully — account activated"
+          content:
+            application/json:
+              example:
+                message: "Email verified successfully. Your account is now active."
+        '400':
+          description: "Token invalid, expired, or already used (AUTH_006/AUTH_007)"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                is_error: true
+                code: "AUTH_006"
+                message: "Verification token has expired or is invalid."
+                errors: {}
+
+  /auth/me:
+    get:
+      operationId: auth_me_get
+      tags:
+        - Authentication
+      summary: "Get authenticated user profile"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "Profile retrieved"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /access-control/roles:
+    get:
+      operationId: access_control_roles_list
+      tags:
+        - "Access Control: Roles"
+      summary: "List all system roles"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "List of system roles retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRoleList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      operationId: access_control_roles_create
+      tags:
+        - "Access Control: Roles"
+      summary: "Create a system role"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleCreateInput'
+            example:
+              key: "System Admin"
+              value: "admin"
+              description: "Full system administrative access"
+      responses:
+        '201':
+          description: "Role created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRoleSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /access-control/roles/{id}:
+    get:
+      operationId: access_control_roles_show
+      tags:
+        - "Access Control: Roles"
+      summary: "Get a system role by ID"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "Role retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRoleSingle'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: access_control_roles_update
+      tags:
+        - "Access Control: Roles"
+      summary: "Update a system role"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateInput'
+            example:
+              key: "Updated Admin"
+              value: "updated_admin"
+      responses:
+        '200':
+          description: "Role updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRoleSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: access_control_roles_remove
+      tags:
+        - "Access Control: Roles"
+      summary: "Delete a system role"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "Role deleted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseNull'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /access-control/permissions:
+    get:
+      operationId: access_control_permissions_list
+      tags:
+        - "Access Control: Permissions"
+      summary: "List system permissions (paginated)"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
+      responses:
+        '200':
+          description: "Paginated list of system permissions retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePaginatedPermissions'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      operationId: access_control_permissions_create
+      tags:
+        - "Access Control: Permissions"
+      summary: "Create a system permission"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionCreateInput'
+            example:
+              key: "Create User"
+              value: "create-user"
+              descriptions: "Ability to create new users"
+      responses:
+        '201':
+          description: "Permission created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePermissionSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /access-control/permissions/{id}:
+    get:
+      operationId: access_control_permissions_show
+      tags:
+        - "Access Control: Permissions"
+      summary: "Get a system permission by ID"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "Permission retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePermissionSingle'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: access_control_permissions_update
+      tags:
+        - "Access Control: Permissions"
+      summary: "Update system permission"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionUpdateInput'
+            example:
+              key: "Update User"
+              value: "update-user"
+      responses:
+        '200':
+          description: "Permission updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePermissionSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: access_control_permissions_remove
+      tags:
+        - "Access Control: Permissions"
+      summary: "Delete system permission"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: "Permission deleted successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /access-control/roles/permissions/assign:
+    post:
+      operationId: access_control_roles_permissions_assign
+      tags:
+        - "Access Control: Role Permissions"
+      summary: "Assign permissions to a role"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignRolePermissionsInput'
+            example:
+              role_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+              permission_ids:
+                - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+      responses:
+        '201':
+          description: "Permissions assigned to role successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRolePermissionsList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /access-control/roles/permissions/remove:
+    post:
+      operationId: access_control_roles_permissions_remove
+      tags:
+        - "Access Control: Role Permissions"
+      summary: "Remove permissions from a role"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveRolePermissionsInput'
+            example:
+              role_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+              permission_ids:
+                - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+      responses:
+        '204':
+          description: "Permissions removed from role successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /access-control/roles/permissions/{id}:
+    get:
+      operationId: access_control_roles_permissions_show
+      tags:
+        - "Access Control: Role Permissions"
+      summary: "Get permissions assigned to a role (paginated)"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
+      responses:
+        '200':
+          description: "Role permissions list retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePaginatedPermissions'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /access-control/role/assign:
+    post:
+      operationId: access_control_user_roles_assign
+      tags:
+        - "Access Control: User Roles"
+      summary: "Assign system roles to a user"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignUserRolesInput'
+            example:
+              user_id: "456e7890-e89b-12d3-a456-426614174000"
+              role_ids:
+                - "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+      responses:
+        '201':
+          description: "Roles assigned to user successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserRolesList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /access-control/role/remove:
+    post:
+      operationId: access_control_user_roles_remove
+      tags:
+        - "Access Control: User Roles"
+      summary: "Remove system roles from a user"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveUserRolesInput'
+            example:
+              user_id: "456e7890-e89b-12d3-a456-426614174000"
+              role_ids:
+                - "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+      responses:
+        '204':
+          description: "Roles removed from user successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /access-control/role/user/{id}:
+    get:
+      operationId: access_control_user_roles_show
+      tags:
+        - "Access Control: User Roles"
+      summary: "Get system roles assigned to a user"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "User system roles retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRoleList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /access-control/users/permission/assign:
+    post:
+      operationId: access_control_user_permissions_assign
+      tags:
+        - "Access Control: User Permissions"
+      summary: "Assign direct permissions to a user"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignUserPermissionsInput'
+            example:
+              user_id: "456e7890-e89b-12d3-a456-426614174000"
+              permission_ids:
+                - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+      responses:
+        '201':
+          description: "Direct permissions assigned to user successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserPermissionsList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /access-control/users/permission/remove:
+    post:
+      operationId: access_control_user_permissions_remove
+      tags:
+        - "Access Control: User Permissions"
+      summary: "Remove direct permissions from a user"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveUserPermissionsInput'
+            example:
+              user_id: "456e7890-e89b-12d3-a456-426614174000"
+              permission_ids:
+                - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+      responses:
+        '204':
+          description: "Direct permissions removed from user successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /access-control/users/permissions/{id}:
+    get:
+      operationId: access_control_user_permissions_show
+      tags:
+        - "Access Control: User Permissions"
+      summary: "Get direct permissions assigned to a user"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "User direct permissions list retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePermissionList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users:
+    get:
+      operationId: users_list
+      tags:
+        - Users
+      summary: "List all platform users (paginated)"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
+      responses:
+        '200':
+          description: "Paginated list of users fetched successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePaginatedUsers'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      operationId: users_add
+      tags:
+        - Users
+      summary: "Create a new platform user"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              name: "Monirul Islam"
+              email: "monirul@example.com"
+              password: "StrongPassword123!"
+      responses:
+        '201':
+          description: "User created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /users/{id}:
+    get:
+      operationId: users_show
+      tags:
+        - Users
+      summary: "Get user account details"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "User fetched successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserSingle'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: users_update
+      tags:
+        - Users
+      summary: "Update user account"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+            example:
+              name: "Monirul Islam"
+      responses:
+        '200':
+          description: "User updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: users_remove
+      tags:
+        - Users
+      summary: "Delete user account"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '204':
+          description: "User deleted successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{id}/profile:
+    get:
+      tags:
+        - Users
+      operationId: user_profile_get
+      summary: "Get user profile detail"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "User profile retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProfileSingle'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: user_profile_update
+      tags:
+        - Users
+      summary: "Update user profile"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+            example:
+              first_name: "John"
+              last_name: "Doe"
+              phone: "+1234567890"
+              date_of_birth: "1990-01-15"
+              gender: "male"
+              image: "https://storage.example.com/avatars/john.png"
+      responses:
+        '200':
+          description: "User profile updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProfileSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      operationId: notifications_list
+      summary: "List user in-app notifications"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: is_read
+          in: query
+          required: false
+          description: "Filter by read/unread status"
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          required: false
+          description: "Page number for pagination"
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          description: "Number of items per page"
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: "Paginated list of user notifications"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+
+  /notifications/unread-count:
+    get:
+      tags:
+        - Notifications
+      operationId: notifications_unread_count
+      summary: "Get unread notification count"
+      description: "Returns the total number of unread notifications for the authenticated user."
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "Unread count retrieved"
+          content:
+            application/json:
+              example:
+                unread_count: 5
+
+  /notifications/{id}/read:
+    patch:
+      tags:
+        - Notifications
+      operationId: notifications_mark_read
+      summary: "Mark notification as read"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "Notification marked as read"
+          content:
+            application/json:
+              example:
+                message: "Notification marked as read."
+                data:
+                  id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+                  is_read: true
+                  read_at: "2026-08-12T18:00:00Z"
+
+  /notifications/read-all:
+    patch:
+      tags:
+        - Notifications
+      operationId: notifications_mark_all_read
+      summary: "Mark all notifications as read"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "All notifications marked as read"
+          content:
+            application/json:
+              example:
+                message: "All notifications marked as read."
+                updated_count: 5
+
+  /notifications/{id}:
+    delete:
+      operationId: notifications_id_delete
+      tags:
+        - Notifications
+      deprecated: true
+      summary: "Dismiss (soft-delete) a notification (Deprecated)"
+      description: "Soft-deletes a notification record. Note: This endpoint is deprecated and marked for future removal — prefer soft state transitions over deletion."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: "Notification dismissed"
+          content:
+            application/json:
+              example:
+                message: "Notification dismissed."
+
+  /notifications/stream:
+    get:
+      tags:
+        - Notifications
+      operationId: notifications_stream_sse
+      summary: "Open real-time SSE notification stream"
+      description: "Establishes a persistent Server-Sent Events (SSE) connection to receive real-time notification events. Note: Standard OpenAPI UI tooling (e.g., Swagger UI) does not natively support interactive testing of SSE event streams. Clients must send header 'Accept: text/event-stream'."
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "SSE stream established"
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              example: "data: {\"id\":\"notif-123\",\"type\":\"DEPLOYMENT_SUCCEEDED\",\"title\":\"Deployment Succeeded\",\"message\":\"Deployment completed.\",\"created_at\":\"2026-08-12T17:01:30Z\"}\n\n"
+
+  /organizations:
+    get:
+      tags:
+        - Organizations
+      operationId: org_list
+      summary: "List user's organizations"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "List of organizations"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrganizationResponse'
+    post:
+      tags:
+        - Organizations
+      operationId: org_create
+      summary: "Create a new organization"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationInput'
+            example:
+              name: "Acme Corporation"
+              type: "Enterprise"
+              descriptions: "A large enterprise organization"
+      responses:
+        '201':
+          description: "Organization created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+
+  /organizations/{id}:
+    get:
+      tags:
+        - Organizations
+      operationId: org_get_by_id
+      summary: "Get organization details"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      responses:
+        '200':
+          description: "Organization details"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+    patch:
+      operationId: organizations_id_put
+      tags:
+        - Organizations
+      summary: "Update organization"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationInput'
+      responses:
+        '200':
+          description: "Organization updated"
+    delete:
+      operationId: organizations_id_delete
+      tags:
+        - Organizations
+      summary: "Delete organization"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      responses:
+        '200':
+          description: "Organization deleted"
+
+  /organizations/{id}/invitations:
+    post:
+      operationId: organizations_id_invitations_post
+      tags:
+        - Org Members
+      summary: "Invite member to organization"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteMemberRequest'
+            example:
+              email: "colleague@example.com"
+              role: "editor"
+      responses:
+        '201':
+          description: "Invitation sent successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/OrgInvitationResponse'
+    get:
+      operationId: organizations_id_invitations_get
+      tags:
+        - Org Members
+      summary: "List organization invitations"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      responses:
+        '200':
+          description: "Pending invitations retrieved"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrgInvitationResponse'
+
+  /organizations/invitations/{token}/accept:
+    post:
+      operationId: organizations_invitations_token_accept_post
+      tags:
+        - Org Members
+      summary: "Accept organization invitation"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "inv_tok_12345678"
+      responses:
+        '200':
+          description: "Invitation accepted"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/OrgMemberResponse'
+
+  /organizations/{id}/members:
+    get:
+      operationId: organizations_id_members_get
+      tags:
+        - Org Members
+      summary: "List organization members"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      responses:
+        '200':
+          description: "Member list retrieved"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrgMemberResponse'
+
+  /organizations/{id}/members/{user_id}:
+    patch:
+      operationId: organizations_id_members_user_id_patch
+      tags:
+        - Org Members
+      summary: "Update member organization role"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberRoleRequest'
+            example:
+              role: "admin"
+      responses:
+        '200':
+          description: "Member role updated"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/OrgMemberResponse'
+    delete:
+      operationId: organizations_id_members_user_id_delete
+      tags:
+        - Org Members
+      summary: "Remove member from organization"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      responses:
+        '200':
+          description: "Member removed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /teams:
+    get:
+      operationId: teams_list
+      tags:
+        - Teams
+      summary: "List teams in organization"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+        - name: organization_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: "Optional organization ID query parameter"
+      responses:
+        '200':
+          description: "Teams list"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TeamResponse'
+    post:
+      operationId: teams_create
+      tags:
+        - Teams
+      summary: "Create a team"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeamRequest'
+            example:
+              organization_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+              name: "Backend Engineering"
+              descriptions: "Core backend services and API team"
+      responses:
+        '201':
+          description: "Team created"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TeamResponse'
+
+  /teams/{id}:
+    get:
+      operationId: teams_id_get
+      tags:
+        - Teams
+      summary: "Get team details"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      responses:
+        '200':
+          description: "Team details"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TeamResponse'
+    patch:
+      operationId: teams_id_patch
+      tags:
+        - Teams
+      summary: "Update team"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTeamRequest'
+            example:
+              name: "Platform Core Team"
+              descriptions: "Infrastructure & Platform engineering"
+      responses:
+        '200':
+          description: "Team updated"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TeamResponse'
+    delete:
+      operationId: teams_id_delete
+      tags:
+        - Teams
+      summary: "Delete team"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      responses:
+        '200':
+          description: "Team deleted"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /teams/{id}/members:
+    get:
+      operationId: teams_id_members_get
+      tags:
+        - Teams
+      summary: "List team members"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      responses:
+        '200':
+          description: "Team members list"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TeamMemberResponse'
+    post:
+      operationId: teams_id_members_post
+      tags:
+        - Teams
+      summary: "Add user to team"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTeamMemberRequest'
+            example:
+              user_id: "456e7890-e89b-12d3-a456-426614174000"
+              role: "developer"
+      responses:
+        '201':
+          description: "User added to team"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TeamMemberResponse'
+
+  /teams/{id}/members/{user_id}:
+    patch:
+      operationId: teams_id_members_user_id_patch
+      tags:
+        - Teams
+      summary: "Update team member role"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTeamMemberRoleRequest'
+            example:
+              role: "admin"
+      responses:
+        '200':
+          description: "Team member role updated"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TeamMemberResponse'
+    delete:
+      operationId: teams_id_members_user_id_delete
+      tags:
+        - Teams
+      summary: "Remove user from team"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/HeaderOrganizationId'
+      responses:
+        '200':
+          description: "User removed from team"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /projects:
+    get:
+      operationId: projects_get
+      tags:
+        - Projects
+      summary: "List projects for organization"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "Projects list"
+    post:
+      operationId: projects_post
+      tags:
+        - Projects
+      summary: "Create a project"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+            example:
+              organization_id: "123e4567-e89b-12d3-a456-426614174000"
+              name: "Forge Backend"
+              type: "repo"
+              repository_url: "https://github.com/mislam-dev/forge.git"
+              default_branch: "main"
+              runtime: "Rust"
+              framework: "Actix Web"
+              descriptions: "Main Rust API backend service"
+      responses:
+        '201':
+          description: "Project created"
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /projects/{id}:
+    get:
+      operationId: projects_id_get
+      tags:
+        - Projects
+      summary: "Get project by ID"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "Project details"
+    put:
+      operationId: projects_id_put
+      tags:
+        - Projects
+      summary: "Update project configuration"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: "Project updated"
+    delete:
+      operationId: projects_id_delete
+      tags:
+        - Projects
+      summary: "Delete project"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "Project deleted"
+        '403':
+          description: "Developer attempted to delete project owned by another user (PRJ_PERM_002)"
+
+  /projects/{id}/repository:
+    post:
+      operationId: projects_id_repository_post
+      tags:
+        - Repository
+      summary: "Connect or reconnect Git repository to project"
+      description: "Connects a Git repository to the project. If a repository is already connected, it idempotently updates the configuration."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectProjectRepositoryRequest'
+      responses:
+        '200':
+          description: "Repository connected or updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectRepository'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      operationId: projects_id_repository_get
+      tags:
+        - Repository
+      summary: "Get connected repository configuration"
+      description: "Retrieves the repository configuration for a project with the access token masked."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+      responses:
+        '200':
+          description: "Repository configuration retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectRepository'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: projects_id_repository_patch
+      tags:
+        - Repository
+      summary: "Update connected repository configuration"
+      description: "Updates repository URL, access token, or default branch."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRepositoryRequest'
+      responses:
+        '200':
+          description: "Repository configuration updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectRepository'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: projects_id_repository_delete
+      tags:
+        - Repository
+      summary: "Disconnect repository from project"
+      description: "Disconnects the Git repository from the project, clears the stored access token, and sets status to disconnected."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+      responses:
+        '200':
+          description: "Repository disconnected successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectRepository'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{id}/env-vars:
+    get:
+      operationId: projects_id_env_vars_get
+      tags:
+        - Environment Variables
+      summary: "List environment variables for project"
+      description: "Retrieves all environment variables for a project, optionally filtered by target environment."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+        - name: environment
+          in: query
+          required: false
+          description: "Filter variables by target deployment environment (development, staging, production)"
+          schema:
+            $ref: '#/components/schemas/ProjectEnvironmentEnum'
+      responses:
+        '200':
+          description: "List of environment variables retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectEnvVarList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      operationId: projects_id_env_vars_post
+      tags:
+        - Environment Variables
+      summary: "Create an environment variable"
+      description: "Creates a single environment variable within the specified environment."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectEnvVarRequest'
+      responses:
+        '201':
+          description: "Environment variable created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectEnvVarSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /projects/{id}/env-vars/bulk:
+    post:
+      operationId: projects_id_env_vars_bulk_post
+      tags:
+        - Environment Variables
+      summary: "Bulk create or update environment variables"
+      description: "Atomically creates or updates (upserts) environment variables across environments."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkCreateProjectEnvVarRequest'
+      responses:
+        '201':
+          description: "Bulk environment variables upserted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectEnvVarList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/{id}/env-vars/{env_id}:
+    patch:
+      operationId: projects_id_env_vars_env_id_patch
+      tags:
+        - Environment Variables
+      summary: "Update environment variable"
+      description: "Partially updates an existing environment variable's value or secrecy status."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: env_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectEnvVarRequest'
+      responses:
+        '200':
+          description: "Environment variable updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProjectEnvVarSingle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: projects_id_env_vars_env_id_delete
+      tags:
+        - Environment Variables
+      summary: "Delete environment variable"
+      description: "Permanently deletes an environment variable."
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: env_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - $ref: '#/components/parameters/HeaderRequestId'
+      responses:
+        '200':
+          description: "Environment variable deleted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseNull'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{id}/members:
+    get:
+      operationId: projects_id_members_get
+      tags:
+        - Project Assignments
+      summary: "List users assigned to project"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "List of assigned users"
+    post:
+      operationId: projects_id_members_post
+      tags:
+        - Project Assignments
+      summary: "Assign user to project"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+            example:
+              user_id: "456e7890-e89b-12d3-a456-426614174000"
+      responses:
+        '201':
+          description: "User assigned to project"
+
+  /projects/{id}/members/{user_id}:
+    delete:
+      operationId: projects_id_members_user_id_delete
+      tags:
+        - Project Assignments
+      summary: "Remove user from project"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "User removed from project"
+
+  /projects/{id}/teams:
+    get:
+      operationId: projects_id_teams_get
+      tags:
+        - Project Assignments
+      summary: "List teams assigned to project"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "List of assigned teams"
+    post:
+      operationId: projects_id_teams_post
+      tags:
+        - Project Assignments
+      summary: "Assign team to project"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - team_id
+              properties:
+                team_id:
+                  type: string
+                  format: uuid
+            example:
+              team_id: "987f6543-e21b-32d1-b654-987654321000"
+      responses:
+        '201':
+          description: "Team assigned to project"
+
+  /projects/{id}/teams/{team_id}:
+    delete:
+      operationId: projects_id_teams_team_id_delete
+      tags:
+        - Project Assignments
+      summary: "Remove team from project"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "Team removed from project"
+
+  /projects/{id}/deployments:
+    post:
+      operationId: projects_id_deployments_post
+      tags:
+        - Deployments
+      summary: "Trigger a new project deployment"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerDeploymentRequest'
+            example:
+              branch: "main"
+              commit_hash: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+      responses:
+        '201':
+          description: "Deployment queued successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDeployment'
+              example:
+                message: "Deployment triggered successfully."
+                data:
+                  id: "a1b2c3d4-e89b-12d3-a456-426614174000"
+                  project_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+                  triggered_by: "456e7890-e89b-12d3-a456-426614174000"
+                  branch: "main"
+                  commit_hash: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+                  status: "Queued"
+                  build_duration: null
+                  deploy_duration: null
+                  error_message: null
+                  created_at: "2026-08-12T17:00:00Z"
+                  updated_at: "2026-08-12T17:00:00Z"
+    get:
+      operationId: projects_id_deployments_get
+      tags:
+        - Deployment History
+      summary: "List deployment history for a project"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/DeploymentStatusEnum'
+        - name: branch
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Paginated deployment history"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePaginatedDeployment'
+
+  /projects/{id}/deployments/{deployment_id}:
+    get:
+      operationId: projects_id_deployments_deployment_id_get
+      tags:
+        - Deployments
+      summary: "Get deployment details by ID"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "Deployment metadata retrieved"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDeployment'
+              example:
+                message: "Deployment details retrieved successfully."
+                data:
+                  id: "a1b2c3d4-e89b-12d3-a456-426614174000"
+                  project_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+                  triggered_by: "456e7890-e89b-12d3-a456-426614174000"
+                  branch: "main"
+                  commit_hash: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+                  status: "Success"
+                  build_duration: 45
+                  deploy_duration: 12
+                  error_message: null
+                  created_at: "2026-08-12T17:00:00Z"
+                  updated_at: "2026-08-12T17:01:00Z"
+
+  /projects/internal/deployments/{deployment_id}/status:
+    put:
+      operationId: projects_internal_deployments_deployment_id_status_put
+      tags:
+        - Deployments
+      summary: "Update deployment status (Internal Build Worker Only)"
+      security:
+        - serviceTokenAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathDeploymentId'
+        - $ref: '#/components/parameters/HeaderServiceToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeploymentStatusRequest'
+      responses:
+        '200':
+          description: "Deployment status updated"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDeployment'
+
+  /projects/{id}/deployments/{deployment_id}/logs/stream:
+    get:
+      operationId: projects_id_deployments_deployment_id_logs_stream_get
+      tags:
+        - Live Build Logs
+      summary: "Open Server-Sent Events (SSE) log stream"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "SSE event stream opened"
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{id}/deployments/{deployment_id}/logs:
+    get:
+      operationId: projects_id_deployments_deployment_id_logs_get
+      tags:
+        - Live Build Logs
+      summary: "Get stored build logs"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "Stored log lines retrieved"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBuildLog'
+              example:
+                message: "Build logs retrieved successfully."
+                data:
+                  deployment_id: "a1b2c3d4-e89b-12d3-a456-426614174000"
+                  logs:
+                    - timestamp: "2026-08-19T10:00:00Z"
+                      level: "INFO"
+                      step: "clone"
+                      message: "Cloning repository..."
+                    - timestamp: "2026-08-19T10:00:05Z"
+                      level: "INFO"
+                      step: "build"
+                      message: "Docker build completed successfully."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{id}/deployments/{deployment_id}/logs/search:
+    get:
+      operationId: projects_id_deployments_deployment_id_logs_search_get
+      tags:
+        - Live Build Logs
+      summary: "Search build logs by keyword"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "error"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          example: 10
+      responses:
+        '200':
+          description: "Filtered log results"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBuildLog'
+              example:
+                message: "Build log search completed successfully."
+                data:
+                  deployment_id: "a1b2c3d4-e89b-12d3-a456-426614174000"
+                  logs:
+                    - timestamp: "2026-08-19T10:00:05Z"
+                      level: "ERROR"
+                      step: "build"
+                      message: "error: failed to compile `app`"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{id}/deployments/{deployment_id}/logs/download:
+    get:
+      operationId: projects_id_deployments_deployment_id_logs_download_get
+      tags:
+        - Live Build Logs
+      summary: "Download complete deployment log file"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '200':
+          description: "Plain text log file download"
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{id}/deployments/{deployment_id}/redeploy:
+    post:
+      operationId: projects_id_deployments_deployment_id_redeploy_post
+      tags:
+        - Deployment History
+      summary: "Re-trigger deployment at same commit"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PathDeploymentId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '201':
+          description: "Redeploy queued"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDeployment'
+              example:
+                message: "Redeploy triggered successfully."
+                data:
+                  id: "b2c3d4e5-e89b-12d3-a456-426614174000"
+                  project_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+                  triggered_by: "456e7890-e89b-12d3-a456-426614174000"
+                  branch: "main"
+                  commit_hash: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+                  status: "Queued"
+                  build_duration: null
+                  deploy_duration: null
+                  error_message: null
+                  created_at: "2026-08-12T18:00:00Z"
+                  updated_at: "2026-08-12T18:00:00Z"
+
+  /projects/{id}/deployments/rollback:
+    post:
+      operationId: projects_id_deployments_rollback_post
+      tags:
+        - Deployment History
+      summary: "Rollback project to last successful deployment commit"
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/HeaderOptionalOrganizationId'
+      responses:
+        '201':
+          description: "Rollback deployment queued"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDeployment'
+              example:
+                message: "Rollback deployment triggered successfully."
+                data:
+                  id: "c3d4e5f6-e89b-12d3-a456-426614174000"
+                  project_id: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+                  triggered_by: "456e7890-e89b-12d3-a456-426614174000"
+                  branch: "main"
+                  commit_hash: "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5"
+                  status: "Queued"
+                  build_duration: null
+                  deploy_duration: null
+                  error_message: null
+                  created_at: "2026-08-12T19:00:00Z"
+                  updated_at: "2026-08-12T19:00:00Z"
+
+  /dashboard:
+    get:
+      operationId: dashboard_get
+      tags:
+        - Dashboard
+      summary: "Get aggregated dashboard metrics"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "Aggregated cross-domain dashboard data"
+
+  /health/live:
+    get:
+      tags:
+        - Health
+      operationId: health_liveness_probe
+      summary: "Liveness probe — check process health"
+      security: []
+      description: "Lightweight liveness probe for load balancers and orchestrators to check if the application process is alive."
+      responses:
+        '200':
+          description: "Process is alive and healthy"
+          content:
+            application/json:
+              example:
+                status: "healthy"
+                service: "forge-platform"
+                version: "1.0.0"
+                environment: "production"
+                timestamp: "2026-08-12T21:00:00Z"
+
+  /health/ready:
+    get:
+      tags:
+        - Health
+      operationId: health_readiness_probe
+      summary: "Readiness probe — check dependency readiness"
+      security: []
+      description: "Readiness probe checking availability of core dependencies (database, job queue, container runtime) before routing traffic."
+      responses:
+        '200':
+          description: "All critical dependencies are ready"
+          content:
+            application/json:
+              example:
+                status: "ready"
+                service: "forge-platform"
+                timestamp: "2026-08-12T21:00:00Z"
+                checks:
+                  database:
+                    status: "healthy"
+                    latency_ms: 4
+                  job_queue:
+                    status: "healthy"
+                    latency_ms: 2
+                  container_runtime:
+                    status: "healthy"
+                    latency_ms: 8
+        '503':
+          description: "One or more critical dependencies unavailable"
+          content:
+            application/json:
+              example:
+                status: "not_ready"
+                service: "forge-platform"
+                timestamp: "2026-08-12T21:00:00Z"
+                checks:
+                  database:
+                    status: "unhealthy"
+                    latency_ms: null
+                    message: "Connection refused on port 5432"
+
+  /health/deep:
+    get:
+      tags:
+        - Health
+      operationId: health_deep_check
+      summary: "Deep health check — all internal services and dependencies"
+      description: "Aggregated deep operational health check evaluating all internal modules and external integrations. Restricted to System Admin."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: timeout_ms
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 3000
+      responses:
+        '200':
+          description: "Deep health report retrieved"
+          content:
+            application/json:
+              example:
+                status: "healthy"
+                service: "forge-platform"
+                version: "1.0.0"
+                environment: "production"
+                uptime_seconds: 864000
+                timestamp: "2026-08-12T21:00:00Z"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    serviceTokenAuth:
+      type: apiKey
+      in: header
+      name: x-service-token
+
+  parameters:
+    HeaderOrganizationId:
+      name: Organization-ID
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: "Organization UUID required in the header for tenant-scoped role-based authorization"
+      example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    HeaderOptionalOrganizationId:
+      name: Organization-ID
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: "Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context"
+      example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    HeaderRequestId:
+      name: x-request-id
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: "Optional unique request correlation ID for tracing and debugging across middleware"
+      example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+
+    HeaderServiceToken:
+      name: x-service-token
+      in: header
+      required: true
+      schema:
+        type: string
+      description: "Master service secret key for internal worker authentication"
+
+    PathId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    PathDeploymentId:
+      name: deployment_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: "a1b2c3d4-e89b-12d3-a456-426614174000"
+
+    PageQueryParam:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+      description: "Page number for pagination (defaults to 1)"
+
+    PerPageQueryParam:
+      name: per_page
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+      description: "Number of items per page (defaults to 10)"
+
+  schemas:
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        total_pages:
+          type: integer
+          example: 10
+
+    PaginatedResponse:
+      type: object
+      required:
+        - data
+        - page
+        - per_page
+        - total
+        - total_pages
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        total_pages:
+          type: integer
+          example: 10
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    UserResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            email:
+              type: string
+            created_at:
+              type: string
+
+    UserItemResponse:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          example: "Monirul Islam"
+        email:
+          type: string
+          format: email
+          example: "monirul@example.com"
+
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: "Monirul Islam"
+        email:
+          type: string
+          format: email
+          minLength: 1
+          example: "monirul@example.com"
+        password:
+          type: string
+          minLength: 8
+          example: "StrongPassword123!"
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: "Monirul Islam"
+
+    PaginatedUserResponse:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+        - data
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        total_pages:
+          type: integer
+          example: 10
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserItemResponse'
+
+    ApiResponsePaginatedUsers:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Users fetched successfully!"
+        data:
+          $ref: '#/components/schemas/PaginatedUserResponse'
+
+    ApiResponseUserSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "User fetched successfully!"
+        data:
+          $ref: '#/components/schemas/UserItemResponse'
+
+    AuthTokenResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            access_token:
+              type: string
+            refresh_token:
+              type: string
+            expires_in:
+              type: integer
+
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - new_password
+        - confirm_password
+      properties:
+        token:
+          type: string
+        new_password:
+          type: string
+          minLength: 8
+        confirm_password:
+          type: string
+
+    ApiResponseEnvelope:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          nullable: true
+
+    ApiResponseNull:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          nullable: true
+          default: null
+
+    RoleCreateInput:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          example: "System Admin"
+        value:
+          type: string
+          example: "admin"
+        description:
+          type: string
+          nullable: true
+          example: "Full system administrative access"
+
+    RoleUpdateInput:
+      type: object
+      properties:
+        key:
+          type: string
+          nullable: true
+          example: "System Administrator"
+        value:
+          type: string
+          nullable: true
+          example: "sysadmin"
+        description:
+          type: string
+          nullable: true
+          example: "Updated description"
+
+    RoleResponseDto:
+      type: object
+      required:
+        - id
+        - key
+        - value
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        key:
+          type: string
+          example: "System Admin"
+        value:
+          type: string
+          example: "admin"
+        description:
+          type: string
+          nullable: true
+          example: "Full system administrative access"
+
+    ApiResponseRoleSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Role fetched successfully"
+        data:
+          $ref: '#/components/schemas/RoleResponseDto'
+
+    ApiResponseRoleList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Roles fetched successfully"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleResponseDto'
+
+    PermissionCreateInput:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          example: "Create User"
+        value:
+          type: string
+          example: "create-user"
+        descriptions:
+          type: string
+          nullable: true
+          example: "Ability to create new users"
+
+    PermissionUpdateInput:
+      type: object
+      properties:
+        key:
+          type: string
+          nullable: true
+          example: "Update User"
+        value:
+          type: string
+          nullable: true
+          example: "update-user"
+        descriptions:
+          type: string
+          nullable: true
+          example: "Ability to update existing users"
+
+    PermissionResponseDto:
+      type: object
+      required:
+        - id
+        - key
+        - value
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+        key:
+          type: string
+          example: "Create User"
+        value:
+          type: string
+          example: "create-user"
+        descriptions:
+          type: string
+          nullable: true
+          example: "Ability to create new users"
+
+    ApiResponsePermissionSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions fetch successfully"
+        data:
+          $ref: '#/components/schemas/PermissionResponseDto'
+
+    ApiResponsePermissionList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions fetched successfully!"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionResponseDto'
+
+    PaginatedPermissionResponse:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+        - data
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 45
+        total_pages:
+          type: integer
+          example: 5
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionResponseDto'
+
+    ApiResponsePaginatedPermissions:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions fetch successfully"
+        data:
+          $ref: '#/components/schemas/PaginatedPermissionResponse'
+
+    AssignRolePermissionsInput:
+      type: object
+      required:
+        - role_id
+        - permission_ids
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    RemoveRolePermissionsInput:
+      type: object
+      required:
+        - role_id
+        - permission_ids
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    RolePermissionsResponse:
+      type: object
+      required:
+        - role_id
+        - permission_id
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        permission_id:
+          type: string
+          format: uuid
+          example: "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    ApiResponseRolePermissionsList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions assigned to the role"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RolePermissionsResponse'
+
+    AssignUserRolesInput:
+      type: object
+      required:
+        - user_id
+        - role_ids
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        role_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    RemoveUserRolesInput:
+      type: object
+      required:
+        - user_id
+        - role_ids
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        role_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+
+    UserRoleResponse:
+      type: object
+      required:
+        - role_id
+        - user_id
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+
+    ApiResponseUserRolesList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Roles assigned successfully!"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRoleResponse'
+
+    AssignUserPermissionsInput:
+      type: object
+      required:
+        - user_id
+        - permission_ids
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    RemoveUserPermissionsInput:
+      type: object
+      required:
+        - user_id
+        - permission_ids
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+
+    UserPermissionResponse:
+      type: object
+      required:
+        - permission_id
+        - user_id
+      properties:
+        permission_id:
+          type: string
+          format: uuid
+          example: "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+
+    ApiResponseUserPermissionsList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Permissions assigned successfully!"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPermissionResponse'
+
+    RoleInput:
+      $ref: '#/components/schemas/RoleCreateInput'
+
+    RoleSchema:
+      $ref: '#/components/schemas/RoleResponseDto'
+
+    PermissionInput:
+      $ref: '#/components/schemas/PermissionCreateInput'
+
+    OrganizationInput:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - "Enterprise"
+            - "Startup"
+            - "Business"
+        descriptions:
+          type: string
+        owner_user_id:
+          type: string
+          format: uuid
+          description: "Optional owner user ID. Required only if Admin is assigning ownership to another user; defaults to authenticated user."
+
+    OrganizationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            type:
+              type: string
+            descriptions:
+              type: string
+            owner_user_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+            updated_at:
+              type: string
+
+    InviteMemberRequest:
+      type: object
+      required:
+        - role
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Target user ID if inviting an existing platform user"
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: "Target email address if inviting via email"
+        role:
+          type: string
+          enum:
+            - viewer
+            - editor
+            - developer
+            - admin
+            - owner
+          example: "editor"
+
+    UpdateMemberRoleRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum:
+            - viewer
+            - editor
+            - developer
+            - admin
+            - owner
+          example: "admin"
+
+    OrgMemberResponse:
+      type: object
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          nullable: true
+        role:
+          type: string
+          enum:
+            - viewer
+            - editor
+            - admin
+            - owner
+        joined_at:
+          type: string
+          format: date-time
+
+    OrgInvitationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - viewer
+            - editor
+            - admin
+            - owner
+        token:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - accepted
+            - rejected
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    CreateTeamRequest:
+      type: object
+      required:
+        - organization_id
+        - name
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 2
+          maxLength: 255
+        descriptions:
+          type: string
+          nullable: true
+
+    UpdateTeamRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        descriptions:
+          type: string
+          nullable: true
+
+    TeamResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        descriptions:
+          type: string
+          nullable: true
+        member_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AddTeamMemberRequest:
+      type: object
+      required:
+        - user_id
+        - role
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          example: "developer"
+
+    UpdateTeamMemberRoleRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          example: "admin"
+
+    TeamMemberResponse:
+      type: object
+      properties:
+        team_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+        joined_at:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          nullable: true
+          example: "Monirul"
+        last_name:
+          type: string
+          nullable: true
+          example: "Islam"
+        phone:
+          type: string
+          nullable: true
+          example: "+1234567890"
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          example: "1990-01-15"
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+            - other
+          nullable: true
+          example: "male"
+        image:
+          type: string
+          nullable: true
+          example: "https://example.com/avatar.png"
+
+    ProfileResponse:
+      type: object
+      required:
+        - id
+        - user_id
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        user_id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        first_name:
+          type: string
+          nullable: true
+          example: "Monirul"
+        last_name:
+          type: string
+          nullable: true
+          example: "Islam"
+        phone:
+          type: string
+          nullable: true
+          example: "+1234567890"
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+          example: "1990-01-15"
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+            - other
+          nullable: true
+          example: "male"
+        image:
+          type: string
+          nullable: true
+          example: "https://example.com/avatar.png"
+        created_at:
+          type: string
+          example: "2026-08-19T10:00:00Z"
+        updated_at:
+          type: string
+          example: "2026-08-19T10:00:00Z"
+
+    ApiResponseProfileSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "User profile retrieved successfully"
+        data:
+          $ref: '#/components/schemas/ProfileResponse'
+
+    NotificationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        metadata:
+          type: object
+        is_read:
+          type: boolean
+        read_at:
+          type: string
+          nullable: true
+        is_dismissed:
+          type: boolean
+        created_at:
+          type: string
+
+    NotificationListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationResponse'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+
+    CreateProjectRequest:
+      type: object
+      required:
+        - name
+        - type
+        - runtime
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Optional UUID of the parent organization. If omitted/null, project is created in the user's Personal Workspace."
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - "repo"
+            - "files"
+        repository_url:
+          type: string
+        default_branch:
+          type: string
+        runtime:
+          type: string
+          enum:
+            - "Node.js"
+            - "Rust"
+            - "Python"
+            - "Go"
+            - "Static Site"
+        framework:
+          type: string
+        descriptions:
+          type: string
+
+    UpdateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        repository_url:
+          type: string
+        default_branch:
+          type: string
+        runtime:
+          type: string
+        framework:
+          type: string
+        status:
+          type: string
+          enum:
+            - "active"
+            - "archived"
+            - "draft"
+        descriptions:
+          type: string
+
+    ConnectProjectRepositoryRequest:
+      type: object
+      required:
+        - repository_url
+      properties:
+        repository_url:
+          type: string
+          minLength: 5
+          example: "https://github.com/mislam-dev/forge.git"
+        access_token:
+          type: string
+          nullable: true
+          example: "github_pat_11ABCXYZ123456789"
+        default_branch:
+          type: string
+          nullable: true
+          default: "main"
+          example: "main"
+
+    UpdateProjectRepositoryRequest:
+      type: object
+      properties:
+        repository_url:
+          type: string
+          minLength: 5
+          nullable: true
+          example: "https://github.com/mislam-dev/forge.git"
+        access_token:
+          type: string
+          nullable: true
+          example: "github_pat_11ABCXYZ123456789"
+        default_branch:
+          type: string
+          nullable: true
+          example: "main"
+
+    ProjectRepositoryStatus:
+      type: string
+      enum:
+        - "connected"
+        - "disconnected"
+      example: "connected"
+
+    ProjectRepositoryResponse:
+      type: object
+      required:
+        - id
+        - project_id
+        - repository_url
+        - access_token
+        - default_branch
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        project_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        repository_url:
+          type: string
+          example: "https://github.com/mislam-dev/forge.git"
+        access_token:
+          type: string
+          example: "••••••••"
+        default_branch:
+          type: string
+          example: "main"
+        status:
+          $ref: '#/components/schemas/ProjectRepositoryStatus'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ApiResponseProjectRepository:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully."
+        data:
+          $ref: '#/components/schemas/ProjectRepositoryResponse'
+
+    ProjectEnvironmentEnum:
+      type: string
+      enum:
+        - "development"
+        - "staging"
+        - "production"
+      example: "development"
+
+    CreateProjectEnvVarRequest:
+      type: object
+      required:
+        - key
+        - value
+        - environment
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: "^[A-Z_][A-Z0-9_]*$"
+          example: "DATABASE_URL"
+        value:
+          type: string
+          example: "postgres://user:pass@localhost:5432/db"
+        environment:
+          $ref: '#/components/schemas/ProjectEnvironmentEnum'
+        is_secret:
+          type: boolean
+          default: false
+          example: false
+
+    ProjectEnvVarItemRequest:
+      type: object
+      required:
+        - key
+        - value
+        - environment
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: "^[A-Z_][A-Z0-9_]*$"
+          example: "PORT"
+        value:
+          type: string
+          example: "9000"
+        environment:
+          $ref: '#/components/schemas/ProjectEnvironmentEnum'
+        is_secret:
+          type: boolean
+          default: false
+          example: false
+
+    BulkCreateProjectEnvVarRequest:
+      type: object
+      required:
+        - vars
+      properties:
+        vars:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectEnvVarItemRequest'
+
+    UpdateProjectEnvVarRequest:
+      type: object
+      properties:
+        value:
+          type: string
+          nullable: true
+          example: "new_secret_value"
+        is_secret:
+          type: boolean
+          nullable: true
+          example: true
+
+    ProjectEnvVarResponse:
+      type: object
+      required:
+        - id
+        - project_id
+        - environment
+        - key
+        - value
+        - is_secret
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        project_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        environment:
+          $ref: '#/components/schemas/ProjectEnvironmentEnum'
+        key:
+          type: string
+          example: "DATABASE_URL"
+        value:
+          type: string
+          example: "postgres://user:pass@localhost:5432/db"
+        is_secret:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ApiResponseProjectEnvVarSingle:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully."
+        data:
+          $ref: '#/components/schemas/ProjectEnvVarResponse'
+
+    ApiResponseProjectEnvVarList:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully."
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectEnvVarResponse'
+
+    DeploymentStatusEnum:
+      type: string
+      enum:
+        - "Queued"
+        - "Building"
+        - "Deploying"
+        - "Running"
+        - "Failed"
+        - "Success"
+      example: "Queued"
+
+    TriggerDeploymentRequest:
+      type: object
+      properties:
+        branch:
+          type: string
+          example: "main"
+        commit_hash:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+
+    UpdateDeploymentStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/DeploymentStatusEnum'
+        build_duration:
+          type: integer
+          nullable: true
+          example: 45
+        deploy_duration:
+          type: integer
+          nullable: true
+          example: 12
+        error_message:
+          type: string
+          nullable: true
+          example: null
+
+    DeploymentResponse:
+      type: object
+      required:
+        - id
+        - project_id
+        - triggered_by
+        - branch
+        - commit_hash
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e89b-12d3-a456-426614174000"
+        project_id:
+          type: string
+          format: uuid
+          example: "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+        triggered_by:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        branch:
+          type: string
+          example: "main"
+        commit_hash:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+        status:
+          $ref: '#/components/schemas/DeploymentStatusEnum'
+        build_duration:
+          type: integer
+          nullable: true
+          example: 45
+        deploy_duration:
+          type: integer
+          nullable: true
+          example: 12
+        error_message:
+          type: string
+          nullable: true
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-08-12T17:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-08-12T17:01:00Z"
+
+    ApiResponseDeployment:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully."
+        data:
+          $ref: '#/components/schemas/DeploymentResponse'
+
+    PaginatedDeploymentData:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+        - data
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 42
+        total_pages:
+          type: integer
+          example: 5
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeploymentResponse'
+
+    ApiResponsePaginatedDeployment:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Deployments retrieved successfully."
+        data:
+          $ref: '#/components/schemas/PaginatedDeploymentData'
+
+    LogItem:
+      type: object
+      required:
+        - timestamp
+        - level
+        - step
+        - message
+      properties:
+        timestamp:
+          type: string
+          example: "2026-08-19T10:00:00Z"
+        level:
+          type: string
+          example: "INFO"
+        step:
+          type: string
+          example: "clone"
+        message:
+          type: string
+          example: "Cloning repository..."
+
+    BuildLogResponse:
+      type: object
+      required:
+        - deployment_id
+        - logs
+      properties:
+        deployment_id:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e89b-12d3-a456-426614174000"
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogItem'
+
+    ApiResponseBuildLog:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: "Build logs retrieved successfully."
+        data:
+          $ref: '#/components/schemas/BuildLogResponse'
+
+    ErrorResponse:
+      type: object
+      properties:
+        is_error:
+          type: boolean
+          example: true
+        code:
+          type: string
+          example: "PRJ_PERM_002"
+        message:
+          type: string
+          example: "Access denied. Developers can only delete projects created by themselves."
+        errors:
+          type: object
+
+  responses:
+    BadRequest:
+      description: "Bad Request / Validation Failure"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            is_error: true
+            code: "ENV_001"
+            message: "Invalid Key Format. Must match POSIX ^[A-Z_][A-Z0-9_]*$"
+
+    Unauthorized:
+      description: "Authentication Required / Invalid Token"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            is_error: true
+            code: "AUTH_000"
+            message: "Authentication token missing or invalid"
+
+    Forbidden:
+      description: "Authorization Denied / Insufficient Privileges"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            is_error: true
+            code: "PRJ_PERM_001"
+            message: "Access denied. Viewers cannot perform write operations"
+
+    NotFound:
+      description: "Resource Not Found"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            is_error: true
+            code: "DEPLOY_001"
+            message: "Deployment record not found"
+
+    Conflict:
+      description: "Resource Conflict / Duplicate Entry"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            is_error: true
+            code: "ENV_002"
+            message: "Duplicate Variable Key for target environment"

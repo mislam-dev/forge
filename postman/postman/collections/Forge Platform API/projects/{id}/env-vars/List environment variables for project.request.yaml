@@ -1,0 +1,83 @@
+$kind: http-request
+description: Retrieves all environment variables for a project, optionally filtered by target environment.
+url: "{{baseUrl}}/projects/:id/env-vars?environment=development"
+method: GET
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: x-request-id
+    value: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+    disabled: false
+    description: Optional unique request correlation ID for tracing and debugging across middleware
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: Accept
+    value: application/json
+queryParams:
+  - key: environment
+    value: development
+    disabled: false
+    description: Filter variables by target deployment environment (development, staging, production)
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "enum": [
+              "development",
+              "staging",
+              "production"
+            ],
+            "example": "development"
+          }
+        }
+      }
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/List environment variables for project.resources/examples
+order: 1000

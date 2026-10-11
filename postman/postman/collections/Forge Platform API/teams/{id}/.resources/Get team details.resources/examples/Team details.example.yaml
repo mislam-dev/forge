@@ -1,0 +1,79 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/teams/:id"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID required in the header for tenant-scoped role-based authorization
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": {
+          "id": "7790bc24-10f9-3ece-99d5-614dec0b6d11",
+          "organization_id": "d6a3c3b5-65b4-dad4-8110-b58001cff2e4",
+          "name": "string",
+          "descriptions": "string",
+          "member_count": 4151,
+          "created_at": "1976-06-12T13:40:59.948Z",
+          "updated_at": "1976-03-05T18:35:46.139Z"
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "organization_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "descriptions": {
+                "type": "string"
+              },
+              "member_count": {
+                "type": "integer"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+order: 1000

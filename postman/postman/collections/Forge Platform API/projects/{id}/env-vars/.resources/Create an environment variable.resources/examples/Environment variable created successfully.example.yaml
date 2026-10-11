@@ -1,0 +1,121 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/projects/:id/env-vars"
+  method: POST
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    - key: x-request-id
+      value: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+      disabled: false
+      description: Optional unique request correlation ID for tracing and debugging across middleware
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: json
+    content: |-
+      {
+        "key": "DATABASE_URL",
+        "value": "postgres://user:pass@localhost:5432/db",
+        "environment": "development",
+        "is_secret": false
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Operation completed successfully.",
+        "data": {
+          "id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+          "project_id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+          "environment": "development",
+          "key": "DATABASE_URL",
+          "value": "postgres://user:pass@localhost:5432/db",
+          "is_secret": false,
+          "created_at": "1971-08-28T06:11:26.429Z",
+          "updated_at": "1956-03-15T20:16:16.046Z"
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Operation completed successfully."
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                "format": "uuid"
+              },
+              "project_id": {
+                "type": "string",
+                "example": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                "format": "uuid"
+              },
+              "environment": {
+                "type": "string",
+                "enum": [
+                  "development",
+                  "staging",
+                  "production"
+                ],
+                "example": "development"
+              },
+              "key": {
+                "type": "string",
+                "example": "DATABASE_URL"
+              },
+              "value": {
+                "type": "string",
+                "example": "postgres://user:pass@localhost:5432/db"
+              },
+              "is_secret": {
+                "type": "boolean",
+                "example": false
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "project_id",
+              "environment",
+              "key",
+              "value",
+              "is_secret",
+              "created_at",
+              "updated_at"
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+order: 1000

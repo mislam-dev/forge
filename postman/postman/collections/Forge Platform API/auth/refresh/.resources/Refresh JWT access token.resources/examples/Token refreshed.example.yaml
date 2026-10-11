@@ -1,0 +1,53 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/auth/refresh"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "refresh_token": "rfr_890a7b6c5d4e3f2a1b0c..."
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": {
+          "access_token": "string",
+          "refresh_token": "string",
+          "expires_in": 3728
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "access_token": {
+                "type": "string"
+              },
+              "refresh_token": {
+                "type": "string"
+              },
+              "expires_in": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+order: 1000

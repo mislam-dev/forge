@@ -1,0 +1,12 @@
+$kind: http-request
+description: Readiness probe checking availability of core dependencies (database, job queue, container runtime) before routing traffic.
+url: "{{baseUrl}}/health/ready"
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Readiness probe — check dependency readiness.resources/examples
+order: 1000

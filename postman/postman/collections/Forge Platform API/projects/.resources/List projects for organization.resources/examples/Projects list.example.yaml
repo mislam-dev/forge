@@ -1,0 +1,97 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/projects"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: |-
+      {
+          "data": [
+              {
+                  "created_at": "2026-09-29T15:09:17.653212+00:00",
+                  "description": "",
+                  "health_check_url": "/health",
+                  "id": "0193870a-a5b4-4a58-9297-5e6b2d70838b",
+                  "name": "test",
+                  "organization_id": null,
+                  "owner_id": "77371d01-2e92-4e51-99ae-f4dd337d6085",
+                  "port": 3000,
+                  "project_type": "Repo",
+                  "runtime": "NodeJs",
+                  "status": "Active",
+                  "updated_at": "2026-09-29T15:09:17.653212+00:00"
+              },
+              {
+                  "created_at": "2026-09-29T17:25:30.280234+00:00",
+                  "description": "",
+                  "health_check_url": "/health",
+                  "id": "7dee4bc3-cdf4-43df-bdba-af89ed0cd0f8",
+                  "name": "test 3",
+                  "organization_id": null,
+                  "owner_id": "77371d01-2e92-4e51-99ae-f4dd337d6085",
+                  "port": 3000,
+                  "project_type": "Repo",
+                  "runtime": "NodeJs",
+                  "status": "Active",
+                  "updated_at": "2026-09-29T17:25:30.280234+00:00"
+              },
+              {
+                  "created_at": "2026-09-29T17:27:16.579845+00:00",
+                  "description": "",
+                  "health_check_url": "/health",
+                  "id": "022be028-f3da-4a14-92ae-2420df249aee",
+                  "name": "test 4",
+                  "organization_id": null,
+                  "owner_id": "77371d01-2e92-4e51-99ae-f4dd337d6085",
+                  "port": 3000,
+                  "project_type": "Repo",
+                  "runtime": "NodeJs",
+                  "status": "Active",
+                  "updated_at": "2026-09-29T17:27:16.579845+00:00"
+              },
+              {
+                  "created_at": "2026-09-29T18:21:06.523047+00:00",
+                  "description": "",
+                  "health_check_url": "/health",
+                  "id": "aa3f157f-317f-4103-81fe-76152a0cb6d9",
+                  "name": "admin",
+                  "organization_id": "1b913f11-5abc-4dc8-b0a6-3aada3466472",
+                  "owner_id": "77371d01-2e92-4e51-99ae-f4dd337d6085",
+                  "port": 3000,
+                  "project_type": "Repo",
+                  "runtime": "NodeJs",
+                  "status": "Active",
+                  "updated_at": "2026-09-29T18:21:06.523047+00:00"
+              },
+              {
+                  "created_at": "2026-09-30T18:35:34.021470+00:00",
+                  "description": "",
+                  "health_check_url": "/health",
+                  "id": "9db73b8c-7a00-4a6f-a767-ed9e40a0b667",
+                  "name": "Min-e-commerce",
+                  "organization_id": "1b913f11-5abc-4dc8-b0a6-3aada3466472",
+                  "owner_id": "77371d01-2e92-4e51-99ae-f4dd337d6085",
+                  "port": 3000,
+                  "project_type": "Repo",
+                  "runtime": "NodeJs",
+                  "status": "Active",
+                  "updated_at": "2026-09-30T18:35:34.021470+00:00"
+              }
+          ],
+          "message": "Projects retrieved successfully."
+      }
+order: 1000

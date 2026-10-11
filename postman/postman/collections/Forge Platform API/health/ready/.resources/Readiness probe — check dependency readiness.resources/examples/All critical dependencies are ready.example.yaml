@@ -1,0 +1,37 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/health/ready"
+  method: GET
+  headers:
+    Accept: application/json
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "status": "ready",
+        "service": "forge-platform",
+        "timestamp": "2026-08-12T21:00:00Z",
+        "checks": {
+          "database": {
+            "status": "healthy",
+            "latency_ms": 4
+          },
+          "job_queue": {
+            "status": "healthy",
+            "latency_ms": 2
+          },
+          "container_runtime": {
+            "status": "healthy",
+            "latency_ms": 8
+          }
+        }
+      }
+order: 1000

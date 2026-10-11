@@ -1,0 +1,89 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/organizations/:id/members"
+  method: GET
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID required in the header for tenant-scoped role-based authorization
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": [
+          {
+            "organization_id": "8ba03d71-c156-f980-957d-7d894240f7d3",
+            "user_id": "626474bc-2da5-d6db-9409-538b62ac6f0b",
+            "email": "sL3b4sDsbDEn@uJUemaSsAdNPbutGE.jgx",
+            "role": "viewer",
+            "joined_at": "2024-03-31T18:12:39.954Z"
+          },
+          {
+            "organization_id": "871b5123-43b9-5f24-d1c7-1d9fcdb5b3d3",
+            "user_id": "099a0561-2522-a898-d6ee-33d49c2ef65d",
+            "email": "ZWSGCLFVX00SeF5@XgOUonMjITgGovj.ml",
+            "role": "editor",
+            "joined_at": "2012-03-26T22:35:52.957Z"
+          }
+        ]
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "organization_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "user_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "viewer",
+                    "editor",
+                    "admin",
+                    "owner"
+                  ]
+                },
+                "joined_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      }
+order: 1000

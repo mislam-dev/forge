@@ -1,0 +1,57 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/access-control/roles/:id"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "key": "Updated Admin",
+      "value": "updated_admin"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "example": "System Administrator"
+        },
+        "value": {
+          "type": "string",
+          "example": "sysadmin"
+        },
+        "description": {
+          "type": "string",
+          "example": "Updated description"
+        }
+      }
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Update a system role.resources/examples
+order: 2000

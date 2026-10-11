@@ -1,0 +1,94 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/projects"
+method: POST
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: true
+    description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+  - key: Accept
+    value: application/json
+    disabled: false
+  - key: Content-Type
+    value: application/json
+    disabled: false
+    description: ""
+body:
+  type: json
+  content: |-
+    {
+        "organization_id": "123e4567-e89b-12d3-a456-426614174000",
+        "name": "Forge Backend",
+        "type": "repo",
+        "repository_url": "https://github.com/mislam-dev/forge.git",
+        "default_branch": "main",
+        "runtime": "Node.js",
+        "framework": "Actix Web",
+        "descriptions": "Main Rust API backend service"
+    }
+  $type: |-
+    {
+        "type": "object",
+        "properties": {
+            "organization_id": {
+                "type": "string",
+                "description": "Optional UUID of the parent organization. If omitted/null, project is created in the user's Personal Workspace.",
+                "format": "uuid"
+            },
+            "name": {
+                "type": "string"
+            },
+            "type": {
+                "type": "string",
+                "enum": [
+                    "repo",
+                    "files"
+                ]
+            },
+            "repository_url": {
+                "type": "string"
+            },
+            "default_branch": {
+                "type": "string"
+            },
+            "runtime": {
+                "type": "string",
+                "enum": [
+                    "Node.js",
+                    "Rust",
+                    "Python",
+                    "Go",
+                    "Static Site"
+                ]
+            },
+            "framework": {
+                "type": "string"
+            },
+            "descriptions": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "name",
+            "type",
+            "runtime"
+        ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Create a project.resources/examples
+order: 2000

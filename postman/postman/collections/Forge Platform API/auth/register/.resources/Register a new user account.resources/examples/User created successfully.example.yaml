@@ -1,0 +1,60 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/auth/register"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "name": "Monirul Islam",
+        "email": "monirul@example.com",
+        "password": "StrongPassword123!"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "User registered successfully.",
+        "data": {
+          "id": "456e7890-e89b-12d3-a456-426614174000",
+          "name": "Monirul Islam",
+          "email": "monirul@example.com",
+          "created_at": "2026-08-12T17:00:00Z"
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "created_at": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+order: 1000

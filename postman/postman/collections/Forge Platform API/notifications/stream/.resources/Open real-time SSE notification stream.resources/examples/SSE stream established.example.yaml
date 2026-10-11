@@ -1,0 +1,28 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/notifications/stream"
+  method: GET
+  headers:
+    - key: Accept
+      value: text/event-stream
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: text/event-stream
+  body:
+    type: text
+    content: |+
+      data: {"id":"notif-123","type":"DEPLOYMENT_SUCCEEDED","title":"Deployment Succeeded","message":"Deployment completed.","created_at":"2026-08-12T17:01:30Z"}
+
+    $type: |-
+      {
+        "type": "string"
+      }
+order: 1000

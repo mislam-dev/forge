@@ -1,0 +1,16 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/notifications/read-all"
+method: PATCH
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Mark all notifications as read.resources/examples
+order: 1000

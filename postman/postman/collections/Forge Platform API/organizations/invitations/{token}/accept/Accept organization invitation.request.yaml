@@ -1,0 +1,33 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/organizations/invitations/:token/accept"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: token
+    value: inv_tok_12345678
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Accept organization invitation.resources/examples
+order: 1000

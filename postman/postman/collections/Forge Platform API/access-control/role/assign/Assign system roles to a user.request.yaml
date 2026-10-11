@@ -1,0 +1,48 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/access-control/role/assign"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "user_id": "456e7890-e89b-12d3-a456-426614174000",
+      "role_ids": [
+        "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+      ]
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "example": "456e7890-e89b-12d3-a456-426614174000",
+          "format": "uuid"
+        },
+        "role_ids": {
+          "type": "array",
+          "example": [
+            "07c0060e-8e8c-44c1-942c-3004f5a6c5b6"
+          ],
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "required": [
+        "user_id",
+        "role_ids"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Assign system roles to a user.resources/examples
+order: 1000

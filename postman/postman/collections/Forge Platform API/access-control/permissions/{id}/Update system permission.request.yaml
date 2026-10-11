@@ -1,0 +1,57 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/access-control/permissions/:id"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "key": "Update User",
+      "value": "update-user"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "example": "Update User"
+        },
+        "value": {
+          "type": "string",
+          "example": "update-user"
+        },
+        "descriptions": {
+          "type": "string",
+          "example": "Ability to update existing users"
+        }
+      }
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Update system permission.resources/examples
+order: 2000

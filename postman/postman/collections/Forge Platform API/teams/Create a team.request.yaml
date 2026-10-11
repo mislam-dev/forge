@@ -1,0 +1,63 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/teams"
+method: POST
+headers:
+  - key: Organization-ID
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: Organization UUID required in the header for tenant-scoped role-based authorization
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "organization_id": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+      "name": "Backend Engineering",
+      "descriptions": "Core backend services and API team"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 255
+        },
+        "descriptions": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "organization_id",
+        "name"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Create a team.resources/examples
+order: 2000

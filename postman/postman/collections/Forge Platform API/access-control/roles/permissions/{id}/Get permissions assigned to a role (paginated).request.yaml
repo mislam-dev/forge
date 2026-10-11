@@ -1,0 +1,65 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/access-control/roles/permissions/:id?page=1&per_page=10"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: page
+    value: "1"
+    disabled: false
+    description: Page number for pagination (defaults to 1)
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "default": 1,
+            "minimum": 1
+          }
+        }
+      }
+  - key: per_page
+    value: "10"
+    disabled: false
+    description: Number of items per page (defaults to 10)
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "default": 10,
+            "minimum": 1
+          }
+        }
+      }
+pathVariables:
+  - key: id
+    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get permissions assigned to a role (paginated).resources/examples
+order: 1000

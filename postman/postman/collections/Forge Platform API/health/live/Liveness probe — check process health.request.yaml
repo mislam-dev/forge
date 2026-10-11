@@ -1,0 +1,12 @@
+$kind: http-request
+description: Lightweight liveness probe for load balancers and orchestrators to check if the application process is alive.
+url: "{{baseUrl}}/health/live"
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Liveness probe — check process health.resources/examples
+order: 1000

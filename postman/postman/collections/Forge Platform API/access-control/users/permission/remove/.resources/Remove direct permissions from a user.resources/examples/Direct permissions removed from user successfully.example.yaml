@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/access-control/users/permission/remove"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "user_id": "456e7890-e89b-12d3-a456-426614174000",
+        "permission_ids": [
+          "18d1071f-9f9d-55d2-a53d-4115f6b7d6c7"
+        ]
+      }
+response:
+  statusCode: 204
+  statusText: No Content
+  body:
+    type: text
+    content: ""
+order: 1000

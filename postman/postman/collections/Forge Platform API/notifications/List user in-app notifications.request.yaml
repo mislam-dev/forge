@@ -1,0 +1,50 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/notifications?is_read=true&page=1&limit=10"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: is_read
+    value: "true"
+    disabled: false
+    description: Filter by read/unread status
+    $type: boolean
+  - key: page
+    value: "1"
+    disabled: false
+    description: Page number for pagination
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "default": 1
+          }
+        }
+      }
+  - key: limit
+    value: "10"
+    disabled: false
+    description: Number of items per page
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "default": 10
+          }
+        }
+      }
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/List user in-app notifications.resources/examples
+order: 1000

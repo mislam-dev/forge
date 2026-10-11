@@ -1,0 +1,107 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/teams/:id/members/:user_id"
+  method: PATCH
+  headers:
+    - key: Organization-ID
+      value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+      disabled: false
+      description: Organization UUID required in the header for tenant-scoped role-based authorization
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    id: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
+    user_id: 1a11e467-74ee-e84f-4cb0-e1363101656f
+  body:
+    type: json
+    content: |-
+      {
+        "role": "admin"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "string",
+        "data": {
+          "team_id": "ac6712b8-7dab-f4e3-3027-1d8ea7efab36",
+          "user_id": "4fc91129-c97d-5ce7-7a28-e8d46367f9e9",
+          "role": "string",
+          "joined_at": "2011-02-06T01:04:20.864Z",
+          "user": {
+            "message": "string",
+            "data": {
+              "id": "56617685-933f-c999-5dc5-e15dce334faa",
+              "name": "string",
+              "email": "string",
+              "created_at": "string"
+            }
+          }
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "team_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "role": {
+                "type": "string"
+              },
+              "joined_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "user": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "created_at": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+order: 1000

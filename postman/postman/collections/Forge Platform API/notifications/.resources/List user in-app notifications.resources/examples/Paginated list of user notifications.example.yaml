@@ -1,0 +1,122 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/notifications?is_read=true&page=1&limit=10"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: is_read
+      value: "true"
+      disabled: false
+      description: Filter by read/unread status
+    - key: page
+      value: "1"
+      disabled: false
+      description: Page number for pagination
+    - key: limit
+      value: "10"
+      disabled: false
+      description: Number of items per page
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": [
+          {
+            "id": "6811ceb5-fb91-2377-a6a5-da6dcd4d7817",
+            "type": "string",
+            "title": "string",
+            "message": "string",
+            "metadata": {},
+            "is_read": false,
+            "read_at": "string",
+            "is_dismissed": false,
+            "created_at": "string"
+          },
+          {
+            "id": "dedc6077-f99b-c6e5-ab70-8cb2afcc956c",
+            "type": "string",
+            "title": "string",
+            "message": "string",
+            "metadata": {},
+            "is_read": true,
+            "read_at": "string",
+            "is_dismissed": false,
+            "created_at": "string"
+          }
+        ],
+        "pagination": {
+          "page": 1527,
+          "limit": 9812,
+          "total": 1011
+        }
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object"
+                },
+                "is_read": {
+                  "type": "boolean"
+                },
+                "read_at": {
+                  "type": "string"
+                },
+                "is_dismissed": {
+                  "type": "boolean"
+                },
+                "created_at": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+order: 1000

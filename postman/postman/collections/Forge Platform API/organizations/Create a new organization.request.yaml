@@ -1,0 +1,51 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/organizations"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Acme Corporation",
+      "type": "Enterprise",
+      "descriptions": "A large enterprise organization"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Enterprise",
+            "Startup",
+            "Business"
+          ]
+        },
+        "descriptions": {
+          "type": "string"
+        },
+        "owner_user_id": {
+          "type": "string",
+          "description": "Optional owner user ID. Required only if Admin is assigning ownership to another user; defaults to authenticated user.",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Create a new organization.resources/examples
+order: 2000
