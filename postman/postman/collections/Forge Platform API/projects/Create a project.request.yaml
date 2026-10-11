@@ -4,8 +4,8 @@ url: "{{baseUrl}}/projects"
 method: POST
 headers:
   - key: Organization-ID
-    value: 07c0060e-8e8c-44c1-942c-3004f5a6c5b6
-    disabled: true
+    value: "{{organization_id}}"
+    disabled: false
     description: Organization UUID optionally provided in the header for tenant-scoped role-based authorization and context
     $type: |-
       {
@@ -28,14 +28,13 @@ body:
   type: json
   content: |-
     {
-        "organization_id": "123e4567-e89b-12d3-a456-426614174000",
-        "name": "Forge Backend",
+        "name": "Forge Backend 2",
         "type": "repo",
-        "repository_url": "https://github.com/mislam-dev/forge.git",
-        "default_branch": "main",
-        "runtime": "Node.js",
-        "framework": "Actix Web",
-        "descriptions": "Main Rust API backend service"
+        "health_check_url": "/health",
+        "runtime": "NodeJs",
+        "description": "Main Rust API backend service",
+        "project_type": "Files", 
+        "port": 4000
     }
   $type: |-
     {

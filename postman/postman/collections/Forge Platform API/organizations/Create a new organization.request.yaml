@@ -9,7 +9,7 @@ body:
   type: json
   content: |-
     {
-      "name": "Acme Corporation",
+      "name": "Dev Corps",
       "type": "Enterprise",
       "descriptions": "A large enterprise organization"
     }

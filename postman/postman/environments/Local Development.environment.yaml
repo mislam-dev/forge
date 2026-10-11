@@ -3,9 +3,9 @@ values:
   - key: baseUrl
     value: 'http://localhost:9000/api/v1'
   - key: bearerToken
-    value: ''
+    secret: true
   - key: refreshToken
-    value: ''
+    secret: true
   - key: apiKey
     value: forge_dev_api_key_placeholder
   - key: adminEmail
@@ -16,3 +16,5 @@ values:
     value: 00000000-0000-0000-0000-000000000001
   - key: testProjectId
     value: 00000000-0000-0000-0000-000000000001
+  - key: organization_id
+    value: ''

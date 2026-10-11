@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/auth/login"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "email": "dev1@forge.local",
+        "password": "Password123!"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    content-type: application/json
+    access-control-expose-headers: x-request-id
+    access-control-allow-origin: "*"
+    x-request-id: 510cc5aa-1e1c-4862-bd5a-344828014716
+    content-length: "1550"
+    date: Sun, 11 Oct 2026 17:03:55 GMT
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiZGQxMDkzMC1lODE4LTRmZWUtOTNiYS04NmI1YmFmNjcwOTUiLCJlbWFpbCI6ImRldjFAZm9yZ2UubG9jYWwiLCJyb2xlcyI6WyJkZXZlbG9wZXIiXSwicGVybWlzc2lvbnMiOlsidGVhbXM6bWVtYmVyczpyZWFkIiwiZGFzaGJvYXJkOnJlYWQiLCJkZXBsb3ltZW50czpjcmVhdGUiLCJlbnZpcm9ubWVudF92YXJpYWJsZXM6Y3JlYXRlIiwiZW52aXJvbm1lbnRfdmFyaWFibGVzOmRlbGV0ZSIsInByb2plY3RzOnVwZGF0ZSIsInByb2plY3RzOmNyZWF0ZSIsIm9yZ2FuaXphdGlvbnM6cmVhZCIsInJlcG9zaXRvcmllczp1cGRhdGUiLCJidWlsZF9sb2dzOnJlYWQiLCJub3RpZmljYXRpb25zOnVwZGF0ZSIsInByb2plY3RzOmRlbGV0ZSIsInJlcG9zaXRvcmllczpyZWFkIiwiaGVhbHRoOnJlYWQiLCJyZXBvc2l0b3JpZXM6dmFsaWRhdGUiLCJvcmdhbml6YXRpb25zOm1lbWJlcnM6cmVhZCIsIm5vdGlmaWNhdGlvbnM6c3RyZWFtIiwicmVwb3NpdG9yaWVzOmNsb25lIiwiYnVpbGRfbG9nczpkb3dubG9hZCIsIm5vdGlmaWNhdGlvbnM6ZGVsZXRlIiwiZW52aXJvbm1lbnRfdmFyaWFibGVzOnJlYWQiLCJwcm9qZWN0czpyZWFkIiwicHJvamVjdF9hc3NpZ25tZW50czpjcmVhdGUiLCJidWlsZF9sb2dzOnN0cmVhbSIsIm5vdGlmaWNhdGlvbnM6cmVhZCIsInRlYW1zOnJlYWQiLCJ1c2VyczpyZWFkIiwiZW52aXJvbm1lbnRfdmFyaWFibGVzOnVwZGF0ZSIsInByb2plY3RfYXNzaWdubWVudHM6cmVhZCIsImRlcGxveW1lbnRzOnJlYWQiLCJwcm9qZWN0X2Fzc2lnbm1lbnRzOmRlbGV0ZSIsImRlcGxveW1lbnRzOnJlZGVwbG95IiwicmVwb3NpdG9yaWVzOmNyZWF0ZSJdLCJpYXQiOjE3OTE3MzgyMzUsImV4cCI6MTc5MTc0MTgzNX0.QpiCsZ39DBAq_HbeseWQwuZCMtCbVn55rOI9_JXePRY",
+          "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiZGQxMDkzMC1lODE4LTRmZWUtOTNiYS04NmI1YmFmNjcwOTUiLCJlbWFpbCI6ImRldjFAZm9yZ2UubG9jYWwiLCJpYXQiOjE3OTE3MzgyMzUsImV4cCI6MTc5MjM0MzAzNX0.A4JMo9c9Ex3eTu--PVz9aQTFNurrei-WzvOnah3iXMY"
+        },
+        "message": "Logged in successfully"
+      }
+order: 1498

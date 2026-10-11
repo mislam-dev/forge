@@ -1,5 +1,6 @@
 workspace:
   id: 3b77e0a8-3e71-49a7-b25f-b6428fddeaf1
+
 localResources:
   specs:
     - ../postman/specs/Forge Platform API/openapi.yaml
@@ -10,4 +11,3 @@ resourceNameMappings:
     - ../postman/specs/Forge Platform API/openapi.yaml: Forge Platform API
   environments:
     - ../postman/environments/Local Development.environment.yaml: Local Development
-

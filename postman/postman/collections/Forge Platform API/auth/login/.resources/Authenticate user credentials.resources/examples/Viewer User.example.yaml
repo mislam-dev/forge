@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/auth/login"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "email": "viewer1@forge.local",
+        "password": "Password123!"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    content-type: application/json
+    access-control-expose-headers: x-request-id
+    access-control-allow-origin: "*"
+    x-request-id: ce85c2f8-da82-4e99-98b3-7f080d7e6622
+    content-length: "1073"
+    date: Sun, 11 Oct 2026 17:04:40 GMT
+  body:
+    type: json
+    content: |-
+      {
+        "data": {
+          "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4NmVmMDM2NC1mYTljLTQxOGEtYTcxYi02ZmIxN2U3MzQ2OTgiLCJlbWFpbCI6InZpZXdlcjFAZm9yZ2UubG9jYWwiLCJyb2xlcyI6WyJ2aWV3ZXIiXSwicGVybWlzc2lvbnMiOlsicHJvamVjdHM6cmVhZCIsImJ1aWxkX2xvZ3M6cmVhZCIsImVudmlyb25tZW50X3ZhcmlhYmxlczpyZWFkIiwidXNlcnM6cmVhZCIsImJ1aWxkX2xvZ3M6ZG93bmxvYWQiLCJkZXBsb3ltZW50czpyZWFkIiwib3JnYW5pemF0aW9uczptZW1iZXJzOnJlYWQiLCJoZWFsdGg6cmVhZCIsIm9yZ2FuaXphdGlvbnM6cmVhZCIsIm5vdGlmaWNhdGlvbnM6cmVhZCIsInRlYW1zOnJlYWQiLCJidWlsZF9sb2dzOnN0cmVhbSIsIm5vdGlmaWNhdGlvbnM6dXBkYXRlIiwicHJvamVjdF9hc3NpZ25tZW50czpyZWFkIiwicmVwb3NpdG9yaWVzOnJlYWQiLCJkYXNoYm9hcmQ6cmVhZCIsIm5vdGlmaWNhdGlvbnM6c3RyZWFtIiwidGVhbXM6bWVtYmVyczpyZWFkIl0sImlhdCI6MTc5MTczODI4MCwiZXhwIjoxNzkxNzQxODgwfQ.m3cyneIj1H8jaxWG9MaeOGyAanWyiMAjKx0XV9nD1YE",
+          "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4NmVmMDM2NC1mYTljLTQxOGEtYTcxYi02ZmIxN2U3MzQ2OTgiLCJlbWFpbCI6InZpZXdlcjFAZm9yZ2UubG9jYWwiLCJpYXQiOjE3OTE3MzgyODAsImV4cCI6MTc5MjM0MzA4MH0.W42bt5kH2SJdbMil_nN-dRw39RmlyQimTI8Ufd4ildA"
+        },
+        "message": "Logged in successfully"
+      }
+order: 1719
