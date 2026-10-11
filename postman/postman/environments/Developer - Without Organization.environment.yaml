@@ -1,0 +1,32 @@
+name: Developer - Without Organization
+values:
+  - key: baseUrl
+    value: 'http://localhost:9000/api/v1'
+  - key: bearerToken
+    secret: true
+  - key: refreshToken
+    secret: true
+  - key: apiKey
+    value: forge_dev_api_key_placeholder
+  - key: adminEmail
+    value: admin1@forge.local
+  - key: adminPassword
+    value: Password123!
+  - key: devEmail
+    value: dev1@forge.local
+  - key: devPassword
+    value: Password123!
+  - key: viewerEmail
+    value: viewer1@forge.local
+  - key: viewerPassword
+    value: Password123!
+  - key: userEmail
+    value: dev1@forge.local
+  - key: userPassword
+    value: Password123!
+  - key: testOrgId
+    value: 00000000-0000-0000-0000-000000000001
+  - key: testProjectId
+    value: 00000000-0000-0000-0000-000000000001
+  - key: organization_id
+    value: ''

@@ -1,0 +1,32 @@
+name: Production
+values:
+  - key: baseUrl
+    value: 'https://api.forge.local/api/v1'
+  - key: bearerToken
+    secret: true
+  - key: refreshToken
+    secret: true
+  - key: apiKey
+    secret: true
+  - key: adminEmail
+    value: ''
+  - key: adminPassword
+    secret: true
+  - key: devEmail
+    value: ''
+  - key: devPassword
+    secret: true
+  - key: viewerEmail
+    value: ''
+  - key: viewerPassword
+    secret: true
+  - key: userEmail
+    value: ''
+  - key: userPassword
+    secret: true
+  - key: testOrgId
+    value: ''
+  - key: testProjectId
+    value: ''
+  - key: organization_id
+    value: ''

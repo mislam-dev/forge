@@ -6,8 +6,24 @@ localResources:
     - ../postman/specs/Forge Platform API/openapi.yaml
   environments:
     - ../postman/environments/Local Development.environment.yaml
+    - ../postman/environments/Admin - With Organization.environment.yaml
+    - ../postman/environments/Admin - Without Organization.environment.yaml
+    - ../postman/environments/Developer - With Organization.environment.yaml
+    - ../postman/environments/Developer - Without Organization.environment.yaml
+    - ../postman/environments/Viewer - With Organization.environment.yaml
+    - ../postman/environments/Viewer - Without Organization.environment.yaml
+    - ../postman/environments/Development.environment.yaml
+    - ../postman/environments/Production.environment.yaml
 resourceNameMappings:
   specs:
     - ../postman/specs/Forge Platform API/openapi.yaml: Forge Platform API
   environments:
     - ../postman/environments/Local Development.environment.yaml: Local Development
+    - ../postman/environments/Admin - With Organization.environment.yaml: Admin - With Organization
+    - ../postman/environments/Admin - Without Organization.environment.yaml: Admin - Without Organization
+    - ../postman/environments/Developer - With Organization.environment.yaml: Developer - With Organization
+    - ../postman/environments/Developer - Without Organization.environment.yaml: Developer - Without Organization
+    - ../postman/environments/Viewer - With Organization.environment.yaml: Viewer - With Organization
+    - ../postman/environments/Viewer - Without Organization.environment.yaml: Viewer - Without Organization
+    - ../postman/environments/Development.environment.yaml: Development
+    - ../postman/environments/Production.environment.yaml: Production
