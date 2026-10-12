@@ -5,7 +5,7 @@ use uuid::Uuid;
 use super::dto::{CreateProjectDTO, ProjectResponse, UpdateProjectDTO};
 use super::entities::projects::ActiveModel as ProjectActiveModel;
 use super::repository::ProjectsRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct ProjectsService;
 
@@ -18,19 +18,22 @@ impl ProjectsService {
     ) -> Result<ProjectResponse, AppError> {
         if let Some(org_id) = org_id {
             if (ProjectsRepository::find_by_org_and_name(db, org_id, &dto.name).await?).is_some() {
-                return Err(AppError::Conflict(format!(
-                    "Project with name '{}' already exists in this organization",
-                    dto.name
-                )));
+                return Err(AppError::conflict(
+                    codes::projects::PRJ_004,
+                    format!(
+                        "Project with name '{}' already exists in this organization",
+                        dto.name
+                    ),
+                ));
             }
         } else {
             if (ProjectsRepository::find_by_owner_and_name(db, requester_id, &dto.name).await?)
                 .is_some()
             {
-                return Err(AppError::Conflict(format!(
-                    "Project with name '{}' already exists",
-                    dto.name
-                )));
+                return Err(AppError::conflict(
+                    codes::projects::PRJ_004,
+                    format!("Project with name '{}' already exists", dto.name),
+                ));
             }
         }
 
@@ -64,14 +67,25 @@ impl ProjectsService {
         let project = if let Some(org_id) = org_id {
             ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
                 .await?
-                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?
+                .ok_or_else(|| {
+                    AppError::not_found(
+                        codes::projects::PRJ_001,
+                        "Project not found",
+                    )
+                })?
         } else {
             let p = ProjectsRepository::find_by_id(db, project_id)
                 .await?
-                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+                .ok_or_else(|| {
+                    AppError::not_found(
+                        codes::projects::PRJ_001,
+                        "Project not found",
+                    )
+                })?;
             if p.owner_id != requester_id {
-                return Err(AppError::Forbidden(
-                    "You are not authorized to access this project".to_string(),
+                return Err(AppError::forbidden(
+                    codes::projects::PRJ_PERM_002,
+                    "You are not authorized to access this project",
                 ));
             }
             p
@@ -85,7 +99,12 @@ impl ProjectsService {
     ) -> Result<ProjectResponse, AppError> {
         let project = ProjectsRepository::find_by_id_internal(db, project_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::projects::PRJ_001,
+                    "Project not found",
+                )
+            })?;
 
         Ok(ProjectResponse::from_model(project))
     }
@@ -100,11 +119,21 @@ impl ProjectsService {
         let project = if let Some(org_id) = org_id {
             ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
                 .await?
-                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?
+                .ok_or_else(|| {
+                    AppError::not_found(
+                        codes::projects::PRJ_001,
+                        "Project not found",
+                    )
+                })?
         } else {
             ProjectsRepository::find_by_id(db, project_id)
                 .await?
-                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?
+                .ok_or_else(|| {
+                    AppError::not_found(
+                        codes::projects::PRJ_001,
+                        "Project not found",
+                    )
+                })?
         };
 
         let mut active_model: ProjectActiveModel = project.clone().into();
@@ -117,10 +146,13 @@ impl ProjectsService {
                     ProjectsRepository::find_by_org_and_name(db, org_id, &new_name).await?
                 {
                     if existing.id != project_id {
-                        return Err(AppError::Conflict(format!(
-                            "Project with name '{}' already exists in this organization",
-                            new_name
-                        )));
+                        return Err(AppError::conflict(
+                            codes::projects::PRJ_004,
+                            format!(
+                                "Project with name '{}' already exists in this organization",
+                                new_name
+                            ),
+                        ));
                     }
                 }
             } else {
@@ -128,10 +160,10 @@ impl ProjectsService {
                     ProjectsRepository::find_by_owner_and_name(db, requester_id, &new_name).await?
                 {
                     if existing.id != project_id {
-                        return Err(AppError::Conflict(format!(
-                            "Project with name '{}' already exists!",
-                            new_name
-                        )));
+                        return Err(AppError::conflict(
+                            codes::projects::PRJ_004,
+                            format!("Project with name '{}' already exists!", new_name),
+                        ));
                     }
                 }
             }
@@ -158,8 +190,9 @@ impl ProjectsService {
         }
 
         if org_id.is_none() && project.owner_id != requester_id {
-            return Err(AppError::Forbidden(
-                "You are not authorized to update this project".to_string(),
+            return Err(AppError::forbidden(
+                codes::projects::PRJ_PERM_002,
+                "You are not authorized to update this project",
             ));
         }
 
@@ -176,14 +209,25 @@ impl ProjectsService {
         if let Some(org_id) = org_id {
             ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
                 .await?
-                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?
+                .ok_or_else(|| {
+                    AppError::not_found(
+                        codes::projects::PRJ_001,
+                        "Project not found",
+                    )
+                })?
         } else {
             let p = ProjectsRepository::find_by_id(db, project_id)
                 .await?
-                .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+                .ok_or_else(|| {
+                    AppError::not_found(
+                        codes::projects::PRJ_001,
+                        "Project not found",
+                    )
+                })?;
             if p.owner_id != requester_id {
-                return Err(AppError::Forbidden(
-                    "You are not authorized to delete this project".to_string(),
+                return Err(AppError::forbidden(
+                    codes::projects::PRJ_PERM_002,
+                    "You are not authorized to delete this project",
                 ));
             }
             p
@@ -211,6 +255,6 @@ mod tests {
 
         let result = ProjectsService::get_project_by_internal(&db, Uuid::new_v4()).await;
         assert!(result.is_err());
-        assert!(matches!(result, Err(AppError::NotFound(_))));
+        assert!(matches!(result, Err(AppError::NotFound(..))));
     }
 }

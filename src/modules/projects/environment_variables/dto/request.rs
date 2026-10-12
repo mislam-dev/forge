@@ -36,6 +36,7 @@ pub struct ProjectEnvVarItemDTO {
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct BulkCreateProjectEnvVarDTO {
+    #[validate(length(min = 1, message = "At least one variable is required"))]
     #[validate(nested)]
     pub vars: Vec<ProjectEnvVarItemDTO>,
 }

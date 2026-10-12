@@ -6,7 +6,7 @@ use crate::modules::organization::members::repository::OrganizationMembersReposi
 use crate::modules::organization::orgs::repository::OrganizationRepository;
 use crate::modules::organization::permissions::role::OrgRole;
 use crate::modules::organization::permissions::service::OrgPermissionsService;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct DashboardService;
 
@@ -19,7 +19,7 @@ impl DashboardService {
     ) -> Result<OrgDashboardResponse, AppError> {
         let org = OrganizationRepository::find_by_id(db, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::dashboard::DASH_001, "Organization not found"))?;
 
         if !is_system_admin {
             OrgPermissionsService::verify_org_role(
@@ -74,8 +74,9 @@ impl DashboardService {
         is_system_admin: bool,
     ) -> Result<SystemDashboardResponse, AppError> {
         if !is_system_admin {
-            return Err(AppError::Forbidden(
-                "Only System Admins can access system dashboard".to_string(),
+            return Err(AppError::forbidden(
+                codes::auth::AUTH_004,
+                "Only System Admins can access system dashboard",
             ));
         }
 

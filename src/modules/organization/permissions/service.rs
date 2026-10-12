@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use super::role::OrgRole;
 use crate::modules::organization::members::repository::OrganizationMembersRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct OrgPermissionsService;
 
@@ -31,14 +31,20 @@ impl OrgPermissionsService {
         let role = Self::resolve_org_role(db, org_id, user_id)
             .await?
             .ok_or_else(|| {
-                AppError::Forbidden("You are not a member of this organization".to_string())
+                AppError::forbidden(
+                    codes::organization::ORG_PERM_001,
+                    "You are not a member of this organization",
+                )
             })?;
 
         if role < min_role {
-            return Err(AppError::Forbidden(format!(
-                "Insufficient organization permissions. Required: {}, Actual: {}",
-                min_role, role
-            )));
+            return Err(AppError::forbidden(
+                codes::organization::ORG_PERM_001,
+                format!(
+                    "Insufficient organization permissions. Required: {}, Actual: {}",
+                    min_role, role
+                ),
+            ));
         }
 
         Ok(role)
@@ -62,8 +68,9 @@ impl OrgPermissionsService {
 
         for role in required_roles {
             if !user_resolved_roles.contains(&role) {
-                return Err(AppError::Forbidden(
-                    "Insufficient organization permissions.".to_string(),
+                return Err(AppError::forbidden(
+                    codes::organization::ORG_PERM_001,
+                    "Insufficient organization permissions.",
                 ));
             }
         }
@@ -80,7 +87,10 @@ impl OrgPermissionsService {
         let role = Self::find_role(db, org_id, user_id).await?;
 
         let role = role.ok_or_else(|| {
-            AppError::Forbidden("You are not a member of this organization".to_string())
+            AppError::forbidden(
+                codes::organization::ORG_PERM_001,
+                "You are not a member of this organization",
+            )
         })?;
 
         let _r = Self::match_roles(required_roles, vec![role.to_string()]).await?;
@@ -90,9 +100,9 @@ impl OrgPermissionsService {
 
     pub fn enforce_rename_permission(role: OrgRole) -> Result<(), AppError> {
         if role != OrgRole::Owner {
-            return Err(AppError::Forbidden(
-                "Access denied. Only the Organization Owner can rename an organization."
-                    .to_string(),
+            return Err(AppError::forbidden(
+                codes::organization::ORG_PERM_002,
+                "Access denied. Only the Organization Owner can rename an organization.",
             ));
         }
         Ok(())
@@ -100,9 +110,9 @@ impl OrgPermissionsService {
 
     pub fn enforce_delete_permission(role: OrgRole, is_system_admin: bool) -> Result<(), AppError> {
         if !is_system_admin && role != OrgRole::Owner {
-            return Err(AppError::Forbidden(
-                "Access denied. Only the Organization Owner can delete an organization."
-                    .to_string(),
+            return Err(AppError::forbidden(
+                codes::organization::ORG_PERM_002,
+                "Access denied. Only the Organization Owner can delete an organization.",
             ));
         }
         Ok(())

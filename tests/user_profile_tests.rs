@@ -27,7 +27,7 @@ async fn test_get_profile_unauthorized_without_jwt() {
 
     let user_id = Uuid::new_v4();
     let req = Request::builder()
-        .uri(format!("/api/users/{}/profile", user_id))
+        .uri(format!("/api/v1/users/{}/profile", user_id))
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -52,7 +52,7 @@ async fn test_get_profile_authorized_with_jwt() {
     .unwrap();
 
     let req = Request::builder()
-        .uri(format!("/api/users/{}/profile", user_id))
+        .uri(format!("/api/v1/users/{}/profile", user_id))
         .method("GET")
         .header("Authorization", format!("Bearer {}", token))
         .body(Body::empty())
@@ -74,7 +74,7 @@ async fn test_update_profile_unauthorized_without_jwt() {
 
     let user_id = Uuid::new_v4();
     let req = Request::builder()
-        .uri(format!("/api/users/{}/profile", user_id))
+        .uri(format!("/api/v1/users/{}/profile", user_id))
         .method("PUT")
         .header("Content-Type", "application/json")
         .body(Body::from(r#"{"first_name": "Jane"}"#))
@@ -101,7 +101,7 @@ async fn test_update_profile_forbidden_for_other_user() {
     .unwrap();
 
     let req = Request::builder()
-        .uri(format!("/api/users/{}/profile", other_user_id))
+        .uri(format!("/api/v1/users/{}/profile", other_user_id))
         .method("PUT")
         .header("Authorization", format!("Bearer {}", token))
         .header("Content-Type", "application/json")
@@ -128,7 +128,7 @@ async fn test_delete_profile_forbidden_for_non_admin() {
     .unwrap();
 
     let req = Request::builder()
-        .uri(format!("/api/users/{}/profile", user_id))
+        .uri(format!("/api/v1/users/{}/profile", user_id))
         .method("DELETE")
         .header("Authorization", format!("Bearer {}", token))
         .body(Body::empty())

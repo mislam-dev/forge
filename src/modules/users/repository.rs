@@ -9,7 +9,7 @@ use crate::{
         dto::request::{CreateUserDto, UpdateUserDto},
         password::PasswordService,
     },
-    shared::error::AppError,
+    shared::error::{codes, AppError},
 };
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DeleteResult, EntityTrait,
@@ -87,7 +87,12 @@ impl UserRepository {
     ) -> Result<UserModel, AppError> {
         let existing_user = Self::find_by_id(db, id)
             .await?
-            .ok_or(AppError::NotFound("User not found!".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::users::USER_001,
+                    "User not found!",
+                )
+            })?;
 
         let mut active_user: UsersActiveModel = existing_user.into();
 
@@ -124,7 +129,12 @@ impl UserRepository {
     ) -> Result<UserModel, AppError> {
         let existing_user = Self::find_by_id(db, id)
             .await?
-            .ok_or(AppError::NotFound("User not found".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::users::USER_001,
+                    "User not found",
+                )
+            })?;
 
         let new_hash = PasswordService::hash(new_password).await?;
         let mut active_user: UsersActiveModel = existing_user.into();
@@ -139,7 +149,12 @@ impl UserRepository {
     ) -> Result<UserModel, AppError> {
         let existing_user = Self::find_by_id(db, id)
             .await?
-            .ok_or(AppError::NotFound("User not found".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::users::USER_001,
+                    "User not found",
+                )
+            })?;
 
         let mut active_user: UsersActiveModel = existing_user.into();
         active_user.status = Set(Some(status));

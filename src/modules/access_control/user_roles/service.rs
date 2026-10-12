@@ -3,7 +3,7 @@ use super::repository::UserRolesRepository;
 use crate::modules::access_control::roles::dto::response::RoleResponseDto;
 use crate::modules::access_control::user_roles::dto::response::UserRoleResponse;
 use crate::modules::users::repository::UserRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
@@ -16,7 +16,10 @@ impl UserRolesService {
     ) -> Result<Vec<UserRoleResponse>, AppError> {
         let user = UserRepository::find_by_id(db, dto.user_id).await?;
         if user.is_none() {
-            return Err(AppError::NotFound("User not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::ACCESS_301,
+                "User not found!",
+            ));
         }
 
         let roles = UserRolesRepository::assign(db, dto.user_id, dto.role_ids).await?;
@@ -32,7 +35,10 @@ impl UserRolesService {
     pub async fn remove(db: &DatabaseConnection, dto: RemoveUserRolesDto) -> Result<(), AppError> {
         let user = UserRepository::find_by_id(db, dto.user_id).await?;
         if user.is_none() {
-            return Err(AppError::NotFound("User not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::ACCESS_301,
+                "User not found!",
+            ));
         }
 
         UserRolesRepository::remove(db, dto.user_id, dto.role_ids).await
@@ -44,7 +50,10 @@ impl UserRolesService {
     ) -> Result<Vec<RoleResponseDto>, AppError> {
         let user = UserRepository::find_by_id(db, user_id).await?;
         if user.is_none() {
-            return Err(AppError::NotFound("User not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::ACCESS_301,
+                "User not found!",
+            ));
         }
 
         let roles = UserRolesRepository::find_roles_by_user_id(db, user_id).await?;

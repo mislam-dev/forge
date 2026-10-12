@@ -3,7 +3,7 @@ use super::super::projects::repository::ProjectsRepository;
 use super::dto::{BuildLogResponse, LogItem, LogSearchQuery};
 use crate::infrastructure::logging::loki_client::{LokiClient, LokiFetchQuery};
 
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::*;
 use uuid::Uuid;
 
@@ -55,20 +55,21 @@ impl BuildLogsService {
         if let Some(org_id) = org_id {
             let _project = ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
                 .await?
-                .ok_or_else(|| AppError::NotFound("Project not found! aa".to_string()))?;
+                .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found!"))?;
         } else {
             let _project = ProjectsRepository::find_by_id(db, project_id)
                 .await?
-                .ok_or_else(|| AppError::NotFound("Project not found! aa".to_string()))?;
+                .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found!"))?;
         }
 
         let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::LOG_001, "Deployment not found"))?;
 
         if deployment.project_id != project_id {
-            return Err(AppError::NotFound(
-                "Deployment not found in this project".to_string(),
+            return Err(AppError::not_found(
+                codes::deployments::LOG_001,
+                "Deployment not found in this project",
             ));
         }
 

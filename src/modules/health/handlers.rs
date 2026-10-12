@@ -11,7 +11,7 @@ use super::dto::{
 use super::service::HealthService;
 use crate::app::state::AppState;
 use crate::modules::auth::token::AccessTokenClaims;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use crate::shared::response::ApiResponse;
 
 pub async fn check_health(
@@ -99,8 +99,9 @@ pub async fn health_deep_check(
         .any(|r| r.eq_ignore_ascii_case("admin") || r.eq_ignore_ascii_case("system_admin"));
 
     if !is_admin {
-        return Err(AppError::Forbidden(
-            "Access restricted to System Admin".to_string(),
+        return Err(AppError::forbidden(
+            codes::health::HLTH_002,
+            "Access restricted to System Admin",
         ));
     }
 
@@ -185,7 +186,10 @@ mod tests {
         let result = health_deep_check(user_claims, Query(DeepHealthQuery { timeout_ms: None })).await;
         assert!(result.is_err());
         match result {
-            Err(AppError::Forbidden(msg)) => assert_eq!(msg, "Access restricted to System Admin"),
+            Err(AppError::Forbidden(code, msg)) => {
+                assert_eq!(code, codes::health::HLTH_002);
+                assert_eq!(msg, "Access restricted to System Admin");
+            }
             _ => panic!("Expected Forbidden error"),
         }
     }

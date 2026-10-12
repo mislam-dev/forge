@@ -187,7 +187,7 @@ mod tests {
         }
 
         let server_cfg = AppConfig::get_server_config().unwrap();
-        assert_eq!(server_cfg.server_port, 3000);
+        assert_eq!(server_cfg.server_port, 9000);
         assert_eq!(
             server_cfg.server_host,
             "127.0.0.1".parse::<IpAddr>().unwrap()

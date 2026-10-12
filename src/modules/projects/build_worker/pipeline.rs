@@ -11,7 +11,7 @@ use super::log_stream::{LogItem, LogLevel};
 use crate::config::AppConfig;
 use crate::modules::projects::DeploymentsService;
 use crate::modules::projects::build_worker::traits::{BuilderConfig, ProjectBuilder};
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
@@ -175,7 +175,10 @@ impl BuildPipeline {
         let builder = self.get_builder()?;
 
         if builder.is_none() {
-            return Err(AppError::BadRequest(format!("No builder found!")));
+            return Err(AppError::bad_request(
+                codes::deployments::WORKER_003,
+                "No builder found!",
+            ));
         }
         let builder = builder.unwrap();
 

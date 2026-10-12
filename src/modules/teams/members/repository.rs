@@ -7,7 +7,7 @@ use super::entities::team_member::{
 };
 use crate::modules::teams::members::TeamRole;
 use crate::modules::teams::members::dto::AddTeamMemberDTO;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct TeamMembersRepository;
 
@@ -41,7 +41,10 @@ impl TeamMembersRepository {
         team_id: Uuid,
         dto: AddTeamMemberDTO,
     ) -> Result<TeamMemberModel, AppError> {
-        let role: TeamRole = dto.role.parse().map_err(AppError::BadRequest)?;
+        let role: TeamRole = dto
+            .role
+            .parse()
+            .map_err(|e| AppError::bad_request(codes::teams::TEAM_005, e))?;
 
         let active_model = TeamMemberActiveModel {
             team_id: Set(team_id),

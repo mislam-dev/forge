@@ -1,4 +1,4 @@
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use axum::extract::FromRequestParts;
 use uuid::Uuid;
 
@@ -16,15 +16,24 @@ where
         _state: &S,
     ) -> Result<Self, Self::Rejection> {
         let org_id_header = parts.headers.get("Organization-ID").ok_or_else(|| {
-            AppError::BadRequest("Organization-ID header is required".to_string())
+            AppError::bad_request(
+                codes::organization::ORG_003,
+                "Organization-ID header is required",
+            )
         })?;
 
         let org_id_str = org_id_header.to_str().map_err(|_| {
-            AppError::BadRequest("Invalid Organization-ID header encoding".to_string())
+            AppError::bad_request(
+                codes::organization::ORG_002,
+                "Invalid Organization-ID header encoding",
+            )
         })?;
 
         let org_id = Uuid::parse_str(org_id_str).map_err(|_| {
-            AppError::BadRequest("Invalid Organization-ID header: must be a valid UUID".to_string())
+            AppError::bad_request(
+                codes::organization::ORG_002,
+                "Invalid Organization-ID header: must be a valid UUID",
+            )
         })?;
 
         Ok(Self(org_id))
@@ -49,11 +58,17 @@ where
         };
 
         let org_id_str = org_id_header.to_str().map_err(|_| {
-            AppError::BadRequest("Invalid Organization-ID header encoding".to_string())
+            AppError::bad_request(
+                codes::organization::ORG_002,
+                "Invalid Organization-ID header encoding",
+            )
         })?;
 
         let org_id = Uuid::parse_str(org_id_str).map_err(|_| {
-            AppError::BadRequest("Invalid Organization-ID header: must be a valid UUID".to_string())
+            AppError::bad_request(
+                codes::organization::ORG_002,
+                "Invalid Organization-ID header: must be a valid UUID",
+            )
         })?;
 
         Ok(Self(Some(org_id)))
@@ -89,7 +104,10 @@ mod tests {
 
         assert!(result.is_err());
         match result.unwrap_err() {
-            AppError::BadRequest(msg) => assert_eq!(msg, "Organization-ID header is required"),
+            AppError::BadRequest(code, msg) => {
+                assert_eq!(code, codes::organization::ORG_003);
+                assert_eq!(msg, "Organization-ID header is required");
+            }
             other => panic!("Expected BadRequest error, got: {:?}", other),
         }
     }
@@ -106,8 +124,9 @@ mod tests {
 
         assert!(result.is_err());
         match result.unwrap_err() {
-            AppError::BadRequest(msg) => {
-                assert_eq!(msg, "Invalid Organization-ID header: must be a valid UUID")
+            AppError::BadRequest(code, msg) => {
+                assert_eq!(code, codes::organization::ORG_002);
+                assert_eq!(msg, "Invalid Organization-ID header: must be a valid UUID");
             }
             other => panic!("Expected BadRequest error, got: {:?}", other),
         }
@@ -151,8 +170,9 @@ mod tests {
 
         assert!(result.is_err());
         match result.unwrap_err() {
-            AppError::BadRequest(msg) => {
-                assert_eq!(msg, "Invalid Organization-ID header: must be a valid UUID")
+            AppError::BadRequest(code, msg) => {
+                assert_eq!(code, codes::organization::ORG_002);
+                assert_eq!(msg, "Invalid Organization-ID header: must be a valid UUID");
             }
             other => panic!("Expected BadRequest error, got: {:?}", other),
         }

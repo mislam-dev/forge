@@ -4,7 +4,7 @@ use super::entities::role_permissions::{
 };
 use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
 use crate::modules::access_control::permissions::service::PermissionsService;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use crate::shared::pagination::{PaginatedResponse, PaginationParams};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
@@ -82,7 +82,10 @@ impl RolePermissionsRepository {
             .map_err(AppError::Database)?;
 
         if role_permission.is_none() {
-            return Err(AppError::NotFound("Resource not found".to_string()));
+            return Err(AppError::not_found(
+                codes::access::AUTH_203,
+                "Resource not found",
+            ));
         }
 
         Ok(role_permission.unwrap())

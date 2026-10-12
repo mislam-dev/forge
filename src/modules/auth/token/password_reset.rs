@@ -1,4 +1,4 @@
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{Header, TokenData};
 use serde::{Deserialize, Serialize};
@@ -65,7 +65,10 @@ impl PasswordResetToken {
         let iat = now.timestamp() as usize;
 
         if exp < iat {
-            return Err(AppError::Unauthorized("Token has expired".to_string()));
+            return Err(AppError::unauthorized(
+                codes::auth::AUTH_006,
+                "Reset token expired",
+            ));
         }
 
         Ok(token_data.claims)

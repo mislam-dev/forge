@@ -1,4 +1,4 @@
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -14,8 +14,12 @@ pub struct PackageJson {
 }
 impl PackageJson {
     pub fn new(package_str: String) -> Result<Self, AppError> {
-        let package_json: PackageJson = serde_json::from_str(&package_str)
-            .map_err(|e| AppError::BadRequest(format!("Invalid package.json file: `{}`", e)))?;
+        let package_json: PackageJson = serde_json::from_str(&package_str).map_err(|e| {
+            AppError::bad_request(
+                codes::deployments::WORKER_003,
+                format!("Invalid package.json file: `{}`", e),
+            )
+        })?;
         Ok(Self {
             name: package_json.name,
             version: package_json.version,

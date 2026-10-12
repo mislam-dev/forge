@@ -5,7 +5,7 @@ use std::time::Instant;
 use uuid::Uuid;
 
 use super::dto::{DetailedHealthResponse, HealthProbeResponse, ServiceHealthItem};
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct HealthService;
 
@@ -51,8 +51,9 @@ impl HealthService {
         is_system_admin: bool,
     ) -> Result<DetailedHealthResponse, AppError> {
         if !is_system_admin {
-            return Err(AppError::Forbidden(
-                "Only System Admins can access detailed health probes".to_string(),
+            return Err(AppError::forbidden(
+                codes::health::HLTH_002,
+                "Only System Admins can access detailed health probes",
             ));
         }
 

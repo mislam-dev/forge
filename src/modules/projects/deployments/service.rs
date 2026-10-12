@@ -13,7 +13,7 @@ use crate::config::AppConfig;
 use crate::infrastructure::queue::QueuePublisher;
 use crate::infrastructure::queue::events::deployments::DeploymentJobCreated;
 use crate::modules::projects::ProjectRepositoriesService;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use crate::shared::pagination::PaginatedResponse;
 
 pub struct DeploymentsService;
@@ -29,17 +29,18 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
             .await?
             .ok_or_else(|| {
-                AppError::BadRequest("No repository connected to this project".to_string())
+                AppError::bad_request(codes::projects::REPO_001, "No repository connected to this project")
             })?;
 
         if (DeploymentsRepository::find_running_by_project_id(db, project_id).await?).is_some() {
-            return Err(AppError::Conflict(
-                "A deployment is currently in progress for this project".to_string(),
+            return Err(AppError::conflict(
+                codes::deployments::DEPLOY_003,
+                "A deployment is currently in progress for this project",
             ));
         }
 
@@ -99,7 +100,7 @@ impl DeploymentsService {
     ) -> Result<PaginatedResponse<DeploymentResponse>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
 
         let paginated = DeploymentsRepository::find_by_project_id(db, project_id, query).await?;
         let responses = paginated
@@ -124,15 +125,16 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
 
         let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
 
         if deployment.project_id != project_id {
-            return Err(AppError::NotFound(
-                "Deployment not found in this project".to_string(),
+            return Err(AppError::not_found(
+                codes::deployments::DEPLOY_001,
+                "Deployment not found in this project",
             ));
         }
 
@@ -144,7 +146,7 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
 
         Ok(DeploymentResponse::from_model(deployment))
     }
@@ -159,21 +161,23 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
 
         let target = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
 
         if target.project_id != project_id {
-            return Err(AppError::NotFound(
-                "Deployment not found in this project".to_string(),
+            return Err(AppError::not_found(
+                codes::deployments::DEPLOY_001,
+                "Deployment not found in this project",
             ));
         }
 
         if (DeploymentsRepository::find_running_by_project_id(db, project_id).await?).is_some() {
-            return Err(AppError::Conflict(
-                "A deployment is currently in progress for this project".to_string(),
+            return Err(AppError::conflict(
+                codes::deployments::DEPLOY_003,
+                "A deployment is currently in progress for this project",
             ));
         }
 
@@ -188,7 +192,6 @@ impl DeploymentsService {
         .await?;
         let deployment_clone = deployment.clone();
         // todo: trigger an event send this event to rabbitmq with status redeploy
-
         let repo = ProjectRepositoriesService::get_repository(db, org_id, project_id).await?;
 
         let job_event = DeploymentJobCreated {
@@ -199,7 +202,6 @@ impl DeploymentsService {
             branch: deployment.branch.clone(),
             triggered_by: deployment.triggered_by,
         };
-
         if let Err(err) = queue.publish(&job_event).await {
             tracing::error!(
                 error = %err,
@@ -217,6 +219,7 @@ impl DeploymentsService {
             )
             .await;
         }
+
         Ok(DeploymentResponse::from_model(deployment_clone))
     }
 
@@ -229,19 +232,21 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
 
         if (DeploymentsRepository::find_running_by_project_id(db, project_id).await?).is_some() {
-            return Err(AppError::Conflict(
-                "A deployment is currently in progress for this project".to_string(),
+            return Err(AppError::conflict(
+                codes::deployments::DEPLOY_003,
+                "A deployment is currently in progress for this project",
             ));
         }
 
         let last_success = DeploymentsRepository::find_last_success_by_project_id(db, project_id)
             .await?
             .ok_or_else(|| {
-                AppError::BadRequest(
-                    "No previous successful deployment found to rollback to".to_string(),
+                AppError::bad_request(
+                    codes::deployments::HIST_004,
+                    "No previous successful deployment found to rollback to",
                 )
             })?;
 
@@ -295,27 +300,31 @@ impl DeploymentsService {
         req: UpdateDeploymentStatusRequest,
     ) -> Result<DeploymentResponse, AppError> {
         if service_token != config.secrets.master_encryption_key {
-            return Err(AppError::Unauthorized(
-                "Invalid service authentication token".to_string(),
+            return Err(AppError::unauthorized(
+                codes::auth::AUTH_001,
+                "Invalid service authentication token",
             ));
         }
 
         let target_status = req
             .status
             .parse::<DeploymentStatus>()
-            .map_err(|e| AppError::BadRequest(e))?;
+            .map_err(|e| AppError::bad_request(codes::deployments::DEPLOY_003, e))?;
 
         let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
 
         let current_status = &deployment.status;
 
         if !current_status.can_transition_to(&target_status) {
-            return Err(AppError::BadRequest(format!(
-                "Invalid deployment status transition from {} to {}",
-                current_status, target_status
-            )));
+            return Err(AppError::bad_request(
+                codes::deployments::DEPLOY_003,
+                format!(
+                    "Invalid deployment status transition from {} to {}",
+                    current_status, target_status
+                ),
+            ));
         }
 
         let updated = DeploymentsRepository::update_deployment(

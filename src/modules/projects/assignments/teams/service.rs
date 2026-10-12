@@ -6,7 +6,7 @@ use super::dto::{AssignProjectTeamDTO, ProjectTeamResponse};
 use super::repository::TeamRepository;
 use crate::modules::teams::teams::repository::TeamsRepository;
 
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct ProjectAssignmentsService;
 
@@ -19,21 +19,23 @@ impl ProjectAssignmentsService {
     ) -> Result<ProjectTeamResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let team = TeamsRepository::find_by_id(db, req.team_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_001, "Team not found"))?;
 
         if team.organization_id != Some(org_id) {
-            return Err(AppError::Forbidden(
-                "Team does not belong to the project's organization".to_string(),
+            return Err(AppError::forbidden(
+                codes::projects::PRJ_006,
+                "Team does not belong to the project's organization",
             ));
         }
 
         if (TeamRepository::find_team(db, project_id, req.team_id).await?).is_some() {
-            return Err(AppError::Conflict(
-                "Team is already assigned to this project".to_string(),
+            return Err(AppError::conflict(
+                codes::projects::PRJ_004,
+                "Team is already assigned to this project",
             ));
         }
 
@@ -48,7 +50,7 @@ impl ProjectAssignmentsService {
     ) -> Result<Vec<ProjectTeamResponse>, AppError> {
         let _project = ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let teams = TeamRepository::find_teams_by_project_id(db, project_id).await?;
         Ok(teams
@@ -65,12 +67,13 @@ impl ProjectAssignmentsService {
     ) -> Result<(), AppError> {
         let _project = ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let project_team = TeamRepository::find_team(db, project_id, team_id).await?;
         if project_team.is_none() {
-            return Err(AppError::NotFound(
-                "Team is not assigned to this project".to_string(),
+            return Err(AppError::not_found(
+                codes::projects::PRJ_005,
+                "Team is not assigned to this project",
             ));
         }
 

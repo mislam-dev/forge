@@ -9,7 +9,7 @@ use crate::{
         auth::token::AccessTokenClaims,
         organization::{permissions::role::OrgRole, service::OrgPermissionsService},
     },
-    shared::error::AppError,
+    shared::error::{codes, AppError},
 };
 
 pub trait OrgRoleRequirements: Send + Sync + 'static {
@@ -50,15 +50,24 @@ where
         let db = &app_state.db;
 
         let org_id_header = parts.headers.get("Organization-ID").ok_or_else(|| {
-            AppError::BadRequest("Organization-ID header is required".to_string())
+            AppError::bad_request(
+                codes::organization::ORG_003,
+                "Organization-ID header is required",
+            )
         })?;
 
         let org_id_str = org_id_header.to_str().map_err(|_| {
-            AppError::BadRequest("Invalid Organization-ID header encoding".to_string())
+            AppError::bad_request(
+                codes::organization::ORG_002,
+                "Invalid Organization-ID header encoding",
+            )
         })?;
 
         let org_id = Uuid::parse_str(org_id_str).map_err(|_| {
-            AppError::BadRequest("Invalid Organization-ID header: must be a valid UUID".to_string())
+            AppError::bad_request(
+                codes::organization::ORG_002,
+                "Invalid Organization-ID header: must be a valid UUID",
+            )
         })?;
 
         let _r = OrgPermissionsService::validate(db, org_id, user_id, required_roles).await?;
@@ -117,7 +126,10 @@ mod tests {
 
         assert!(result.is_err());
         match result.unwrap_err() {
-            AppError::BadRequest(msg) => assert_eq!(msg, "Organization-ID header is required"),
+            AppError::BadRequest(code, msg) => {
+                assert_eq!(code, codes::organization::ORG_003);
+                assert_eq!(msg, "Organization-ID header is required");
+            }
             other => panic!("Expected BadRequest error, got: {:?}", other),
         }
     }
@@ -139,8 +151,9 @@ mod tests {
 
         assert!(result.is_err());
         match result.unwrap_err() {
-            AppError::BadRequest(msg) => {
-                assert_eq!(msg, "Invalid Organization-ID header: must be a valid UUID")
+            AppError::BadRequest(code, msg) => {
+                assert_eq!(code, codes::organization::ORG_002);
+                assert_eq!(msg, "Invalid Organization-ID header: must be a valid UUID");
             }
             other => panic!("Expected BadRequest error, got: {:?}", other),
         }

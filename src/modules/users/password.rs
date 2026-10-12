@@ -1,4 +1,4 @@
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use bcrypt::{DEFAULT_COST, hash, verify};
 
 pub struct PasswordService;
@@ -21,7 +21,7 @@ impl PasswordService {
         let password_owned = password.to_owned();
         tokio::task::spawn_blocking(move || {
             verify(password_owned, &has_owned)
-                .map_err(|_| AppError::Unauthorized(format!("Unauthorized")))
+                .map_err(|_| AppError::unauthorized(codes::auth::AUTH_002, "Unauthorized"))
         })
         .await
         .map_err(|_| {

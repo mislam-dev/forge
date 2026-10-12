@@ -12,7 +12,7 @@ use crate::modules::{
     auth::token::AccessTokenClaims,
     organization::permissions::extractors::{RequireOwner, RequireViewer},
 };
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
 use crate::{
@@ -33,7 +33,10 @@ pub async fn create(
             "owner_user_id",
             ValidationError::new("Owner user id is required"),
         );
-        return Err(AppError::Validation(validation_errors));
+        return Err(AppError::validation(
+            codes::system::VALIDATION_ERROR,
+            validation_errors,
+        ));
     }
 
     if !is_admin {

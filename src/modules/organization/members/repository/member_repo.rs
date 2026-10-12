@@ -3,7 +3,7 @@ use super::super::entities::organization_members::{
     Model as MemberModel,
 };
 use super::super::entities::sea_orm_active_enums::OrganizationMemberRole;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::*;
 use uuid::Uuid;
 
@@ -98,7 +98,12 @@ impl OrganizationMembersRepository {
     ) -> Result<MemberModel, AppError> {
         let member = Self::find_member(db, org_id, user_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Member not found in organization".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::organization::ORG_007,
+                    "Member not found in organization",
+                )
+            })?;
 
         let mut active: MemberActiveModel = member.into();
         active.role = Set(Some(new_role));

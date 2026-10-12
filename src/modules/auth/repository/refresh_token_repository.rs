@@ -2,7 +2,7 @@ use crate::modules::auth::entities::refresh_tokens::{
     ActiveModel as RefreshActiveModel, Column as RefreshColumn, Entity as RefreshEntity,
     Model as RefreshModel,
 };
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
     QueryFilter,
@@ -46,7 +46,10 @@ impl RefreshTokenRepository {
             .map_err(AppError::Database)?;
 
         if data.is_none() {
-            return Err(AppError::NotFound("Refresh token not found".to_string()));
+            return Err(AppError::not_found(
+                codes::auth::AUTH_005,
+                "Refresh token not found",
+            ));
         }
 
         Ok(())

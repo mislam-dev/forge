@@ -6,7 +6,7 @@ use super::entities::team_member::ActiveModel as TeamMemberActiveModel;
 use super::repository::TeamMembersRepository;
 use super::role::TeamRole;
 use crate::modules::teams::teams::repository::TeamsRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct TeamMembersService;
 
@@ -18,12 +18,13 @@ impl TeamMembersService {
     ) -> Result<TeamMemberResponse, AppError> {
         let _team = TeamsRepository::find_by_id(db, team_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_001, "Team not found"))?;
 
         // Check if user is already a member of the team
         if (TeamMembersRepository::find_member(db, team_id, dto.user_id).await?).is_some() {
-            return Err(AppError::Conflict(
-                "User is already a member of this team".to_string(),
+            return Err(AppError::conflict(
+                codes::teams::TEAM_002,
+                "User is already a member of this team",
             ));
         }
 
@@ -38,7 +39,7 @@ impl TeamMembersService {
     ) -> Result<Vec<TeamMemberResponse>, AppError> {
         let _team = TeamsRepository::find_by_id(db, team_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_001, "Team not found"))?;
 
         let members_with_users =
             TeamMembersRepository::find_members_by_team_id(db, team_id).await?;
@@ -58,13 +59,16 @@ impl TeamMembersService {
     ) -> Result<TeamMemberResponse, AppError> {
         let _team = TeamsRepository::find_by_id(db, team_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_001, "Team not found"))?;
 
         let member = TeamMembersRepository::find_member(db, team_id, target_user_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Member not found in team".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_003, "Member not found in team"))?;
 
-        let role: TeamRole = req.role.parse().map_err(AppError::BadRequest)?;
+        let role: TeamRole = req
+            .role
+            .parse()
+            .map_err(|e| AppError::bad_request(codes::teams::TEAM_005, e))?;
 
         let mut active_model: TeamMemberActiveModel = member.into();
         active_model.role = Set(role.as_str().to_string());
@@ -81,11 +85,14 @@ impl TeamMembersService {
     ) -> Result<(), AppError> {
         let _team = TeamsRepository::find_by_id(db, team_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_001, "Team not found"))?;
 
         let member = TeamMembersRepository::find_member(db, team_id, target_user_id).await?;
         if member.is_none() {
-            return Err(AppError::NotFound("Member not found in team".to_string()));
+            return Err(AppError::not_found(
+                codes::teams::TEAM_003,
+                "Member not found in team",
+            ));
         }
 
         TeamMembersRepository::remove_member(db, team_id, target_user_id).await?;

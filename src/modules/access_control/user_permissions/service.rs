@@ -3,7 +3,7 @@ use super::repository::UserPermissionsRepository;
 use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
 use crate::modules::access_control::user_permissions::dto::response::UserPermissionResponse;
 use crate::modules::users::repository::UserRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
@@ -16,7 +16,10 @@ impl UserPermissionsService {
     ) -> Result<Vec<UserPermissionResponse>, AppError> {
         let user = UserRepository::find_by_id(db, dto.user_id).await?;
         if user.is_none() {
-            return Err(AppError::NotFound("User not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::ACCESS_401,
+                "User not found!",
+            ));
         }
 
         let data = UserPermissionsRepository::assign(db, dto.user_id, dto.permission_ids).await?;
@@ -38,7 +41,10 @@ impl UserPermissionsService {
     ) -> Result<(), AppError> {
         let user = UserRepository::find_by_id(db, dto.user_id).await?;
         if user.is_none() {
-            return Err(AppError::NotFound("User not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::ACCESS_401,
+                "User not found!",
+            ));
         }
 
         UserPermissionsRepository::remove(db, dto.user_id, dto.permission_ids).await
@@ -50,7 +56,10 @@ impl UserPermissionsService {
     ) -> Result<Vec<PermissionResponseDto>, AppError> {
         let user = UserRepository::find_by_id(db, user_id).await?;
         if user.is_none() {
-            return Err(AppError::NotFound("User not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::ACCESS_401,
+                "User not found!",
+            ));
         }
 
         let perms = UserPermissionsRepository::find_permissions_by_user_id(db, user_id).await?;

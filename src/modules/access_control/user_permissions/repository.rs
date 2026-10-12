@@ -5,7 +5,7 @@ use super::entities::user_permissions::{
 use crate::modules::access_control::permissions::entities::permissions::{
     Column as PermissionColumn, Entity as PermissionEntity, Model as PermissionModel,
 };
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
     QueryFilter,
@@ -89,7 +89,10 @@ impl UserPermissionsRepository {
             .map_err(AppError::Database)?;
 
         if user_permission.is_none() {
-            return Err(AppError::NotFound("User permission not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::ACCESS_402,
+                "User permission not found!",
+            ));
         }
 
         Ok(user_permission.unwrap())

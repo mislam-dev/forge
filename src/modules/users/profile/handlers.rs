@@ -7,7 +7,10 @@ use super::service::UserProfileService;
 use crate::app::state::AppState;
 use crate::modules::auth::token::AccessTokenClaims;
 use crate::shared::{
-    error::AppError, response::ApiResponse, utils::IdParams, validation::JsonValidate,
+    error::{codes, AppError},
+    response::ApiResponse,
+    utils::IdParams,
+    validation::JsonValidate,
 };
 
 pub async fn get_profile(
@@ -32,8 +35,9 @@ pub async fn update_profile(
         .iter()
         .any(|r| r.eq_ignore_ascii_case("admin"));
     if jwt_claims.sub != id.0 && !is_admin {
-        return Err(AppError::Forbidden(
-            "You are not authorized to update this profile".to_string(),
+        return Err(AppError::forbidden(
+            codes::access::ACCESS_005,
+            "You are not authorized to update this profile",
         ));
     }
 

@@ -4,7 +4,7 @@ use super::dto::{
 };
 use super::repository::PermissionsRepository;
 use crate::shared::{
-    error::AppError,
+    error::{codes, AppError},
     pagination::{PaginatedResponse, PaginationParams},
 };
 use sea_orm::DatabaseConnection;
@@ -44,7 +44,12 @@ impl PermissionsService {
         id: Uuid,
     ) -> Result<PermissionResponseDto, AppError> {
         let perm = PermissionsRepository::find_by_id(db, id).await?;
-        let perm = perm.ok_or(AppError::NotFound("Permission not found!".to_string()))?;
+        let perm = perm.ok_or_else(|| {
+            AppError::not_found(
+                codes::access::ACCESS_102,
+                "Permission not found!",
+            )
+        })?;
 
         Ok(PermissionResponseDto {
             id: perm.id.to_string(),
@@ -60,7 +65,10 @@ impl PermissionsService {
     ) -> Result<PermissionResponseDto, AppError> {
         let perm = PermissionsRepository::find_by_value(db, &dto.value).await?;
         if perm.is_some() {
-            return Err(AppError::Conflict("Permission already exists!".to_string()));
+            return Err(AppError::conflict(
+                codes::access::ACCESS_101,
+                "Permission already exists!",
+            ));
         }
 
         let perm = PermissionsRepository::create(db, dto).await?;
@@ -81,7 +89,10 @@ impl PermissionsService {
         if let Some(value) = &perm_data.value {
             let perm = PermissionsRepository::find_by_value(db, value).await?;
             if perm.is_some() && perm.unwrap().id != id {
-                return Err(AppError::Conflict("Permission already exists!".to_string()));
+                return Err(AppError::conflict(
+                    codes::access::ACCESS_101,
+                    "Permission already exists!",
+                ));
             }
         }
         let perm = PermissionsRepository::update(db, id, perm_data).await?;

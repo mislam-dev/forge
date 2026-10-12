@@ -4,7 +4,7 @@ use super::dto::{
 };
 use super::repository::ProjectRepositoriesRepository;
 use crate::modules::projects::repositories::utils::ATService;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::*;
 use uuid::Uuid;
 
@@ -19,7 +19,7 @@ impl ProjectRepositoriesService {
     ) -> Result<ProjectRepositoryResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         if (ProjectRepositoriesRepository::find_by_project_id(db, project_id).await?).is_some() {
             let mut req_dto = UpdateProjectRepositoryDTO {
@@ -59,12 +59,15 @@ impl ProjectRepositoriesService {
     ) -> Result<ProjectRepositoryResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
             .await?
             .ok_or_else(|| {
-                AppError::NotFound("No repository connected to this project".to_string())
+                AppError::not_found(
+                    codes::projects::REPO_001,
+                    "No repository connected to this project",
+                )
             })?;
 
         Ok(ProjectRepositoryResponse::from_model(repo))
@@ -76,7 +79,10 @@ impl ProjectRepositoriesService {
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
             .await?
             .ok_or_else(|| {
-                AppError::NotFound("No repository connected to this project".to_string())
+                AppError::not_found(
+                    codes::projects::REPO_001,
+                    "No repository connected to this project",
+                )
             })?;
 
         Ok(ProjectRepositoryResponse::from_model(repo))
@@ -99,12 +105,15 @@ impl ProjectRepositoriesService {
     ) -> Result<ProjectRepositoryResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
             .await?
             .ok_or_else(|| {
-                AppError::NotFound("No repository connected to this project".to_string())
+                AppError::not_found(
+                    codes::projects::REPO_001,
+                    "No repository connected to this project",
+                )
             })?;
 
         let updated = ProjectRepositoriesRepository::update_repository(db, repo, req).await?;
@@ -118,12 +127,15 @@ impl ProjectRepositoriesService {
     ) -> Result<(), AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
             .await?
             .ok_or_else(|| {
-                AppError::NotFound("No repository connected to this project".to_string())
+                AppError::not_found(
+                    codes::projects::REPO_001,
+                    "No repository connected to this project",
+                )
             })?;
 
         ProjectRepositoriesRepository::disconnect_repository(db, repo).await?;
@@ -137,7 +149,7 @@ impl ProjectRepositoriesService {
     ) -> Result<Option<String>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id).await?;
         Ok(repo.map(|r| ATService::decrypt(&r.access_token_encrypted)))

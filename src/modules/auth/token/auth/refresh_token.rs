@@ -1,4 +1,4 @@
-use crate::{config::AppConfig, shared::error::AppError};
+use crate::{config::AppConfig, shared::error::{codes, AppError}};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{Header, TokenData};
 use serde::{Deserialize, Serialize};
@@ -69,7 +69,10 @@ impl RefreshTokenService {
         let iat = now.timestamp() as usize;
 
         if exp < iat {
-            return Err(AppError::Unauthorized("Token has expired".to_string()));
+            return Err(AppError::unauthorized(
+                codes::auth::AUTH_004,
+                "Token has expired",
+            ));
         }
 
         Ok(token_data.claims)

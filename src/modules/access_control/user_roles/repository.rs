@@ -5,7 +5,7 @@ use super::entities::user_roles::{
 use crate::modules::access_control::roles::entities::roles::{
     Column as RoleColumn, Entity as RoleEntity, Model as RoleModel,
 };
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
     QueryFilter,
@@ -87,7 +87,10 @@ impl UserRolesRepository {
             .await
             .map_err(AppError::Database)?;
         if user_role.is_none() {
-            return Err(AppError::NotFound("Resource not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::ACCESS_303,
+                "Resource not found!",
+            ));
         }
         Ok(user_role.unwrap())
     }

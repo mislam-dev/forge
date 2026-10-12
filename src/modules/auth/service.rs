@@ -19,7 +19,7 @@ use crate::modules::users::entities::sea_orm_active_enums::UserStatus;
 use crate::modules::users::password::PasswordService;
 use crate::modules::users::repository::UserRepository;
 use crate::modules::users::service::UserService;
-use crate::shared::error::AppError;
+use crate::shared::error::{AppError, codes};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
@@ -32,13 +32,16 @@ impl AuthService {
     ) -> Result<LoginResponseDto, AppError> {
         let user = UserService::find_by_email_with_password(db, &dto.email)
             .await
-            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
+            .map_err(|_| AppError::unauthorized(codes::auth::AUTH_002, "Invalid credentials"))?;
         let is_valid = PasswordService::verify(&user.password, &dto.password)
             .await
-            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
+            .map_err(|_| AppError::unauthorized(codes::auth::AUTH_002, "Invalid credentials"))?;
 
         if !is_valid {
-            return Err(AppError::Unauthorized("Invalid credentials".to_string()));
+            return Err(AppError::unauthorized(
+                codes::auth::AUTH_002,
+                "Invalid credentials",
+            ));
         }
 
         let permissions = AccessControlService::resolve_user_permissions(db, user.id).await?;
@@ -111,15 +114,15 @@ impl AuthService {
         dto: RefreshTokenDto,
     ) -> Result<RefreshTokenResponseDto, AppError> {
         let token_decode = RefreshTokenService::verify(&dto.refresh_token)
-            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
+            .map_err(|_| AppError::unauthorized(codes::auth::AUTH_005, "Invalid refresh token"))?;
 
         let _token = RefreshTokenRepository::fetch_refresh_token(db, &dto.refresh_token)
             .await
-            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
+            .map_err(|_| AppError::unauthorized(codes::auth::AUTH_005, "Invalid refresh token"))?;
 
         let user = UserService::find_one(db, token_decode.sub)
             .await
-            .map_err(|err| AppError::Unauthorized(err.to_string()))?;
+            .map_err(|_| AppError::unauthorized(codes::auth::AUTH_005, "Invalid refresh token"))?;
 
         let permissions = AccessControlService::resolve_user_permissions(db, user.id).await?;
         let roles = AccessControlService::get_user_roles_by_user_id(db, user.id).await?;
@@ -160,7 +163,7 @@ impl AuthService {
     ) -> Result<MeResponseDto, AppError> {
         let user = UserService::find_one(db, jwt_claims.sub)
             .await
-            .map_err(|_| AppError::NotFound("User not found".to_string()))?;
+            .map_err(|_| AppError::not_found(codes::users::USER_001, "User not found"))?;
         Ok(MeResponseDto {
             id: user.id,
             name: user.name,
@@ -205,15 +208,21 @@ impl AuthService {
         dto: ResetPasswordDto,
     ) -> Result<(), AppError> {
         if dto.new_password != dto.confirm_password {
-            return Err(AppError::BadRequest("Passwords do not match".to_string()));
+            return Err(AppError::bad_request(
+                codes::system::VALIDATION_ERROR,
+                "Passwords do not match",
+            ));
         }
 
-        let claims = PasswordResetTokenService::verify(&dto.token)
-            .map_err(|_| AppError::BadRequest("Invalid or expired reset token".to_string()))?;
+        let claims = PasswordResetTokenService::verify(&dto.token).map_err(|_| {
+            AppError::bad_request(codes::auth::AUTH_006, "Invalid or expired reset token")
+        })?;
 
         let _db_token = PasswordResetTokenRepository::find_one(db, &dto.token)
             .await?
-            .ok_or_else(|| AppError::BadRequest("Invalid or expired reset token".to_string()))?;
+            .ok_or_else(|| {
+                AppError::bad_request(codes::auth::AUTH_006, "Invalid or expired reset token")
+            })?;
 
         UserRepository::update_password(db, claims.sub, &dto.new_password)
             .await
@@ -235,14 +244,20 @@ impl AuthService {
         // Verify the JWT and expiration
         // todo: implement this
         let claims = PasswordResetTokenService::verify(&dto.token).map_err(|_| {
-            AppError::BadRequest("Invalid or expired verification token".to_string())
+            AppError::bad_request(
+                codes::users::USER_004,
+                "Invalid or expired verification token",
+            )
         })?;
 
         // Confirm token exists in DB
         let _db_token = PasswordResetTokenRepository::find_one(db, &dto.token)
             .await?
             .ok_or_else(|| {
-                AppError::BadRequest("Verification token not found or already used".to_string())
+                AppError::bad_request(
+                    codes::users::USER_004,
+                    "Verification token not found or already used",
+                )
             })?;
 
         // Mark user as active and email as verified

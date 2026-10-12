@@ -14,7 +14,7 @@ use crate::modules::organization::permissions::service::OrgPermissionsService;
 use crate::modules::teams::members::entities::team_member::{
     Column as TeamMemberColumn, Entity as TeamMemberEntity,
 };
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct ProjectPermissionsService;
 
@@ -107,12 +107,13 @@ impl ProjectPermissionsService {
 
         match role {
             Some(r) if r >= required_role => Ok(r),
-            Some(_) => Err(AppError::Forbidden(format!(
-                "Requires minimum project role: {}",
-                required_role
-            ))),
-            None => Err(AppError::Forbidden(
-                "You do not have permission to access this project".to_string(),
+            Some(_) => Err(AppError::forbidden(
+                codes::projects::PRJ_PERM_001,
+                format!("Requires minimum project role: {}", required_role),
+            )),
+            None => Err(AppError::forbidden(
+                codes::projects::PRJ_PERM_001,
+                "You do not have permission to access this project",
             )),
         }
     }

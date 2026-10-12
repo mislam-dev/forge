@@ -3,7 +3,7 @@ use super::repository::RolePermissionsRepository;
 use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
 use crate::modules::access_control::role_permissions::dto::response::RolePermissionsResponse;
 use crate::modules::access_control::roles::repository::RoleRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use crate::shared::pagination::{PaginatedResponse, PaginationParams};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
@@ -17,7 +17,10 @@ impl RolePermissionsService {
     ) -> Result<Vec<RolePermissionsResponse>, AppError> {
         let role = RoleRepository::find_by_id(db, dto.role_id).await?;
         if role.is_none() {
-            return Err(AppError::NotFound("Role not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::AUTH_201,
+                "Role not found!",
+            ));
         }
 
         let permissions =
@@ -39,7 +42,10 @@ impl RolePermissionsService {
     ) -> Result<(), AppError> {
         let role = RoleRepository::find_by_id(db, dto.role_id).await?;
         if role.is_none() {
-            return Err(AppError::NotFound("Role not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::AUTH_201,
+                "Role not found!",
+            ));
         }
 
         RolePermissionsRepository::remove(db, dto.role_id, dto.permission_ids).await
@@ -52,7 +58,10 @@ impl RolePermissionsService {
     ) -> Result<PaginatedResponse<PermissionResponseDto>, AppError> {
         let role = RoleRepository::find_by_id(db, role_id).await?;
         if role.is_none() {
-            return Err(AppError::NotFound("Role not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::AUTH_201,
+                "Role not found!",
+            ));
         }
 
         let perms =

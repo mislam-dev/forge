@@ -7,7 +7,7 @@ use super::dto::{CreateTeamDTO, TeamResponse, UpdateTeamDTO};
 use super::entities::team::ActiveModel as TeamActiveModel;
 use super::repository::TeamsRepository;
 use crate::modules::teams::members::dto::AddTeamMemberDTO;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct TeamsService;
 
@@ -20,10 +20,13 @@ impl TeamsService {
         if (TeamsRepository::find_by_org_and_name(db, dto.organization_id, &dto.name).await?)
             .is_some()
         {
-            return Err(AppError::Conflict(format!(
-                "Team with name '{}' already exists in this organization",
-                dto.name
-            )));
+            return Err(AppError::conflict(
+                codes::teams::TEAM_002,
+                format!(
+                    "Team with name '{}' already exists in this organization",
+                    dto.name
+                ),
+            ));
         }
 
         let team = TeamsRepository::create_team(db, dto).await?;
@@ -60,7 +63,7 @@ impl TeamsService {
     ) -> Result<TeamResponse, AppError> {
         let team = TeamsRepository::find_by_id(db, team_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_001, "Team not found"))?;
 
         Ok(TeamResponse::from_model(team))
     }
@@ -72,7 +75,7 @@ impl TeamsService {
     ) -> Result<TeamResponse, AppError> {
         let team = TeamsRepository::find_by_id(db, team_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_001, "Team not found"))?;
 
         let mut active_model: TeamActiveModel = team.into();
         let now = Utc::now().into();
@@ -84,10 +87,13 @@ impl TeamsService {
                     TeamsRepository::find_by_org_and_name(db, org_id, &new_name).await?
                 {
                     if existing.id != team_id {
-                        return Err(AppError::Conflict(format!(
-                            "Team with name '{}' already exists in this organization",
-                            new_name
-                        )));
+                        return Err(AppError::conflict(
+                            codes::teams::TEAM_002,
+                            format!(
+                                "Team with name '{}' already exists in this organization",
+                                new_name
+                            ),
+                        ));
                     }
                 }
             }
@@ -106,7 +112,7 @@ impl TeamsService {
     pub async fn delete_team(db: &DatabaseConnection, team_id: Uuid) -> Result<(), AppError> {
         let _team = TeamsRepository::find_by_id(db, team_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Team not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_001, "Team not found"))?;
 
         TeamsRepository::delete_team(db, team_id).await?;
         Ok(())

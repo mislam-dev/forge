@@ -9,7 +9,7 @@ use crate::{
             service::OrgPermissionsService,
         },
     },
-    shared::error::AppError,
+    shared::error::{codes, AppError},
 };
 use axum::extract::{FromRef, FromRequestParts};
 use uuid::Uuid;
@@ -37,7 +37,10 @@ where
         let org_id = OrgIdHeaderOptional::from_request_parts(parts, state).await?;
 
         if org_id.0.is_none() {
-            return Err(AppError::NotFound("Organization not found".to_string()));
+            return Err(AppError::not_found(
+                codes::organization::ORG_001,
+                "Organization not found",
+            ));
         }
         let org_id = org_id.0.unwrap();
         let app_state = AppState::from_ref(state);

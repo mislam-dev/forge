@@ -1,9 +1,8 @@
+use super::error::{codes, AppError};
 use axum::{Json, extract::FromRequest};
 use serde::de::DeserializeOwned;
 use uuid::Uuid;
 use validator::{Validate, ValidationError};
-
-use crate::shared::error::AppError;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct JsonValidate<T>(pub T);
@@ -17,10 +16,10 @@ where
     async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
         let Json(value) = Json::<T>::from_request(req, state)
             .await
-            .map_err(|err| AppError::BadRequest(err.body_text()))?;
+            .map_err(|err| AppError::bad_request(codes::system::BAD_REQUEST, err.body_text()))?;
         value
             .validate()
-            .map_err(|err| AppError::Validation(err.into()))?;
+            .map_err(|err| AppError::validation(codes::system::VALIDATION_ERROR, err))?;
 
         Ok(JsonValidate(value))
     }

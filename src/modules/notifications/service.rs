@@ -7,7 +7,7 @@ use super::dto::{
 };
 use super::entities::notification::ActiveModel as NotificationActiveModel;
 use super::repository::NotificationsRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use crate::shared::pagination::PaginatedResponse;
 
 pub struct NotificationsService;
@@ -48,11 +48,12 @@ impl NotificationsService {
     ) -> Result<NotificationResponse, AppError> {
         let notification = NotificationsRepository::find_by_id(db, notification_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Notification not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::notifications::NOTIF_001, "Notification not found"))?;
 
         if notification.user_id != user_id {
-            return Err(AppError::Forbidden(
-                "You are not authorized to modify this notification".to_string(),
+            return Err(AppError::forbidden(
+                codes::notifications::NOTIF_002,
+                "You are not authorized to modify this notification",
             ));
         }
 

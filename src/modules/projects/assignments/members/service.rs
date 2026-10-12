@@ -6,7 +6,7 @@ use super::dto::{AssignProjectMemberDTO, ProjectMemberResponse};
 use super::repository::ProjectAssignmentsRepository;
 use crate::modules::organization::permissions::service::OrgPermissionsService;
 use crate::modules::users::repository::UserRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct ProjectAssignmentsService;
 
@@ -19,32 +19,35 @@ impl ProjectAssignmentsService {
     ) -> Result<ProjectMemberResponse, AppError> {
         let project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let _user = UserRepository::find_by_id(db, req.user_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Target user not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::users::USER_001, "Target user not found"))?;
 
         if let Some(org_id) = org_id {
             let org_role = OrgPermissionsService::resolve_org_role(db, org_id, req.user_id).await?;
             if org_role.is_none() {
-                return Err(AppError::BadRequest(
-                    "Target user is not a member of the parent organization".to_string(),
+                return Err(AppError::bad_request(
+                    codes::organization::ORG_006,
+                    "Target user is not a member of the parent organization",
                 ));
             }
         }
 
         if req.user_id == project.owner_id {
-            return Err(AppError::Conflict(
-                "User is already the owner of this project".to_string(),
+            return Err(AppError::conflict(
+                codes::projects::PRJ_004,
+                "User is already the owner of this project",
             ));
         }
 
         // to do work on this project
         if (ProjectAssignmentsRepository::find_member(db, project_id, req.user_id).await?).is_some()
         {
-            return Err(AppError::Conflict(
-                "User is already assigned to this project".to_string(),
+            return Err(AppError::conflict(
+                codes::projects::PRJ_004,
+                "User is already assigned to this project",
             ));
         }
 
@@ -60,7 +63,7 @@ impl ProjectAssignmentsService {
     ) -> Result<Vec<ProjectMemberResponse>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let members =
             ProjectAssignmentsRepository::find_members_by_project_id(db, project_id).await?;
@@ -78,19 +81,21 @@ impl ProjectAssignmentsService {
     ) -> Result<(), AppError> {
         let project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         if project.owner_id == target_user_id {
-            return Err(AppError::BadRequest(
-                "Cannot remove the Project Owner from the project".to_string(),
+            return Err(AppError::bad_request(
+                codes::projects::PRJ_PERM_002,
+                "Cannot remove the Project Owner from the project",
             ));
         }
 
         let member =
             ProjectAssignmentsRepository::find_member(db, project_id, target_user_id).await?;
         if member.is_none() {
-            return Err(AppError::NotFound(
-                "User is not assigned to this project".to_string(),
+            return Err(AppError::not_found(
+                codes::projects::PRJ_005,
+                "User is not assigned to this project",
             ));
         }
 

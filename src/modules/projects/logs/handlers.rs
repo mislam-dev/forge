@@ -5,7 +5,7 @@ use crate::modules::projects::deployments::DeploymentStatus;
 use crate::modules::projects::deployments::repository::DeploymentsRepository;
 use crate::modules::projects::extractors::{OptionalOrgViewer, OrgValidationOptional};
 use crate::modules::projects::logs::LogStreamConsumer;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use crate::shared::response::ApiResponse;
 use axum::response::sse::Event;
 use axum::{
@@ -43,10 +43,13 @@ pub async fn stream_logs(
     if let Some(deployment) = deployment
         && deployment.status != DeploymentStatus::Running
     {
-        return Err(AppError::NotFound(format!(
-            "There is no running build-logs to stream for deployment {}",
-            deployment_id
-        )));
+        return Err(AppError::not_found(
+            codes::deployments::LOG_003,
+            format!(
+                "There is no running build-logs to stream for deployment {}",
+                deployment_id
+            ),
+        ));
     }
 
     let (tx, rx) = mpsc::channel::<Result<Event, Infallible>>(100);

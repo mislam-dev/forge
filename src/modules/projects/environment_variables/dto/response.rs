@@ -18,13 +18,19 @@ pub struct ProjectEnvVarResponse {
 
 impl ProjectEnvVarResponse {
     pub fn from_model(model: EnvVarModel) -> Self {
+        let is_secret = model.is_secret.unwrap_or(false);
+        let value = if is_secret {
+            "••••••••".to_string()
+        } else {
+            model.value_encrypted
+        };
         Self {
             id: model.id,
             project_id: model.project_id,
             environment: model.environment,
             key: model.key,
-            value: model.value_encrypted,
-            is_secret: model.is_secret.unwrap_or(false),
+            value,
+            is_secret,
             created_at: model.created_at.to_rfc3339(),
             updated_at: model.updated_at.to_rfc3339(),
         }

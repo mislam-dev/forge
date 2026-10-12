@@ -5,7 +5,7 @@ use super::dto::request::{CreateUserProfileDto, UpdateUserProfileDto};
 use super::dto::response::UserProfileResponse;
 use super::entities::user_profile::Model;
 use super::repository::UserProfileRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 
 pub struct UserProfileService;
 
@@ -30,7 +30,12 @@ impl UserProfileService {
         user_id: Uuid,
     ) -> Result<UserProfileResponse, AppError> {
         let profile = UserProfileRepository::find_by_user_id(db, user_id).await?;
-        let profile = profile.ok_or(AppError::NotFound("Profile not found".to_string()))?;
+        let profile = profile.ok_or_else(|| {
+            AppError::not_found(
+                codes::users::PROFILE_001,
+                "Profile not found",
+            )
+        })?;
         Ok(Self::map_model_to_response(profile))
     }
 

@@ -1,5 +1,5 @@
 use super::token::{AccessTokenClaims, AccessTokenService};
-use crate::shared::error::AppError;
+use crate::shared::error::{AppError, codes};
 use axum::http::header::AUTHORIZATION;
 use axum::{extract::FromRequestParts, http::request::Parts};
 
@@ -14,18 +14,24 @@ where
             .headers
             .get(AUTHORIZATION)
             .and_then(|value| value.to_str().ok())
-            .ok_or(AppError::Unauthorized(
-                "Missing Authorization header".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                AppError::unauthorized(
+                    codes::auth::AUTH_000,
+                    "Missing Authorization header",
+                )
+            })?;
 
         let token = auth_header
             .strip_prefix("Bearer ")
-            .ok_or(AppError::Unauthorized(
-                "Invalid Authorization header format".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                AppError::unauthorized(
+                    codes::auth::AUTH_000,
+                    "Invalid Authorization header format",
+                )
+            })?;
 
         let jwt_claims = AccessTokenService::verify(token)
-            .map_err(|_| AppError::Unauthorized("Unauthorized".to_string()))?;
+            .map_err(|_| AppError::unauthorized(codes::auth::AUTH_000, "Unauthorized"))?;
         Ok(jwt_claims)
     }
 }
@@ -45,7 +51,10 @@ mod tests {
         let result = AccessTokenClaims::from_request_parts(&mut parts, &()).await;
         assert!(result.is_err());
         match result {
-            Err(AppError::Unauthorized(msg)) => assert_eq!(msg, "Missing Authorization header"),
+            Err(AppError::Unauthorized(code, msg)) => {
+                assert_eq!(code, codes::auth::AUTH_000);
+                assert_eq!(msg, "Missing Authorization header");
+            }
             _ => panic!("Expected Unauthorized error"),
         }
     }
@@ -61,10 +70,12 @@ mod tests {
         let result = AccessTokenClaims::from_request_parts(&mut parts, &()).await;
         assert!(result.is_err());
         match result {
-            Err(AppError::Unauthorized(msg)) => {
-                assert_eq!(msg, "Invalid Authorization header format")
+            Err(AppError::Unauthorized(code, msg)) => {
+                assert_eq!(code, codes::auth::AUTH_000);
+                assert_eq!(msg, "Invalid Authorization header format");
             }
             _ => panic!("Expected Unauthorized error"),
         }
     }
 }
+

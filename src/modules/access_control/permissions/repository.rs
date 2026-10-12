@@ -3,7 +3,7 @@ use super::entities::permissions::{
     ActiveModel as PermissionActiveModel, Column as PermissionColumn, Entity as PermissionEntity,
     Model as PermissionModel,
 };
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use crate::shared::pagination::{PaginatedResponse, PaginationParams};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
@@ -104,9 +104,12 @@ impl PermissionsRepository {
         id: Uuid,
         perm_data: PermissionUpdateDto,
     ) -> Result<PermissionModel, AppError> {
-        let existing_perm = Self::find_by_id(db, id)
-            .await?
-            .ok_or(AppError::NotFound("Permission not found!".to_string()))?;
+        let existing_perm = Self::find_by_id(db, id).await?.ok_or_else(|| {
+            AppError::not_found(
+                codes::access::ACCESS_102,
+                "Permission not found!",
+            )
+        })?;
 
         let mut active_perm: PermissionActiveModel = existing_perm.into();
 
@@ -132,7 +135,10 @@ impl PermissionsRepository {
             .map_err(AppError::Database)?;
 
         if result.rows_affected == 0 {
-            return Err(AppError::NotFound("Permission not found!".to_string()));
+            return Err(AppError::not_found(
+                codes::access::ACCESS_102,
+                "Permission not found!",
+            ));
         }
 
         Ok(())

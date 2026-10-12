@@ -5,7 +5,7 @@ use super::dto::{
 };
 use super::entities::project_environment_variables::ActiveModel as EnvVarActiveModel;
 use super::repository::ProjectEnvironmentVariablesRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use chrono::Utc;
 use sea_orm::*;
 use std::collections::HashMap;
@@ -16,22 +16,31 @@ pub struct ProjectEnvironmentVariablesService;
 impl ProjectEnvironmentVariablesService {
     pub fn validate_posix_key(key: &str) -> Result<(), AppError> {
         if key.is_empty() {
-            return Err(AppError::BadRequest("Key cannot be empty".to_string()));
+            return Err(AppError::bad_request(
+                codes::projects::ENV_001,
+                "Key cannot be empty",
+            ));
         }
         let bytes = key.as_bytes();
         let first = bytes[0];
         if !(first.is_ascii_uppercase() || first == b'_') {
-            return Err(AppError::BadRequest(format!(
-                "Environment variable key '{}' does not match POSIX standard (must start with uppercase letter or underscore)",
-                key
-            )));
+            return Err(AppError::bad_request(
+                codes::projects::ENV_001,
+                format!(
+                    "Environment variable key '{}' does not match POSIX standard (must start with uppercase letter or underscore)",
+                    key
+                ),
+            ));
         }
         for &b in &bytes[1..] {
             if !(b.is_ascii_uppercase() || b.is_ascii_digit() || b == b'_') {
-                return Err(AppError::BadRequest(format!(
-                    "Environment variable key '{}' does not match POSIX standard (uppercase letters, numbers, and underscores)",
-                    key
-                )));
+                return Err(AppError::bad_request(
+                    codes::projects::ENV_001,
+                    format!(
+                        "Environment variable key '{}' does not match POSIX standard (uppercase letters, numbers, and underscores)",
+                        key
+                    ),
+                ));
             }
         }
         Ok(())
@@ -61,7 +70,7 @@ impl ProjectEnvironmentVariablesService {
     ) -> Result<ProjectEnvVarResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         Self::validate_posix_key(&req.key)?;
 
@@ -74,11 +83,14 @@ impl ProjectEnvironmentVariablesService {
         .await?)
             .is_some()
         {
-            return Err(AppError::Conflict(format!(
-                "Environment variable '{}' already exists in {} environment",
-                req.key,
-                req.environment.to_string()
-            )));
+            return Err(AppError::conflict(
+                codes::projects::ENV_002,
+                format!(
+                    "Environment variable '{}' already exists in {} environment",
+                    req.key,
+                    req.environment.to_string()
+                ),
+            ));
         }
 
         let now = Utc::now().into();
@@ -106,7 +118,7 @@ impl ProjectEnvironmentVariablesService {
     ) -> Result<Vec<ProjectEnvVarResponse>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let env_vars = ProjectEnvironmentVariablesRepository::find_by_project_id(
             db,
@@ -144,15 +156,21 @@ impl ProjectEnvironmentVariablesService {
     ) -> Result<ProjectEnvVarResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let env_var = ProjectEnvironmentVariablesRepository::find_by_id(db, env_var_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Environment variable not found".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::projects::ENV_004,
+                    "Environment variable not found",
+                )
+            })?;
 
         if env_var.project_id != project_id {
-            return Err(AppError::NotFound(
-                "Environment variable not found in this project".to_string(),
+            return Err(AppError::not_found(
+                codes::projects::ENV_004,
+                "Environment variable not found in this project",
             ));
         }
 
@@ -180,15 +198,21 @@ impl ProjectEnvironmentVariablesService {
     ) -> Result<(), AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let env_var = ProjectEnvironmentVariablesRepository::find_by_id(db, env_var_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Environment variable not found".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::projects::ENV_004,
+                    "Environment variable not found",
+                )
+            })?;
 
         if env_var.project_id != project_id {
-            return Err(AppError::NotFound(
-                "Environment variable not found in this project".to_string(),
+            return Err(AppError::not_found(
+                codes::projects::ENV_004,
+                "Environment variable not found in this project",
             ));
         }
 
@@ -204,7 +228,7 @@ impl ProjectEnvironmentVariablesService {
     ) -> Result<Vec<ProjectEnvVarResponse>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         for item in &req.vars {
             Self::validate_posix_key(&item.key)?;
@@ -262,7 +286,7 @@ impl ProjectEnvironmentVariablesService {
     ) -> Result<HashMap<String, String>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Project not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let env_vars = ProjectEnvironmentVariablesRepository::find_by_project_id(
             db,

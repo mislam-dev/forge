@@ -95,8 +95,8 @@ impl DeploymentPath {
         let root = PathBuf::from(base)
             .join(owner.segment())
             .join(owner.id)
-            .join(project_id)
-            .join(deployment_id);
+            .join(format!("project_{}", project_id))
+            .join(format!("deployment_{}", deployment_id));
 
         fs::remove_dir_all(root)?;
 
@@ -113,7 +113,7 @@ impl DeploymentPath {
         let root = PathBuf::from(base)
             .join(owner.segment())
             .join(owner.id.clone())
-            .join(project_id);
+            .join(format!("project_{}", project_id));
 
         fs::remove_dir_all(root)?;
 
@@ -160,7 +160,7 @@ mod tests {
         let path = DeploymentPath::new(dto);
         assert_eq!(
             path.root,
-            PathBuf::from("/tmp/test_deployments/users/usr_123/prj_abc/dep_xyz")
+            PathBuf::from("/tmp/test_deployments/users/usr_123/project_prj_abc/deployment_dep_xyz")
         );
         assert_eq!(path.source, path.root.join("source"));
         assert_eq!(path.build, path.root.join("build"));

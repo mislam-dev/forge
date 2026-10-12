@@ -6,7 +6,7 @@ use super::entities::sea_orm_active_enums::{
 use super::repository::{OrganizationInvitationRepository, OrganizationMembersRepository};
 use crate::modules::organization::orgs::repository::OrganizationRepository;
 use crate::modules::users::service::UserService;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use chrono::{Duration, Utc};
 use sea_orm::DatabaseConnection;
 use std::collections::HashMap;
@@ -22,9 +22,17 @@ impl OrganizationMembersService {
     ) -> Result<InvitationResponse, AppError> {
         let _org = OrganizationRepository::find_by_id(db, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::organization::ORG_001,
+                    "Organization not found",
+                )
+            })?;
 
-        let member_role: OrganizationMemberRole = dto.role.parse().map_err(AppError::BadRequest)?;
+        let member_role: OrganizationMemberRole = dto
+            .role
+            .parse()
+            .map_err(|e: String| AppError::bad_request(codes::system::VALIDATION_ERROR, e))?;
 
         let user = UserService::find_by_email(db, &dto.email).await?;
 
@@ -32,8 +40,9 @@ impl OrganizationMembersService {
             .await?
             .is_some()
         {
-            return Err(AppError::Conflict(
-                "User is already a member of this organization".to_string(),
+            return Err(AppError::conflict(
+                codes::organization::ORG_004,
+                "User is already a member of this organization",
             ));
         }
 
@@ -41,8 +50,9 @@ impl OrganizationMembersService {
             .await?
             .is_some()
         {
-            return Err(AppError::Conflict(
-                "A pending invitation already exists for this email".to_string(),
+            return Err(AppError::conflict(
+                codes::organization::ORG_004,
+                "A pending invitation already exists for this email",
             ));
         }
 
@@ -70,18 +80,25 @@ impl OrganizationMembersService {
     ) -> Result<MemberResponse, AppError> {
         let invite = OrganizationInvitationRepository::find_by_token(db, token)
             .await?
-            .ok_or_else(|| AppError::NotFound("Invalid or expired invitation token".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::organization::ORG_005,
+                    "Invalid or expired invitation token",
+                )
+            })?;
 
         if invite.status != Some(OrganizationInvitationsStatus::Pending) {
-            return Err(AppError::BadRequest(
-                "Invitation has already been used or cancelled".to_string(),
+            return Err(AppError::bad_request(
+                codes::organization::ORG_005,
+                "Invitation has already been used or cancelled",
             ));
         }
 
         let now = Utc::now();
         if invite.expires_at.with_timezone(&Utc) < now {
-            return Err(AppError::BadRequest(
-                "Invitation token has expired".to_string(),
+            return Err(AppError::bad_request(
+                codes::organization::ORG_005,
+                "Invitation token has expired",
             ));
         }
 
@@ -91,8 +108,9 @@ impl OrganizationMembersService {
             .await?
             .is_some()
         {
-            return Err(AppError::Conflict(
-                "User is already a member of this organization".to_string(),
+            return Err(AppError::conflict(
+                codes::organization::ORG_004,
+                "User is already a member of this organization",
             ));
         }
 
@@ -112,7 +130,12 @@ impl OrganizationMembersService {
     ) -> Result<Vec<MemberResponse>, AppError> {
         let _org = OrganizationRepository::find_by_id(db, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::organization::ORG_001,
+                    "Organization not found",
+                )
+            })?;
 
         let members = OrganizationMembersRepository::find_members_by_org_id(db, org_id).await?;
 
@@ -138,7 +161,12 @@ impl OrganizationMembersService {
     ) -> Result<Vec<InvitationResponse>, AppError> {
         let _org = OrganizationRepository::find_by_id(db, org_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::organization::ORG_001,
+                    "Organization not found",
+                )
+            })?;
 
         let invites = OrganizationInvitationRepository::find_pending(db, org_id).await?;
         Ok(invites
@@ -153,11 +181,19 @@ impl OrganizationMembersService {
         target_user_id: Uuid,
         dto: UpdateMemberRoleRequest,
     ) -> Result<MemberResponse, AppError> {
-        let new_role: OrganizationMemberRole = dto.role.parse().map_err(AppError::BadRequest)?;
+        let new_role: OrganizationMemberRole = dto
+            .role
+            .parse()
+            .map_err(|e: String| AppError::bad_request(codes::system::VALIDATION_ERROR, e))?;
 
         let target_member = OrganizationMembersRepository::find_member(db, org_id, target_user_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Member not found in organization".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::organization::ORG_007,
+                    "Member not found in organization",
+                )
+            })?;
 
         let target_member_role = target_member.role.unwrap_or(OrganizationMemberRole::Viewer);
 
@@ -165,8 +201,9 @@ impl OrganizationMembersService {
         if target_member_role == OrganizationMemberRole::Owner
             || new_role == OrganizationMemberRole::Owner
         {
-            return Err(AppError::Forbidden(
-                "Owner cannot be modified or removed from the Organization".to_string(),
+            return Err(AppError::forbidden(
+                codes::organization::ORG_006,
+                "Owner cannot be modified or removed from the Organization",
             ));
         }
 
@@ -186,13 +223,19 @@ impl OrganizationMembersService {
     ) -> Result<(), AppError> {
         let target_member = OrganizationMembersRepository::find_member(db, org_id, target_user_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Member not found in organization".to_string()))?;
+            .ok_or_else(|| {
+                AppError::not_found(
+                    codes::organization::ORG_007,
+                    "Member not found in organization",
+                )
+            })?;
 
         let target_role = target_member.role.unwrap_or(OrganizationMemberRole::Viewer);
 
         if target_role == OrganizationMemberRole::Owner {
-            return Err(AppError::Forbidden(
-                "Owner cannot be modified or removed from the Organization".to_string(),
+            return Err(AppError::forbidden(
+                codes::organization::ORG_006,
+                "Owner cannot be modified or removed from the Organization",
             ));
         }
 

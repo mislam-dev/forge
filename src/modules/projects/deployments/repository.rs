@@ -8,7 +8,7 @@ use super::entities::deployments::{
     Model as DeploymentModel,
 };
 use super::status::DeploymentStatus;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use crate::shared::pagination::PaginatedResponse;
 
 pub struct DeploymentsRepository;
@@ -140,7 +140,7 @@ impl DeploymentsRepository {
     ) -> Result<DeploymentModel, AppError> {
         let deployment = Self::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::NotFound("Deployment not found".to_string()))?;
+            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
 
         let mut active_model: DeploymentActiveModel = deployment.into();
         active_model.status = Set(target_status);

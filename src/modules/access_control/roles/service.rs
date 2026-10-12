@@ -3,7 +3,7 @@ use crate::modules::access_control::roles::dto::{
     response::RoleResponseDto,
 };
 use crate::modules::access_control::roles::repository::RoleRepository;
-use crate::shared::error::AppError;
+use crate::shared::error::{codes, AppError};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
@@ -31,7 +31,12 @@ impl RolesService {
         id: Uuid,
     ) -> Result<RoleResponseDto, AppError> {
         let role = RoleRepository::find_by_id(db, id).await?;
-        let role = role.ok_or(AppError::NotFound("Role not found!".to_string()))?;
+        let role = role.ok_or_else(|| {
+            AppError::not_found(
+                codes::access::ACCESS_002,
+                "Role not found!",
+            )
+        })?;
 
         Ok(RoleResponseDto {
             id: role.id.to_string(),
@@ -47,7 +52,10 @@ impl RolesService {
     ) -> Result<RoleResponseDto, AppError> {
         let role = RoleRepository::find_by_value(db, &dto.value).await?;
         if role.is_some() {
-            return Err(AppError::Conflict("Role already exists!".to_string()));
+            return Err(AppError::conflict(
+                codes::access::ACCESS_001,
+                "Role already exists!",
+            ));
         }
 
         let role = RoleRepository::create(db, dto).await?;
