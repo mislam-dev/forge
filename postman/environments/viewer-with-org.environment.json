@@ -75,6 +75,18 @@
       "enabled": true
     },
     {
+      "key": "email",
+      "value": "viewer1@forge.local",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "password",
+      "value": "Password123!",
+      "type": "default",
+      "enabled": true
+    },
+    {
       "key": "testOrgId",
       "value": "00000000-0000-0000-0000-000000000001",
       "type": "default",

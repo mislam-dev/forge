@@ -24,6 +24,10 @@ values:
     value: ''
   - key: userPassword
     secret: true
+  - key: email
+    value: ''
+  - key: password
+    secret: true
   - key: testOrgId
     value: ''
   - key: testProjectId

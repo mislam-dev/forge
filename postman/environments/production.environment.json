@@ -75,6 +75,18 @@
       "enabled": true
     },
     {
+      "key": "email",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "password",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
       "key": "testOrgId",
       "value": "",
       "type": "default",

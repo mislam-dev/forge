@@ -24,6 +24,10 @@ values:
     value: admin1@forge.local
   - key: userPassword
     value: Password123!
+  - key: email
+    value: admin1@forge.local
+  - key: password
+    value: Password123!
   - key: testOrgId
     value: 00000000-0000-0000-0000-000000000001
   - key: testProjectId
