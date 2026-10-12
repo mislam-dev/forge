@@ -7,6 +7,51 @@ headers:
 body:
   type: text
   content: ""
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Response status code is 200 OK or 503 Service Unavailable", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 503]);
+      });
+
+      pm.test("Response Content-Type is application/json", function () {
+          pm.expect(pm.response.headers.get("Content-Type")).to.include("application/json");
+      });
+
+      let json_data;
+      try {
+          json_data = pm.response.json();
+      } catch (e) {
+          pm.expect.fail("Response body is not valid JSON");
+      }
+
+      pm.test("Readiness response envelope conforms to contract", function () {
+          pm.expect(json_data).to.be.an("object");
+          pm.expect(json_data.service).to.equal("forge-platform");
+          pm.expect(json_data.timestamp).to.be.a("string");
+          pm.expect(isNaN(Date.parse(json_data.timestamp))).to.be.false;
+          pm.expect(json_data).to.have.property("checks");
+          pm.expect(json_data.checks).to.be.an("object");
+      });
+
+      if (pm.response.code === 200) {
+          pm.test("Healthy readiness response contains valid dependency statuses", function () {
+              pm.expect(json_data.status).to.equal("ready");
+              const requiredDeps = ["database", "job_queue", "container_runtime"];
+              requiredDeps.forEach(function (dep) {
+                  pm.expect(json_data.checks).to.have.property(dep);
+                  pm.expect(json_data.checks[dep]).to.have.property("status");
+                  pm.expect(json_data.checks[dep].status).to.equal("healthy");
+                  pm.expect(json_data.checks[dep]).to.have.property("latency_ms");
+              });
+          });
+      } else {
+          pm.test("Unhealthy readiness response indicates degraded dependency", function () {
+              pm.expect(json_data.status).to.equal("not_ready");
+              pm.expect(Object.keys(json_data.checks).length).to.be.at.least(1);
+          });
+      }
+    language: text/javascript
 settings: {}
 examples: ./.resources/Readiness probe — check dependency readiness.resources/examples
 order: 1000

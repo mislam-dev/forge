@@ -47,6 +47,43 @@ auth:
   type: bearer
   credentials:
     token: "{{bearerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Response status code is 200 OK or client error (401/403/404)", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);
+      });
+
+      pm.test("Response Content-Type is application/json", function () {
+          pm.expect(pm.response.headers.get("Content-Type")).to.include("application/json");
+      });
+
+      let json_data;
+      try {
+          json_data = pm.response.json();
+      } catch (e) {
+          pm.expect.fail("Response body is not valid JSON");
+      }
+
+      if (pm.response.code === 200) {
+          pm.test("Success response contains team members data array", function () {
+              pm.expect(json_data).to.have.property("data");
+              pm.expect(json_data.data).to.be.an("array");
+              if (json_data.data.length > 0) {
+                  const member = json_data.data[0];
+                  pm.expect(member).to.have.property("team_id");
+                  pm.expect(member).to.have.property("user_id");
+                  pm.expect(member).to.have.property("role");
+              }
+          });
+      } else {
+          pm.test("Error response conforms to ErrorResponse schema", function () {
+              pm.expect(json_data.is_error).to.be.true;
+              pm.expect(json_data.code).to.be.a("string");
+              pm.expect(json_data.message).to.be.a("string");
+          });
+      }
+    language: text/javascript
 settings: {}
 examples: ./.resources/List team members.resources/examples
 order: 1000
