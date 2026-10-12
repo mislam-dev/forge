@@ -9,7 +9,7 @@ body:
   type: json
   content: |-
     {
-      "refresh_token": "rfr_890a7b6c5d4e3f2a1b0c..."
+      "refresh_token": "{{refreshToken}}"
     }
   $type: |-
     {
