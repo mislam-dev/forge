@@ -141,3 +141,36 @@ migration name:
 # generating migrations scaffolding
 migration-cli init:
     sea-orm-cli migrate init -d src/database/migrations
+
+# ================================
+# Docker & Container Orchestration
+# ================================
+
+# Start infrastructure services (Postgres, Redis, RabbitMQ, Loki, Grafana)
+docker-infra-up:
+    docker compose up -d postgres redis rabbitmq loki grafana
+
+# Start hot-reloading development container with dependencies
+docker-dev:
+    docker compose --profile dev up --build
+
+# Run cargo test in Docker with automated limits (nofile: 65535)
+docker-test:
+    docker compose --profile test run --rm forge-test
+
+# Run Postman/Newman API matrix tests in Docker container
+docker-test-api:
+    docker compose --profile test run --rm forge-test npm run test:matrix
+
+# Run load test in Docker container (e.g. just docker-load-test tests/load/tiers/tier_1k.js)
+docker-load-test script="tests/load/tiers/tier_1k.js":
+    docker compose --profile test run --rm forge-test npx k6 run {{ script }}
+
+# Build and start full production stack in Docker
+docker-prod-up:
+    docker compose --profile prod up -d --build
+
+# Stop all containers and remove networks
+docker-down:
+    docker compose --profile dev --profile prod --profile test down
+

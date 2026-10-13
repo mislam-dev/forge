@@ -1,0 +1,33 @@
+FROM rust:1-slim-bookworm
+
+WORKDIR /app
+
+# Install native compilation dependencies, Node.js, npm, curl, and git
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    git \
+    cmake \
+    curl \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Newman and Newman HTML reporter globally for API automation tests
+RUN npm install -g newman newman-reporter-htmlextra yaml
+
+# Install just runner for unified test commands
+RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+
+# Copy test entrypoint script
+COPY docker/test-entrypoint.sh /usr/local/bin/test-entrypoint.sh
+RUN chmod +x /usr/local/bin/test-entrypoint.sh
+
+# Default environment for testing
+ENV RUST_LOG=info
+ENV RUST_BACKTRACE=1
+ENV CI=true
+
+ENTRYPOINT ["/usr/local/bin/test-entrypoint.sh"]
+CMD ["cargo", "test"]

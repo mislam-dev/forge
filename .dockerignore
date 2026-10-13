@@ -1,0 +1,36 @@
+# Rust target directory and build cache
+target/
+**/*.rs.bk
+
+# Node modules and JavaScript build artifacts
+node_modules/
+package-lock.json
+
+# Test and coverage reports
+reports/
+
+# Log files and runtime logs
+logs/
+*.log
+
+# Environment files and credentials
+.env
+.env.*
+!.env.example
+
+# Git metadata
+.git/
+.gitignore
+
+# Editor and OS metadata
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Postman local scratch files
+.postman/
+
+# OpenSpec planning scratch/changes (optional, keep build context lean)
+openspec/

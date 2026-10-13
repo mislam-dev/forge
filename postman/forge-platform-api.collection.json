@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "0665ff5d-f815-4eb9-a2f5-eaba6d6a8b6b",
+    "_postman_id": "ed345874-a79d-4dd0-844a-3d1bff7a6a21",
     "name": "Forge Platform API",
     "description": "Complete OpenAPI 3.0 specification for the Forge Developer Deployment & Project Management Platform.\n\nContact Support:\n Name: Forge Engineering Team\n Email: support@forge.dev",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -631,7 +631,44 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 200 OK or client error (401/403)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test(\"Success response conforms to ApiResponseRoleList schema\", function () {",
+                      "        pm.expect(json_data).to.have.property(\"data\");",
+                      "        pm.expect(json_data.data).to.be.an(\"array\");",
+                      "    });",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Create a system role",
@@ -660,7 +697,51 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 201 Created or client error (400/401/403/409)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 403, 409]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 201) {",
+                      "    pm.test(\"Success response conforms to ApiResponseRoleSingle schema\", function () {",
+                      "        pm.expect(json_data).to.have.property(\"data\");",
+                      "        pm.expect(json_data.data).to.be.an(\"object\");",
+                      "        pm.expect(json_data.data).to.have.property(\"id\");",
+                      "        pm.expect(json_data.data).to.have.property(\"key\");",
+                      "        pm.expect(json_data.data).to.have.property(\"value\");",
+                      "    });",
+                      "",
+                      "    if (json_data.data && json_data.data.id) {",
+                      "        pm.environment.set(\"role_id\", json_data.data.id);",
+                      "    }",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "{id}",
@@ -688,7 +769,47 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (401/403/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response conforms to ApiResponseRoleSingle schema\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"data\");",
+                          "        pm.expect(json_data.data).to.be.an(\"object\");",
+                          "        pm.expect(json_data.data).to.have.property(\"id\");",
+                          "        pm.expect(json_data.data).to.have.property(\"key\");",
+                          "        pm.expect(json_data.data).to.have.property(\"value\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 },
                 {
                   "name": "Update a system role",
@@ -717,7 +838,47 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (400/401/403/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 403, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response conforms to ApiResponseRoleSingle schema\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"data\");",
+                          "        pm.expect(json_data.data).to.be.an(\"object\");",
+                          "        pm.expect(json_data.data).to.have.property(\"id\");",
+                          "        pm.expect(json_data.data).to.have.property(\"key\");",
+                          "        pm.expect(json_data.data).to.have.property(\"value\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 },
                 {
                   "name": "Delete a system role",
@@ -741,7 +902,44 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (401/403/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response contains message\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"message\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 }
               ]
             },
@@ -780,7 +978,44 @@
                             }
                           }
                         }
-                      }
+                      },
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                              "pm.test(\"Response status code is 201 Created or client error (400/401/403/404)\", function () {",
+                              "    pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 403, 404]);",
+                              "});",
+                              "",
+                              "pm.test(\"Response Content-Type is application/json\", function () {",
+                              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                              "});",
+                              "",
+                              "let json_data;",
+                              "try {",
+                              "    json_data = pm.response.json();",
+                              "} catch (e) {",
+                              "    pm.expect.fail(\"Response body is not valid JSON\");",
+                              "}",
+                              "",
+                              "if (pm.response.code === 201) {",
+                              "    pm.test(\"Success response conforms to ApiResponseRolePermissionsList schema\", function () {",
+                              "        pm.expect(json_data).to.have.property(\"data\");",
+                              "        pm.expect(json_data.data).to.be.an(\"array\");",
+                              "    });",
+                              "} else {",
+                              "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                              "        pm.expect(json_data.is_error).to.be.true;",
+                              "        pm.expect(json_data.code).to.be.a(\"string\");",
+                              "        pm.expect(json_data.message).to.be.a(\"string\");",
+                              "    });",
+                              "}"
+                            ]
+                          }
+                        }
+                      ]
                     }
                   ]
                 },
@@ -815,7 +1050,44 @@
                             }
                           }
                         }
-                      }
+                      },
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                              "pm.test(\"Response status code is 200 OK or client error (400/401/403/404)\", function () {",
+                              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 403, 404]);",
+                              "});",
+                              "",
+                              "pm.test(\"Response Content-Type is application/json\", function () {",
+                              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                              "});",
+                              "",
+                              "let json_data;",
+                              "try {",
+                              "    json_data = pm.response.json();",
+                              "} catch (e) {",
+                              "    pm.expect.fail(\"Response body is not valid JSON\");",
+                              "}",
+                              "",
+                              "if (pm.response.code === 200) {",
+                              "    pm.test(\"Success response contains message\", function () {",
+                              "        pm.expect(json_data).to.have.property(\"message\");",
+                              "        pm.expect(json_data.message).to.be.a(\"string\");",
+                              "    });",
+                              "} else {",
+                              "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                              "        pm.expect(json_data.is_error).to.be.true;",
+                              "        pm.expect(json_data.code).to.be.a(\"string\");",
+                              "        pm.expect(json_data.message).to.be.a(\"string\");",
+                              "    });",
+                              "}"
+                            ]
+                          }
+                        }
+                      ]
                     }
                   ]
                 },
@@ -845,7 +1117,44 @@
                             }
                           }
                         }
-                      }
+                      },
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                              "pm.test(\"Response status code is 200 OK or client error (401/403/404)\", function () {",
+                              "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+                              "});",
+                              "",
+                              "pm.test(\"Response Content-Type is application/json\", function () {",
+                              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                              "});",
+                              "",
+                              "let json_data;",
+                              "try {",
+                              "    json_data = pm.response.json();",
+                              "} catch (e) {",
+                              "    pm.expect.fail(\"Response body is not valid JSON\");",
+                              "}",
+                              "",
+                              "if (pm.response.code === 200) {",
+                              "    pm.test(\"Success response conforms to ApiResponseRolePermissionsList schema\", function () {",
+                              "        pm.expect(json_data).to.have.property(\"data\");",
+                              "        pm.expect(json_data.data).to.be.an(\"array\");",
+                              "    });",
+                              "} else {",
+                              "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                              "        pm.expect(json_data.is_error).to.be.true;",
+                              "        pm.expect(json_data.code).to.be.a(\"string\");",
+                              "        pm.expect(json_data.message).to.be.a(\"string\");",
+                              "    });",
+                              "}"
+                            ]
+                          }
+                        }
+                      ]
                     }
                   ]
                 }
@@ -879,7 +1188,44 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 200 OK or client error (401/403)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test(\"Success response conforms to ApiResponsePermissionList schema\", function () {",
+                      "        pm.expect(json_data).to.have.property(\"data\");",
+                      "        pm.expect(json_data.data).to.be.an(\"array\");",
+                      "    });",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Create a system permission",
@@ -908,7 +1254,51 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 201 Created or client error (400/401/403/409)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 403, 409]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 201) {",
+                      "    pm.test(\"Success response conforms to ApiResponsePermissionSingle schema\", function () {",
+                      "        pm.expect(json_data).to.have.property(\"data\");",
+                      "        pm.expect(json_data.data).to.be.an(\"object\");",
+                      "        pm.expect(json_data.data).to.have.property(\"id\");",
+                      "        pm.expect(json_data.data).to.have.property(\"key\");",
+                      "        pm.expect(json_data.data).to.have.property(\"value\");",
+                      "    });",
+                      "",
+                      "    if (json_data.data && json_data.data.id) {",
+                      "        pm.environment.set(\"permission_id\", json_data.data.id);",
+                      "    }",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "{id}",
@@ -936,7 +1326,47 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (401/403/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response conforms to ApiResponsePermissionSingle schema\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"data\");",
+                          "        pm.expect(json_data.data).to.be.an(\"object\");",
+                          "        pm.expect(json_data.data).to.have.property(\"id\");",
+                          "        pm.expect(json_data.data).to.have.property(\"key\");",
+                          "        pm.expect(json_data.data).to.have.property(\"value\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 },
                 {
                   "name": "Update system permission",
@@ -965,7 +1395,47 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (400/401/403/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 403, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response conforms to ApiResponsePermissionSingle schema\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"data\");",
+                          "        pm.expect(json_data.data).to.be.an(\"object\");",
+                          "        pm.expect(json_data.data).to.have.property(\"id\");",
+                          "        pm.expect(json_data.data).to.have.property(\"key\");",
+                          "        pm.expect(json_data.data).to.have.property(\"value\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 },
                 {
                   "name": "Delete system permission",
@@ -989,7 +1459,44 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (401/403/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response contains message\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"message\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -1030,7 +1537,44 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 201 Created or client error (400/401/403/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 403, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 201) {",
+                          "    pm.test(\"Success response conforms to ApiResponseUserRolesList schema\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"data\");",
+                          "        pm.expect(json_data.data).to.be.an(\"array\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 }
               ]
             },
@@ -1065,7 +1609,44 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (400/401/403/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 403, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response contains message\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"message\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 }
               ]
             },
@@ -1099,7 +1680,44 @@
                             }
                           }
                         }
-                      }
+                      },
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                              "pm.test(\"Response status code is 200 OK or client error (401/403/404)\", function () {",
+                              "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+                              "});",
+                              "",
+                              "pm.test(\"Response Content-Type is application/json\", function () {",
+                              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                              "});",
+                              "",
+                              "let json_data;",
+                              "try {",
+                              "    json_data = pm.response.json();",
+                              "} catch (e) {",
+                              "    pm.expect.fail(\"Response body is not valid JSON\");",
+                              "}",
+                              "",
+                              "if (pm.response.code === 200) {",
+                              "    pm.test(\"Success response conforms to ApiResponseUserRolesList schema\", function () {",
+                              "        pm.expect(json_data).to.have.property(\"data\");",
+                              "        pm.expect(json_data.data).to.be.an(\"array\");",
+                              "    });",
+                              "} else {",
+                              "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                              "        pm.expect(json_data.is_error).to.be.true;",
+                              "        pm.expect(json_data.code).to.be.a(\"string\");",
+                              "        pm.expect(json_data.message).to.be.a(\"string\");",
+                              "    });",
+                              "}"
+                            ]
+                          }
+                        }
+                      ]
                     }
                   ]
                 }
@@ -1146,7 +1764,43 @@
                             }
                           }
                         }
-                      }
+                      },
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                              "pm.test(\"Response status code is 201 Created or client error (400/401/403/404)\", function () {",
+                              "    pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 403, 404]);",
+                              "});",
+                              "",
+                              "pm.test(\"Response Content-Type is application/json\", function () {",
+                              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                              "});",
+                              "",
+                              "let json_data;",
+                              "try {",
+                              "    json_data = pm.response.json();",
+                              "} catch (e) {",
+                              "    pm.expect.fail(\"Response body is not valid JSON\");",
+                              "}",
+                              "",
+                              "if (pm.response.code === 201) {",
+                              "    pm.test(\"Success response contains object payload\", function () {",
+                              "        pm.expect(json_data).to.be.an(\"object\");",
+                              "    });",
+                              "} else {",
+                              "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                              "        pm.expect(json_data.is_error).to.be.true;",
+                              "        pm.expect(json_data.code).to.be.a(\"string\");",
+                              "        pm.expect(json_data.message).to.be.a(\"string\");",
+                              "    });",
+                              "}"
+                            ]
+                          }
+                        }
+                      ]
                     }
                   ]
                 },
@@ -1181,7 +1835,44 @@
                             }
                           }
                         }
-                      }
+                      },
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                              "pm.test(\"Response status code is 200 OK or client error (400/401/403/404)\", function () {",
+                              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 403, 404]);",
+                              "});",
+                              "",
+                              "pm.test(\"Response Content-Type is application/json\", function () {",
+                              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                              "});",
+                              "",
+                              "let json_data;",
+                              "try {",
+                              "    json_data = pm.response.json();",
+                              "} catch (e) {",
+                              "    pm.expect.fail(\"Response body is not valid JSON\");",
+                              "}",
+                              "",
+                              "if (pm.response.code === 200) {",
+                              "    pm.test(\"Success response contains message\", function () {",
+                              "        pm.expect(json_data).to.have.property(\"message\");",
+                              "        pm.expect(json_data.message).to.be.a(\"string\");",
+                              "    });",
+                              "} else {",
+                              "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                              "        pm.expect(json_data.is_error).to.be.true;",
+                              "        pm.expect(json_data.code).to.be.a(\"string\");",
+                              "        pm.expect(json_data.message).to.be.a(\"string\");",
+                              "    });",
+                              "}"
+                            ]
+                          }
+                        }
+                      ]
                     }
                   ]
                 }
@@ -1217,7 +1908,43 @@
                             }
                           }
                         }
-                      }
+                      },
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                              "pm.test(\"Response status code is 200 OK or client error (401/403/404)\", function () {",
+                              "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+                              "});",
+                              "",
+                              "pm.test(\"Response Content-Type is application/json\", function () {",
+                              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                              "});",
+                              "",
+                              "let json_data;",
+                              "try {",
+                              "    json_data = pm.response.json();",
+                              "} catch (e) {",
+                              "    pm.expect.fail(\"Response body is not valid JSON\");",
+                              "}",
+                              "",
+                              "if (pm.response.code === 200) {",
+                              "    pm.test(\"Success response contains data property\", function () {",
+                              "        pm.expect(json_data).to.have.property(\"data\");",
+                              "    });",
+                              "} else {",
+                              "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                              "        pm.expect(json_data.is_error).to.be.true;",
+                              "        pm.expect(json_data.code).to.be.a(\"string\");",
+                              "        pm.expect(json_data.message).to.be.a(\"string\");",
+                              "    });",
+                              "}"
+                            ]
+                          }
+                        }
+                      ]
                     }
                   ]
                 }
@@ -1253,7 +1980,50 @@
                 }
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Response status code is 200 OK or client error (401/403)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                  "});",
+                  "",
+                  "pm.test(\"Response Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "let json_data;",
+                  "try {",
+                  "    json_data = pm.response.json();",
+                  "} catch (e) {",
+                  "    pm.expect.fail(\"Response body is not valid JSON\");",
+                  "}",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Success response conforms to ApiResponsePaginatedUsers schema\", function () {",
+                  "        pm.expect(json_data).to.have.property(\"data\");",
+                  "        pm.expect(json_data.data).to.be.an(\"object\");",
+                  "        pm.expect(json_data.data).to.have.property(\"page\");",
+                  "        pm.expect(json_data.data).to.have.property(\"per_page\");",
+                  "        pm.expect(json_data.data).to.have.property(\"total\");",
+                  "        pm.expect(json_data.data).to.have.property(\"total_pages\");",
+                  "        pm.expect(json_data.data).to.have.property(\"data\");",
+                  "        pm.expect(json_data.data.data).to.be.an(\"array\");",
+                  "    });",
+                  "} else {",
+                  "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                  "        pm.expect(json_data.is_error).to.be.true;",
+                  "        pm.expect(json_data.code).to.be.a(\"string\");",
+                  "        pm.expect(json_data.message).to.be.a(\"string\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Create a new platform user",
@@ -1282,7 +2052,51 @@
                 }
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Response status code is 201 Created or client error (400/401/403/409)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 403, 409]);",
+                  "});",
+                  "",
+                  "pm.test(\"Response Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "let json_data;",
+                  "try {",
+                  "    json_data = pm.response.json();",
+                  "} catch (e) {",
+                  "    pm.expect.fail(\"Response body is not valid JSON\");",
+                  "}",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    pm.test(\"Success response conforms to ApiResponseUserSingle schema\", function () {",
+                  "        pm.expect(json_data).to.have.property(\"data\");",
+                  "        pm.expect(json_data.data).to.be.an(\"object\");",
+                  "        pm.expect(json_data.data).to.have.property(\"id\");",
+                  "        pm.expect(json_data.data).to.have.property(\"name\");",
+                  "        pm.expect(json_data.data).to.have.property(\"email\");",
+                  "    });",
+                  "",
+                  "    if (json_data.data && json_data.data.id) {",
+                  "        pm.environment.set(\"user_id\", json_data.data.id);",
+                  "    }",
+                  "} else {",
+                  "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                  "        pm.expect(json_data.is_error).to.be.true;",
+                  "        pm.expect(json_data.code).to.be.a(\"string\");",
+                  "        pm.expect(json_data.message).to.be.a(\"string\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "{id}",
@@ -1310,7 +2124,47 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 200 OK or client error (401/404)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test(\"Success response conforms to ApiResponseUserSingle schema\", function () {",
+                      "        pm.expect(json_data).to.have.property(\"data\");",
+                      "        pm.expect(json_data.data).to.be.an(\"object\");",
+                      "        pm.expect(json_data.data).to.have.property(\"id\");",
+                      "        pm.expect(json_data.data).to.have.property(\"name\");",
+                      "        pm.expect(json_data.data).to.have.property(\"email\");",
+                      "    });",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Update user account",
@@ -1339,7 +2193,47 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 200 OK or client error (400/401/404)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test(\"Success response conforms to ApiResponseUserSingle schema\", function () {",
+                      "        pm.expect(json_data).to.have.property(\"data\");",
+                      "        pm.expect(json_data.data).to.be.an(\"object\");",
+                      "        pm.expect(json_data.data).to.have.property(\"id\");",
+                      "        pm.expect(json_data.data).to.have.property(\"name\");",
+                      "        pm.expect(json_data.data).to.have.property(\"email\");",
+                      "    });",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Delete user account",
@@ -1363,7 +2257,44 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 200 OK or client error (401/404)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test(\"Success response contains message\", function () {",
+                      "        pm.expect(json_data).to.have.property(\"message\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "profile",
@@ -1391,7 +2322,48 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (401/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response conforms to ApiResponseProfileSingle schema\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"data\");",
+                          "        pm.expect(json_data.data).to.be.an(\"object\");",
+                          "        pm.expect(json_data.data).to.have.property(\"id\");",
+                          "        pm.expect(json_data.data).to.have.property(\"user_id\");",
+                          "        pm.expect(json_data.data).to.have.property(\"created_at\");",
+                          "        pm.expect(json_data.data).to.have.property(\"updated_at\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 },
                 {
                   "name": "Update user profile",
@@ -1420,7 +2392,48 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (400/401/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response conforms to ApiResponseProfileSingle schema\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"data\");",
+                          "        pm.expect(json_data.data).to.be.an(\"object\");",
+                          "        pm.expect(json_data.data).to.have.property(\"id\");",
+                          "        pm.expect(json_data.data).to.have.property(\"user_id\");",
+                          "        pm.expect(json_data.data).to.have.property(\"created_at\");",
+                          "        pm.expect(json_data.data).to.have.property(\"updated_at\");",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 }
               ]
             }
@@ -1454,7 +2467,44 @@
                 }
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Response status code is 200 OK or client error (401)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "",
+                  "pm.test(\"Response Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "let json_data;",
+                  "try {",
+                  "    json_data = pm.response.json();",
+                  "} catch (e) {",
+                  "    pm.expect.fail(\"Response body is not valid JSON\");",
+                  "}",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Success response conforms to NotificationListResponse schema\", function () {",
+                  "        pm.expect(json_data).to.have.property(\"data\");",
+                  "        pm.expect(json_data.data).to.be.an(\"array\");",
+                  "    });",
+                  "} else {",
+                  "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                  "        pm.expect(json_data.is_error).to.be.true;",
+                  "        pm.expect(json_data.code).to.be.a(\"string\");",
+                  "        pm.expect(json_data.message).to.be.a(\"string\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "unread-count",
@@ -1482,7 +2532,44 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 200 OK or client error (401)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test(\"Success response contains unread_count property\", function () {",
+                      "        const count = json_data.unread_count !== undefined ? json_data.unread_count : (json_data.data ? json_data.data.unread_count : undefined);",
+                      "        pm.expect(count).to.be.a(\"number\");",
+                      "    });",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1516,7 +2603,46 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                          "pm.test(\"Response status code is 200 OK or client error (401/404)\", function () {",
+                          "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                          "});",
+                          "",
+                          "pm.test(\"Response Content-Type is application/json\", function () {",
+                          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                          "});",
+                          "",
+                          "let json_data;",
+                          "try {",
+                          "    json_data = pm.response.json();",
+                          "} catch (e) {",
+                          "    pm.expect.fail(\"Response body is not valid JSON\");",
+                          "}",
+                          "",
+                          "if (pm.response.code === 200) {",
+                          "    pm.test(\"Success response conforms to mark notification read schema\", function () {",
+                          "        pm.expect(json_data).to.have.property(\"message\");",
+                          "        if (json_data.data) {",
+                          "            pm.expect(json_data.data).to.have.property(\"id\");",
+                          "        }",
+                          "    });",
+                          "} else {",
+                          "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                          "        pm.expect(json_data.is_error).to.be.true;",
+                          "        pm.expect(json_data.code).to.be.a(\"string\");",
+                          "        pm.expect(json_data.message).to.be.a(\"string\");",
+                          "    });",
+                          "}"
+                        ]
+                      }
+                    }
+                  ]
                 }
               ]
             },
@@ -1542,7 +2668,44 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 200 OK or client error (401/404)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test(\"Success response contains message\", function () {",
+                      "        pm.expect(json_data).to.have.property(\"message\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1572,7 +2735,44 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 200 OK or client error (401)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                      "});",
+                      "",
+                      "pm.test(\"Response Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "let json_data;",
+                      "try {",
+                      "    json_data = pm.response.json();",
+                      "} catch (e) {",
+                      "    pm.expect.fail(\"Response body is not valid JSON\");",
+                      "}",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test(\"Success response contains message\", function () {",
+                      "        pm.expect(json_data).to.have.property(\"message\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "} else {",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1602,7 +2802,38 @@
                     }
                   }
                 }
-              }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Response status code is 200 OK or client error (401)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test(\"Response Content-Type is text/event-stream\", function () {",
+                      "        pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/event-stream\");",
+                      "    });",
+                      "} else {",
+                      "    let json_data;",
+                      "    try {",
+                      "        json_data = pm.response.json();",
+                      "    } catch (e) {",
+                      "        pm.expect.fail(\"Response body is not valid JSON\");",
+                      "    }",
+                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                      "        pm.expect(json_data.is_error).to.be.true;",
+                      "        pm.expect(json_data.code).to.be.a(\"string\");",
+                      "        pm.expect(json_data.message).to.be.a(\"string\");",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         }
@@ -5318,7 +6549,43 @@
                 }
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Response status code is 200 OK or client error (401/403)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                  "});",
+                  "",
+                  "pm.test(\"Response Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "let json_data;",
+                  "try {",
+                  "    json_data = pm.response.json();",
+                  "} catch (e) {",
+                  "    pm.expect.fail(\"Response body is not valid JSON\");",
+                  "}",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Success response contains dashboard data structure\", function () {",
+                  "        pm.expect(json_data).to.be.an(\"object\");",
+                  "    });",
+                  "} else {",
+                  "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
+                  "        pm.expect(json_data.is_error).to.be.true;",
+                  "        pm.expect(json_data.code).to.be.a(\"string\");",
+                  "        pm.expect(json_data.message).to.be.a(\"string\");",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

@@ -1,0 +1,27 @@
+FROM rust:1-slim-bookworm
+
+WORKDIR /app
+
+# Install native dependencies required for compiling git2, openssl, and build scripts
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    git \
+    curl \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install cargo-watch for hot-reloading development
+RUN cargo install cargo-watch --locked
+
+# Environment defaults for developer iteration
+ENV RUST_LOG=debug
+ENV RUST_BACKTRACE=1
+ENV SERVER_PORT=9000
+ENV SERVER_HOST=0.0.0.0
+
+EXPOSE 9000
+
+# Default command runs cargo-watch over src/ and restart the application
+CMD ["cargo", "watch", "-c", "-w", "src", "-d", "0.2", "-x", "run"]

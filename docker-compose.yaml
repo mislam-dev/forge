@@ -1,6 +1,7 @@
-version: "3.9"
-
 services:
+  # ==========================================
+  # Infrastructure Services
+  # ==========================================
   postgres:
     image: postgres:16-alpine
     container_name: postgres
@@ -69,6 +70,11 @@ services:
     volumes:
       - ./docker/loki/config.yaml:/etc/loki/config.yaml
       - loki_data:/loki
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --tries=1 -O- http://localhost:3100/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - backend
 
@@ -90,6 +96,151 @@ services:
     networks:
       - backend
 
+  # ==========================================
+  # Application Services (Profiles: dev, prod, test)
+  # ==========================================
+
+  # Development service: hot-reloading with cargo-watch, volume-mounted code & caches
+  forge-dev:
+    profiles: ["dev"]
+    image: forge:dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: forge-dev
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/app_db
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_VHOST: /
+      LOKI_URL: http://loki:3100
+      JWT_SECRET: dev-only-change-me-in-production
+      JWT_EXPIRY_SECONDS: 3600
+      REFRESH_TOKEN_EXPIRY_DAYS: 7
+      MASTER_ENCRYPTION_KEY: dev-only-32-byte-placeholder-key
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 9000
+      RUST_LOG: debug
+      RUST_BACKTRACE: 1
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/app
+      - cargo_registry:/usr/local/cargo/registry
+      - cargo_target_dev:/app/target
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # Production service: minimal multi-stage image, stripped binary, non-root user
+  forge-api:
+    profiles: ["prod"]
+    image: forge:prod
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.prod
+    container_name: forge-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/app_db
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_VHOST: /
+      LOKI_URL: http://loki:3100
+      JWT_SECRET: dev-only-change-me-in-production
+      JWT_EXPIRY_SECONDS: 3600
+      REFRESH_TOKEN_EXPIRY_DAYS: 7
+      MASTER_ENCRYPTION_KEY: dev-only-32-byte-placeholder-key
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 9000
+      RUST_LOG: info
+    ports:
+      - "9000:9000"
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # Testing service: Rust + Node.js + Newman with automated ulimits (nofile: 65535)
+  forge-test:
+    profiles: ["test"]
+    image: forge:test
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.test
+    container_name: forge-test
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/app_db
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_VHOST: /
+      LOKI_URL: http://loki:3100
+      JWT_SECRET: dev-only-change-me-in-production
+      JWT_EXPIRY_SECONDS: 3600
+      REFRESH_TOKEN_EXPIRY_DAYS: 7
+      MASTER_ENCRYPTION_KEY: dev-only-32-byte-placeholder-key
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 9000
+      RUST_LOG: info
+      RUST_BACKTRACE: 1
+      CI: "true"
+    volumes:
+      - .:/app
+      - cargo_registry:/usr/local/cargo/registry
+      - cargo_target_test:/app/target
+      - ./reports:/app/reports
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+    networks:
+      - backend
+
 networks:
   backend:
     driver: bridge
@@ -100,3 +251,6 @@ volumes:
   rabbitmq_data:
   loki_data:
   grafana_data:
+  cargo_registry:
+  cargo_target_dev:
+  cargo_target_test:
