@@ -1,0 +1,17 @@
+{
+  "name": "forge-platform-api-automation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Headless API automation, multi-role RBAC matrix testing, and Postman reporting for Forge Platform",
+  "scripts": {
+    "bundle": "node scripts/bundle-collection.js",
+    "test:api": "node scripts/bundle-collection.js && newman run postman/forge-platform-api.collection.json -e environment.json",
+    "test:matrix": "node scripts/bundle-collection.js && node scripts/run-role-matrix.js",
+    "test:report": "node scripts/bundle-collection.js && newman run postman/forge-platform-api.collection.json -e environment.json -r cli,htmlextra --reporter-htmlextra-export reports/postman/index.html"
+  },
+  "devDependencies": {
+    "newman": "^6.2.1",
+    "newman-reporter-htmlextra": "^1.23.1",
+    "yaml": "^2.7.0"
+  }
+}

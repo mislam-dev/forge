@@ -1,0 +1,10 @@
+id: 5a9b7c8d-1e2f-4a3b-9c8d-7e6f5a4b3c2d
+name: Forge Platform API Mock Server
+collection: Forge Platform API
+environment: Local Development
+spec: Forge Platform API
+description: Postman mock server for Forge Platform API endpoints backed by OpenAPI specification and collection response examples.
+config:
+  delay: 0
+  matchBody: false
+  private: false

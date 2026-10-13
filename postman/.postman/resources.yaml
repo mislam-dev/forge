@@ -14,6 +14,8 @@ localResources:
     - ../postman/environments/Viewer - Without Organization.environment.yaml
     - ../postman/environments/Development.environment.yaml
     - ../postman/environments/Production.environment.yaml
+  mocks:
+    - ../postman/mocks/Forge Platform API.mock.yaml
 resourceNameMappings:
   specs:
     - ../postman/specs/Forge Platform API/openapi.yaml: Forge Platform API
@@ -27,3 +29,6 @@ resourceNameMappings:
     - ../postman/environments/Viewer - Without Organization.environment.yaml: Viewer - Without Organization
     - ../postman/environments/Development.environment.yaml: Development
     - ../postman/environments/Production.environment.yaml: Production
+  mocks:
+    - ../postman/mocks/Forge Platform API.mock.yaml: Forge Platform API Mock Server
+

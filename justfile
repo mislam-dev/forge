@@ -25,6 +25,56 @@ ci:
     cargo check
     cargo clippy --all-targets --all-features -- -D warnings
     cargo test
+
+# ================================
+# API Testing & Postman Automation
+# ================================
+
+# Bundle Postman v12 Local Workspace collection into Collection v2.1 JSON
+bundle-collection:
+    node scripts/bundle-collection.js
+
+# Run API tests headlessly with Newman against local environment
+test-api: bundle-collection
+    npx newman run postman/forge-platform-api.collection.json -e environment.json
+
+# Run API tests headlessly with Newman against a specific environment (e.g., just test-api-env admin-with-org)
+test-api-env env: bundle-collection
+    npx newman run postman/forge-platform-api.collection.json -e "postman/environments/{{env}}.environment.json"
+
+# Run multi-role RBAC matrix tests across all 6 role & tenancy environments
+test-api-matrix: bundle-collection
+    node scripts/run-role-matrix.js
+
+# Generate visual interactive HTML test reports with newman-reporter-htmlextra
+test-api-report: bundle-collection
+    @mkdir -p reports/postman
+    npx newman run postman/forge-platform-api.collection.json -e environment.json -r cli,htmlextra --reporter-htmlextra-export reports/postman/index.html --reporter-htmlextra-title "Forge Platform API Test Report"
+
+# ================================
+# Load Testing (k6 Multi-Tier)
+# ================================
+
+# Run load test smoke check (10 VUs for 10s)
+load-test-smoke:
+    k6 run tests/load/scenarios/health.js
+
+# Run Tier 1 load test: 1,000 Concurrent Virtual Users
+load-test-1k:
+    k6 run tests/load/tiers/tier_1k.js
+
+# Run Tier 2 load test: 10,000 Concurrent Virtual Users (SRS NFR-001)
+load-test-10k:
+    k6 run tests/load/tiers/tier_10k.js
+
+# Run Tier 3 load test: 100,000 Concurrent Virtual Users (Stress & Degradation)
+load-test-100k:
+    k6 run --no-connection-reuse=false tests/load/tiers/tier_100k.js
+
+# Run load test in Docker container (e.g. just load-test-docker tests/load/tiers/tier_1k.js)
+load-test-docker script="tests/load/tiers/tier_1k.js":
+    docker run --rm -i --network=host -v "$PWD:/work" -w /work grafana/k6:latest run {{ script }}
+
 # ================================
 # SeaORM
 # ================================
