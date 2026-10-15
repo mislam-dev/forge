@@ -145,3 +145,4 @@ This serves simulated API endpoints on `http://localhost:9000/api/v1` matching a
 
 - **Postman v12 Desktop**: Open the `Forge Platform API` collection and click **View Documentation** in the right-hand panel to view interactive Markdown descriptions, parameters, and example responses.
 - **OpenAPI Preview**: The complete OpenAPI 3.0 specification is maintained at `postman/postman/specs/Forge Platform API/openapi.yaml` and can be rendered using Redoc or Swagger UI.
+

@@ -152,7 +152,7 @@ docker-infra-up:
 
 # Start hot-reloading development container with dependencies
 docker-dev:
-    docker compose --profile dev up --build
+    docker compose --profile dev up --build -d 
 
 # Run cargo test in Docker with automated limits (nofile: 65535)
 docker-test:
