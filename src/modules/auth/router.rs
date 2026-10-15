@@ -1,6 +1,7 @@
 use crate::app::state::AppState;
 use crate::modules::auth::handlers::{
     forgot_password, login, logout, me, refresh, register, reset_password, verify_email,
+    verify_email_get,
 };
 use axum::{
     Router,
@@ -16,7 +17,7 @@ pub fn auth_router() -> Router<AppState> {
         .route("/me", get(me))
         .route("/forgot-password", post(forgot_password))
         .route("/reset-password", post(reset_password))
-        .route("/verify-email", post(verify_email))
+        .route("/verify-email", post(verify_email).get(verify_email_get))
 }
 
 #[cfg(test)]

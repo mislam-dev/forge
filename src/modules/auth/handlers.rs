@@ -1,16 +1,21 @@
 use crate::app::state::AppState;
 use crate::modules::auth::dto::request::{
     ForgotPasswordDto, LoginUserDto, RefreshTokenDto, RegisterUserDto, ResetPasswordDto,
-    VerifyEmailDto,
+    VerifyEmailDto, VerifyEmailQueryDto,
 };
 use crate::modules::auth::dto::response::{
     LoginResponseDto, MeResponseDto, RefreshTokenResponseDto, RegisterResponseDto,
 };
 use crate::modules::auth::service::AuthService;
 use crate::modules::auth::token::AccessTokenClaims;
-use crate::shared::{error::AppError, response::ApiResponse, validation::JsonValidate};
-use axum::extract::State;
+use crate::shared::{
+    error::{codes, AppError},
+    response::ApiResponse,
+    validation::JsonValidate,
+};
+use axum::extract::{Query, State};
 use axum::http::StatusCode;
+use validator::Validate;
 
 pub async fn register(
     State(state): State<AppState>,
@@ -92,6 +97,19 @@ pub async fn verify_email(
     JsonValidate(payload): JsonValidate<VerifyEmailDto>,
 ) -> Result<ApiResponse<()>, AppError> {
     AuthService::verify_email(&state.db, payload).await?;
+    Ok(ApiResponse::new()
+        .status(StatusCode::OK)
+        .message("Email verified successfully".to_string()))
+}
+
+pub async fn verify_email_get(
+    State(state): State<AppState>,
+    Query(query): Query<VerifyEmailQueryDto>,
+) -> Result<ApiResponse<()>, AppError> {
+    query
+        .validate()
+        .map_err(|err| AppError::validation(codes::system::VALIDATION_ERROR, err))?;
+    AuthService::verify_email(&state.db, query).await?;
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
         .message("Email verified successfully".to_string()))
@@ -219,4 +237,15 @@ mod tests {
         let result = verify_email(State(state), JsonValidate(payload)).await;
         assert!(result.is_err());
     }
+
+    #[tokio::test]
+    async fn test_verify_email_get_handler() {
+        let state = setup_mock_state();
+        let query = VerifyEmailQueryDto {
+            token: "invalid_verify_token".to_string(),
+        };
+        let result = verify_email_get(State(state), Query(query)).await;
+        assert!(result.is_err());
+    }
 }
+

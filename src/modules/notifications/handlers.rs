@@ -1,7 +1,12 @@
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
+    response::sse::{Event, KeepAlive, Sse},
 };
+use std::convert::Infallible;
+use std::time::Duration;
+use tokio_stream::Stream;
+use tokio_stream::wrappers::ReceiverStream;
 use uuid::Uuid;
 
 use super::dto::{
@@ -79,6 +84,21 @@ pub async fn create_notification_internal(
         .status(StatusCode::CREATED)
         .message("Notification created successfully.".to_string())
         .body(Some(notification)))
+}
+
+// TODO: Implement real-time SSE notification stream using event bus / pub-sub
+pub async fn notification_stream(
+    _claims: AccessTokenClaims,
+) -> Result<Sse<impl Stream<Item = Result<Event, Infallible>>>, AppError> {
+    let (tx, rx) = tokio::sync::mpsc::channel::<Result<Event, Infallible>>(10);
+
+    let initial_event = Event::default()
+        .event("connected")
+        .data(r#"{"status":"connected","message":"Notification stream established"}"#);
+    let _ = tx.send(Ok(initial_event)).await;
+
+    let stream = ReceiverStream::new(rx);
+    Ok(Sse::new(stream).keep_alive(KeepAlive::new().interval(Duration::from_secs(15))))
 }
 
 #[cfg(test)]

@@ -16,7 +16,7 @@ use crate::modules::projects::extractors::{
 use crate::shared::error::AppError;
 use crate::shared::pagination::PaginatedResponse;
 use crate::shared::response::ApiResponse;
-use crate::shared::validation::JsonValidate;
+use crate::shared::validation::{JsonValidate, PathValidate};
 
 pub async fn trigger_deployment(
     State(state): State<AppState>,
@@ -106,7 +106,7 @@ pub async fn rollback(
 pub async fn update_status_internal(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Path(deployment_id): Path<Uuid>,
+    PathValidate(deployment_id): PathValidate<Uuid>,
     JsonValidate(payload): JsonValidate<UpdateDeploymentStatusRequest>,
 ) -> Result<ApiResponse<DeploymentResponse>, AppError> {
     let service_token = headers

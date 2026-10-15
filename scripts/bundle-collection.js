@@ -15,9 +15,32 @@ const crypto = require('crypto');
 const ROOT_COLLECTION_DIR = path.resolve(__dirname, '../postman/postman/collections/Forge Platform API');
 const OUTPUT_FILE = path.resolve(__dirname, '../postman/forge-platform-api.collection.json');
 
-function parseUrl(rawUrl) {
-  return rawUrl || '';
+function parseUrl(rawUrl, pathVariables) {
+  if (!rawUrl) return '';
+  if (!pathVariables || !Array.isArray(pathVariables) || pathVariables.length === 0) {
+    return rawUrl;
+  }
+
+  const variables = pathVariables.map(pv => ({
+    key: pv.key,
+    value: String(pv.value ?? ''),
+    description: pv.description || ''
+  }));
+
+  const urlObj = {
+    raw: rawUrl,
+    variable: variables
+  };
+
+  if (rawUrl.startsWith('{{baseUrl}}')) {
+    urlObj.host = ['{{baseUrl}}'];
+    const pathPart = rawUrl.replace(/^\{\{baseUrl\}\}/, '').split('?')[0];
+    urlObj.path = pathPart.split('/').filter(p => p.length > 0);
+  }
+
+  return urlObj;
 }
+
 
 
 function processRequestFile(filePath) {
@@ -104,7 +127,7 @@ function processRequestFile(filePath) {
     request: {
       method: (data.method || 'GET').toUpperCase(),
       header: headerList,
-      url: parseUrl(data.url),
+      url: parseUrl(data.url, data.pathVariables),
       description: data.description || ''
     }
   };

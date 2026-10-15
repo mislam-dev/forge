@@ -1111,25 +1111,6 @@ paths:
                 message: "All notifications marked as read."
                 updated_count: 5
 
-  /notifications/{id}:
-    delete:
-      operationId: notifications_id_delete
-      tags:
-        - Notifications
-      deprecated: true
-      summary: "Dismiss (soft-delete) a notification (Deprecated)"
-      description: "Soft-deletes a notification record. Note: This endpoint is deprecated and marked for future removal — prefer soft state transitions over deletion."
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-      responses:
-        '200':
-          description: "Notification dismissed"
-          content:
-            application/json:
-              example:
-                message: "Notification dismissed."
 
   /notifications/stream:
     get:

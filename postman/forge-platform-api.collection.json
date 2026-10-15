@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "ed345874-a79d-4dd0-844a-3d1bff7a6a21",
+    "_postman_id": "de96e039-86f2-4a0c-93eb-cab610167090",
     "name": "Forge Platform API",
     "description": "Complete OpenAPI 3.0 specification for the Forge Developer Deployment & Project Management Platform.\n\nContact Support:\n Name: Forge Engineering Team\n Email: support@forge.dev",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -758,7 +758,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/access-control/roles/:id",
+                    "url": {
+                      "raw": "{{baseUrl}}/access-control/roles/:id",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "access-control",
+                        "roles",
+                        ":id"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -827,7 +844,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/access-control/roles/:id",
+                    "url": {
+                      "raw": "{{baseUrl}}/access-control/roles/:id",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "access-control",
+                        "roles",
+                        ":id"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -891,7 +925,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/access-control/roles/:id",
+                    "url": {
+                      "raw": "{{baseUrl}}/access-control/roles/:id",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "access-control",
+                        "roles",
+                        ":id"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -1106,7 +1157,25 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/access-control/roles/permissions/:id?page=1&per_page=10",
+                        "url": {
+                          "raw": "{{baseUrl}}/access-control/roles/permissions/:id?page=1&per_page=10",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "access-control",
+                            "roles",
+                            "permissions",
+                            ":id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -1315,7 +1384,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/access-control/permissions/:id",
+                    "url": {
+                      "raw": "{{baseUrl}}/access-control/permissions/:id",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "access-control",
+                        "permissions",
+                        ":id"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -1384,7 +1470,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/access-control/permissions/:id",
+                    "url": {
+                      "raw": "{{baseUrl}}/access-control/permissions/:id",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "access-control",
+                        "permissions",
+                        ":id"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -1448,7 +1551,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/access-control/permissions/:id",
+                    "url": {
+                      "raw": "{{baseUrl}}/access-control/permissions/:id",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "access-control",
+                        "permissions",
+                        ":id"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -1669,7 +1789,25 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/access-control/role/user/:id",
+                        "url": {
+                          "raw": "{{baseUrl}}/access-control/role/user/:id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "access-control",
+                            "role",
+                            "user",
+                            ":id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -1897,7 +2035,25 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/access-control/users/permissions/:id",
+                        "url": {
+                          "raw": "{{baseUrl}}/access-control/users/permissions/:id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "access-control",
+                            "users",
+                            "permissions",
+                            ":id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -2113,7 +2269,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/users/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/users/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -2182,7 +2354,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/users/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/users/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -2246,7 +2434,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/users/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/users/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -2311,7 +2515,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/users/:id/profile",
+                    "url": {
+                      "raw": "{{baseUrl}}/users/:id/profile",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "users",
+                        ":id",
+                        "profile"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -2381,7 +2602,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/users/:id/profile",
+                    "url": {
+                      "raw": "{{baseUrl}}/users/:id/profile",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "users",
+                        ":id",
+                        "profile"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -2592,7 +2830,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/notifications/:id/read",
+                    "url": {
+                      "raw": "{{baseUrl}}/notifications/:id/read",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "notifications",
+                        ":id",
+                        "read"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -2643,67 +2898,6 @@
                       }
                     }
                   ]
-                }
-              ]
-            },
-            {
-              "name": "Dismiss (soft-delete) a notification (Deprecated)",
-              "request": {
-                "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "disabled": false
-                  }
-                ],
-                "url": "{{baseUrl}}/notifications/:id",
-                "description": "Soft-deletes a notification record. Note: This endpoint is deprecated and marked for future removal — prefer soft state transitions over deletion.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "",
-                  "options": {
-                    "raw": {
-                      "language": "text"
-                    }
-                  }
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"Response status code is 200 OK or client error (401/404)\", function () {",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
-                      "});",
-                      "",
-                      "pm.test(\"Response Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "let json_data;",
-                      "try {",
-                      "    json_data = pm.response.json();",
-                      "} catch (e) {",
-                      "    pm.expect.fail(\"Response body is not valid JSON\");",
-                      "}",
-                      "",
-                      "if (pm.response.code === 200) {",
-                      "    pm.test(\"Success response contains message\", function () {",
-                      "        pm.expect(json_data).to.have.property(\"message\");",
-                      "        pm.expect(json_data.message).to.be.a(\"string\");",
-                      "    });",
-                      "} else {",
-                      "    pm.test(\"Error response conforms to ErrorResponse schema\", function () {",
-                      "        pm.expect(json_data.is_error).to.be.true;",
-                      "        pm.expect(json_data.code).to.be.a(\"string\");",
-                      "        pm.expect(json_data.message).to.be.a(\"string\");",
-                      "    });",
-                      "}"
-                    ]
-                  }
                 }
               ]
             }
@@ -3004,7 +3198,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/organizations/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/organizations/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "organizations",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -3073,7 +3283,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/organizations/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/organizations/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "organizations",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -3137,7 +3363,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/organizations/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/organizations/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "organizations",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -3212,7 +3454,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/organizations/:id/invitations",
+                    "url": {
+                      "raw": "{{baseUrl}}/organizations/:id/invitations",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "organizations",
+                        ":id",
+                        "invitations"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -3280,7 +3539,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/organizations/:id/invitations",
+                    "url": {
+                      "raw": "{{baseUrl}}/organizations/:id/invitations",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "organizations",
+                        ":id",
+                        "invitations"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -3358,7 +3634,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/organizations/:id/members",
+                    "url": {
+                      "raw": "{{baseUrl}}/organizations/:id/members",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "organizations",
+                        ":id",
+                        "members"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -3439,7 +3732,30 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/organizations/:id/members/:user_id",
+                        "url": {
+                          "raw": "{{baseUrl}}/organizations/:id/members/:user_id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            },
+                            {
+                              "key": "user_id",
+                              "value": "1a11e467-74ee-e84f-4cb0-e1363101656f",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "organizations",
+                            ":id",
+                            "members",
+                            ":user_id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -3507,7 +3823,30 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/organizations/:id/members/:user_id",
+                        "url": {
+                          "raw": "{{baseUrl}}/organizations/:id/members/:user_id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            },
+                            {
+                              "key": "user_id",
+                              "value": "1a11e467-74ee-e84f-4cb0-e1363101656f",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "organizations",
+                            ":id",
+                            "members",
+                            ":user_id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -3586,7 +3925,25 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/organizations/invitations/:token/accept",
+                        "url": {
+                          "raw": "{{baseUrl}}/organizations/invitations/:token/accept",
+                          "variable": [
+                            {
+                              "key": "token",
+                              "value": "inv_tok_12345678",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "organizations",
+                            "invitations",
+                            ":token",
+                            "accept"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -3820,7 +4177,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/teams/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/teams/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teams",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -3895,7 +4268,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/teams/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/teams/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teams",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -3965,7 +4354,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/teams/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/teams/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teams",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -4035,7 +4440,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/teams/:id/members",
+                    "url": {
+                      "raw": "{{baseUrl}}/teams/:id/members",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "teams",
+                        ":id",
+                        "members"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -4112,7 +4534,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/teams/:id/members",
+                    "url": {
+                      "raw": "{{baseUrl}}/teams/:id/members",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "teams",
+                        ":id",
+                        "members"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -4190,7 +4629,30 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/teams/:id/members/:user_id",
+                        "url": {
+                          "raw": "{{baseUrl}}/teams/:id/members/:user_id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            },
+                            {
+                              "key": "user_id",
+                              "value": "1a11e467-74ee-e84f-4cb0-e1363101656f",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "teams",
+                            ":id",
+                            "members",
+                            ":user_id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -4259,7 +4721,30 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/teams/:id/members/:user_id",
+                        "url": {
+                          "raw": "{{baseUrl}}/teams/:id/members/:user_id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            },
+                            {
+                              "key": "user_id",
+                              "value": "1a11e467-74ee-e84f-4cb0-e1363101656f",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "teams",
+                            ":id",
+                            "members",
+                            ":user_id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -4475,7 +4960,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/projects/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/projects/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "projects",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -4543,7 +5044,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/projects/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/projects/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "projects",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -4605,7 +5122,23 @@
                     "disabled": false
                   }
                 ],
-                "url": "{{baseUrl}}/projects/:id",
+                "url": {
+                  "raw": "{{baseUrl}}/projects/:id",
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                      "description": ""
+                    }
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "projects",
+                    ":id"
+                  ]
+                },
                 "description": "",
                 "body": {
                   "mode": "raw",
@@ -4685,7 +5218,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/repository",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/repository",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "repository"
+                      ]
+                    },
                     "description": "Connects a Git repository to the project. If a repository is already connected, it idempotently updates the configuration.",
                     "body": {
                       "mode": "raw",
@@ -4759,7 +5309,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/repository",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/repository",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "repository"
+                      ]
+                    },
                     "description": "Retrieves the repository configuration for a project with the access token masked.",
                     "body": {
                       "mode": "raw",
@@ -4838,7 +5405,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/repository",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/repository",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "repository"
+                      ]
+                    },
                     "description": "Updates repository URL, access token, or default branch.",
                     "body": {
                       "mode": "raw",
@@ -4911,7 +5495,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/repository",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/repository",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "repository"
+                      ]
+                    },
                     "description": "Disconnects the Git repository from the project, clears the stored access token, and sets status to disconnected.",
                     "body": {
                       "mode": "raw",
@@ -4988,7 +5589,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/env-vars?environment=development",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/env-vars?environment=development",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "env-vars"
+                      ]
+                    },
                     "description": "Retrieves all environment variables for a project, optionally filtered by target environment.",
                     "body": {
                       "mode": "raw",
@@ -5064,7 +5682,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/env-vars",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/env-vars",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "env-vars"
+                      ]
+                    },
                     "description": "Creates a single environment variable within the specified environment.",
                     "body": {
                       "mode": "raw",
@@ -5152,7 +5787,25 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/projects/:id/env-vars/bulk",
+                        "url": {
+                          "raw": "{{baseUrl}}/projects/:id/env-vars/bulk",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "projects",
+                            ":id",
+                            "env-vars",
+                            "bulk"
+                          ]
+                        },
                         "description": "Atomically creates or updates (upserts) environment variables across environments.",
                         "body": {
                           "mode": "raw",
@@ -5234,7 +5887,30 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/projects/:id/env-vars/:env_id",
+                        "url": {
+                          "raw": "{{baseUrl}}/projects/:id/env-vars/:env_id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            },
+                            {
+                              "key": "env_id",
+                              "value": "1a11e467-74ee-e84f-4cb0-e1363101656f",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "projects",
+                            ":id",
+                            "env-vars",
+                            ":env_id"
+                          ]
+                        },
                         "description": "Partially updates an existing environment variable's value or secrecy status.",
                         "body": {
                           "mode": "raw",
@@ -5307,7 +5983,30 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/projects/:id/env-vars/:env_id",
+                        "url": {
+                          "raw": "{{baseUrl}}/projects/:id/env-vars/:env_id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            },
+                            {
+                              "key": "env_id",
+                              "value": "1a11e467-74ee-e84f-4cb0-e1363101656f",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "projects",
+                            ":id",
+                            "env-vars",
+                            ":env_id"
+                          ]
+                        },
                         "description": "Permanently deletes an environment variable.",
                         "body": {
                           "mode": "raw",
@@ -5376,7 +6075,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/members",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/members",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "members"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -5442,7 +6158,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/members",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/members",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "members"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -5509,7 +6242,30 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/projects/:id/members/:user_id",
+                        "url": {
+                          "raw": "{{baseUrl}}/projects/:id/members/:user_id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            },
+                            {
+                              "key": "user_id",
+                              "value": "1a11e467-74ee-e84f-4cb0-e1363101656f",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "projects",
+                            ":id",
+                            "members",
+                            ":user_id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -5578,7 +6334,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/teams",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/teams",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "teams"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -5644,7 +6417,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/teams",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/teams",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "teams"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -5711,7 +6501,30 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/projects/:id/teams/:team_id",
+                        "url": {
+                          "raw": "{{baseUrl}}/projects/:id/teams/:team_id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            },
+                            {
+                              "key": "team_id",
+                              "value": "1a11e467-74ee-e84f-4cb0-e1363101656f",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "projects",
+                            ":id",
+                            "teams",
+                            ":team_id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -5790,7 +6603,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/deployments",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/deployments",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "deployments"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -5863,7 +6693,24 @@
                         "disabled": false
                       }
                     ],
-                    "url": "{{baseUrl}}/projects/:id/deployments?page=1&limit=20&status=Queued&branch=string",
+                    "url": {
+                      "raw": "{{baseUrl}}/projects/:id/deployments?page=1&limit=20&status=Queued&branch=string",
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                          "description": ""
+                        }
+                      ],
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "projects",
+                        ":id",
+                        "deployments"
+                      ]
+                    },
                     "description": "",
                     "body": {
                       "mode": "raw",
@@ -5932,7 +6779,30 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/projects/:id/deployments/:deployment_id",
+                        "url": {
+                          "raw": "{{baseUrl}}/projects/:id/deployments/:deployment_id",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            },
+                            {
+                              "key": "deployment_id",
+                              "value": "a1b2c3d4-e89b-12d3-a456-426614174000",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "projects",
+                            ":id",
+                            "deployments",
+                            ":deployment_id"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -6008,7 +6878,32 @@
                                     "disabled": false
                                   }
                                 ],
-                                "url": "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs/stream",
+                                "url": {
+                                  "raw": "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs/stream",
+                                  "variable": [
+                                    {
+                                      "key": "id",
+                                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                                      "description": ""
+                                    },
+                                    {
+                                      "key": "deployment_id",
+                                      "value": "a1b2c3d4-e89b-12d3-a456-426614174000",
+                                      "description": ""
+                                    }
+                                  ],
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "projects",
+                                    ":id",
+                                    "deployments",
+                                    ":deployment_id",
+                                    "logs",
+                                    "stream"
+                                  ]
+                                },
                                 "description": "",
                                 "body": {
                                   "mode": "raw",
@@ -6075,7 +6970,31 @@
                                 "disabled": false
                               }
                             ],
-                            "url": "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs",
+                            "url": {
+                              "raw": "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs",
+                              "variable": [
+                                {
+                                  "key": "id",
+                                  "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                                  "description": ""
+                                },
+                                {
+                                  "key": "deployment_id",
+                                  "value": "a1b2c3d4-e89b-12d3-a456-426614174000",
+                                  "description": ""
+                                }
+                              ],
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "projects",
+                                ":id",
+                                "deployments",
+                                ":deployment_id",
+                                "logs"
+                              ]
+                            },
                             "description": "",
                             "body": {
                               "mode": "raw",
@@ -6144,7 +7063,32 @@
                                     "disabled": false
                                   }
                                 ],
-                                "url": "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs/search?q=error&page=1&per_page=10",
+                                "url": {
+                                  "raw": "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs/search?q=error&page=1&per_page=10",
+                                  "variable": [
+                                    {
+                                      "key": "id",
+                                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                                      "description": ""
+                                    },
+                                    {
+                                      "key": "deployment_id",
+                                      "value": "a1b2c3d4-e89b-12d3-a456-426614174000",
+                                      "description": ""
+                                    }
+                                  ],
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "projects",
+                                    ":id",
+                                    "deployments",
+                                    ":deployment_id",
+                                    "logs",
+                                    "search"
+                                  ]
+                                },
                                 "description": "",
                                 "body": {
                                   "mode": "raw",
@@ -6215,7 +7159,32 @@
                                     "disabled": false
                                   }
                                 ],
-                                "url": "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs/download",
+                                "url": {
+                                  "raw": "{{baseUrl}}/projects/:id/deployments/:deployment_id/logs/download",
+                                  "variable": [
+                                    {
+                                      "key": "id",
+                                      "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                                      "description": ""
+                                    },
+                                    {
+                                      "key": "deployment_id",
+                                      "value": "a1b2c3d4-e89b-12d3-a456-426614174000",
+                                      "description": ""
+                                    }
+                                  ],
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "projects",
+                                    ":id",
+                                    "deployments",
+                                    ":deployment_id",
+                                    "logs",
+                                    "download"
+                                  ]
+                                },
                                 "description": "",
                                 "body": {
                                   "mode": "raw",
@@ -6289,7 +7258,31 @@
                                 "disabled": false
                               }
                             ],
-                            "url": "{{baseUrl}}/projects/:id/deployments/:deployment_id/redeploy",
+                            "url": {
+                              "raw": "{{baseUrl}}/projects/:id/deployments/:deployment_id/redeploy",
+                              "variable": [
+                                {
+                                  "key": "id",
+                                  "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                                  "description": ""
+                                },
+                                {
+                                  "key": "deployment_id",
+                                  "value": "a1b2c3d4-e89b-12d3-a456-426614174000",
+                                  "description": ""
+                                }
+                              ],
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "projects",
+                                ":id",
+                                "deployments",
+                                ":deployment_id",
+                                "redeploy"
+                              ]
+                            },
                             "description": "",
                             "body": {
                               "mode": "raw",
@@ -6369,7 +7362,25 @@
                             "disabled": false
                           }
                         ],
-                        "url": "{{baseUrl}}/projects/:id/deployments/rollback",
+                        "url": {
+                          "raw": "{{baseUrl}}/projects/:id/deployments/rollback",
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "07c0060e-8e8c-44c1-942c-3004f5a6c5b6",
+                              "description": ""
+                            }
+                          ],
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "projects",
+                            ":id",
+                            "deployments",
+                            "rollback"
+                          ]
+                        },
                         "description": "",
                         "body": {
                           "mode": "raw",
@@ -6468,7 +7479,26 @@
                                 "disabled": false
                               }
                             ],
-                            "url": "{{baseUrl}}/projects/internal/deployments/:deployment_id/status",
+                            "url": {
+                              "raw": "{{baseUrl}}/projects/internal/deployments/:deployment_id/status",
+                              "variable": [
+                                {
+                                  "key": "deployment_id",
+                                  "value": "a1b2c3d4-e89b-12d3-a456-426614174000",
+                                  "description": ""
+                                }
+                              ],
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "projects",
+                                "internal",
+                                "deployments",
+                                ":deployment_id",
+                                "status"
+                              ]
+                            },
                             "description": "",
                             "body": {
                               "mode": "raw",

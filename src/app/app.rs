@@ -9,8 +9,8 @@ use crate::modules::organization::router::organization_router;
 use crate::modules::projects::router::projects_router;
 use crate::modules::teams::router::teams_router;
 use crate::modules::users::router::user_router;
+use crate::shared::error::{codes, AppError};
 use crate::shared::logger::logging_middleware;
-use crate::shared::response::ApiResponse;
 use axum::{Router, http::StatusCode, middleware, routing::get};
 use std::time::Duration;
 use tower_http::timeout::TimeoutLayer;
@@ -40,8 +40,10 @@ pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::erro
     Ok(router)
 }
 
-async fn not_found_handler() -> ApiResponse<()> {
-    ApiResponse::new()
-        .status(StatusCode::NOT_FOUND)
-        .message("you requested resource not found".to_string())
+async fn not_found_handler() -> AppError {
+    AppError::not_found(
+        codes::system::SYS_004,
+        "The requested resource was not found",
+    )
 }
+

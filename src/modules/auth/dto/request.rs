@@ -60,3 +60,6 @@ pub struct VerifyEmailDto {
     #[validate(length(min = 1, message = "Verification token is required"))]
     pub token: String,
 }
+
+pub type VerifyEmailQueryDto = VerifyEmailDto;
+

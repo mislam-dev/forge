@@ -16,6 +16,7 @@ pub fn notifications_router() -> Router<AppState> {
         .route("/unread-count", get(handlers::get_unread_count))
         .route("/{id}/read", patch(handlers::mark_as_read))
         .route("/read-all", patch(handlers::mark_all_as_read))
+        .route("/stream", get(handlers::notification_stream))
         .route_layer(middleware::from_extractor::<AccessTokenClaims>());
 
     Router::new().merge(internal_routes).merge(protected_routes)

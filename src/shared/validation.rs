@@ -32,3 +32,39 @@ pub fn validate_uuid_format(id: &str) -> Result<(), ValidationError> {
         Err(ValidationError::new("invalid_uuid"))
     }
 }
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct PathValidate<T>(pub T);
+
+impl<S, T> axum::extract::FromRequestParts<S> for PathValidate<T>
+where
+    S: Send + Sync,
+    T: DeserializeOwned + Send,
+{
+    type Rejection = AppError;
+
+    async fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        match axum::extract::Path::<T>::from_request_parts(parts, state).await {
+            Ok(axum::extract::Path(value)) => Ok(PathValidate(value)),
+            Err(err) => Err(AppError::bad_request(
+                codes::system::VALIDATION_ERROR,
+                format!("Failed to parse path parameter: {}", err),
+            )),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_uuid_format() {
+        assert!(validate_uuid_format("a1b2c3d4-e89b-12d3-a456-426614174000").is_ok());
+        assert!(validate_uuid_format("invalid-uuid").is_err());
+    }
+}
+

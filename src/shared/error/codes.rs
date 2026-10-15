@@ -5,6 +5,7 @@ pub mod system {
     pub const INTERNAL_SERVER_ERROR: &str = "INTERNAL_SERVER_ERROR";
     pub const BAD_REQUEST: &str = "BAD_REQUEST";
     pub const NOT_FOUND: &str = "NOT_FOUND";
+    pub const SYS_004: &str = "SYS_004";
     pub const UNAUTHORIZED: &str = "UNAUTHORIZED";
     pub const FORBIDDEN: &str = "FORBIDDEN";
     pub const CONFLICT: &str = "CONFLICT";
