@@ -4,7 +4,7 @@ use super::dto::{
 };
 use super::repository::ProjectRepositoriesRepository;
 use crate::modules::projects::repositories::utils::ATService;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use sea_orm::*;
 use uuid::Uuid;
 
@@ -15,6 +15,7 @@ impl ProjectRepositoriesService {
         db: &DatabaseConnection,
         org_id: Option<Uuid>,
         project_id: Uuid,
+        master_encryption_key: &str,
         req: ConnectProjectRepositoryDTO,
     ) -> Result<ProjectRepositoryResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
@@ -35,7 +36,8 @@ impl ProjectRepositoriesService {
                 req_dto.default_branch = Some(branch);
             }
 
-            let a = Self::update_repository(db, org_id, project_id, req_dto).await?;
+            let a = Self::update_repository(db, org_id, project_id, master_encryption_key, req_dto)
+                .await?;
 
             return Ok(a);
         }
@@ -43,8 +45,15 @@ impl ProjectRepositoriesService {
         let encrypted_token = req
             .access_token
             .as_ref()
-            .map(|t| ATService::encrypt(t))
-            .unwrap_or_default();
+            .map(|t| {
+                ATService::encrypt(t, master_encryption_key).map_err(|_| {
+                    AppError::bad_request(codes::projects::REPO_002, "Access token is invalid")
+                })
+            })
+            .transpose()? // Convert Option<Result<T, E>> to Result<Option<T>, E>
+            .ok_or_else(|| {
+                AppError::bad_request(codes::projects::REPO_002, "Access token is required")
+            })?;
 
         let repository =
             ProjectRepositoriesRepository::connect_repository(db, req, project_id, encrypted_token)
@@ -101,6 +110,7 @@ impl ProjectRepositoriesService {
         db: &DatabaseConnection,
         org_id: Option<Uuid>,
         project_id: Uuid,
+        master_encryption_key: &str,
         req: UpdateProjectRepositoryDTO,
     ) -> Result<ProjectRepositoryResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
@@ -116,7 +126,18 @@ impl ProjectRepositoriesService {
                 )
             })?;
 
-        let updated = ProjectRepositoriesRepository::update_repository(db, repo, req).await?;
+        let mut encrypted_access_token: Option<String> = None;
+        if let Some(token) = req.access_token.as_ref() {
+            encrypted_access_token = Some(
+                ATService::encrypt(token, master_encryption_key).map_err(|_| {
+                    AppError::bad_request(codes::projects::REPO_002, "Access token is invalid")
+                })?,
+            );
+        }
+
+        let updated =
+            ProjectRepositoriesRepository::update_repository(db, repo, req, encrypted_access_token)
+                .await?;
         Ok(ProjectRepositoryResponse::from_model(updated))
     }
 
@@ -146,13 +167,20 @@ impl ProjectRepositoriesService {
         db: &DatabaseConnection,
         org_id: Option<Uuid>,
         project_id: Uuid,
+        master_encryption_key: &str,
     ) -> Result<Option<String>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
             .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id).await?;
-        Ok(repo.map(|r| ATService::decrypt(&r.access_token_encrypted)))
+        let token = repo
+            .map(|r| ATService::decrypt(&r.access_token_encrypted, master_encryption_key))
+            .transpose()
+            .map_err(|_| {
+                AppError::bad_request(codes::projects::REPO_005, "Failed to decrypt token")
+            })?;
+        Ok(token)
     }
 }
 

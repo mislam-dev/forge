@@ -9,9 +9,11 @@ default-run = "forge"
 members = [".", "src/database/migrations/"]
 
 [dependencies]
+aes-gcm = { version = "0.11.1", features = ["aes"] }
 amqprs = "2.1.5"
 async-trait = "0.1.92"
 axum = "0.8.9"
+base64 = "0.23.1"
 bcrypt = "0.19.3"
 bollard = "0.21.1"
 bytes = "1.12.1"
@@ -20,16 +22,10 @@ dotenvy = "0.15.7"
 futures-util = "0.3.34"
 git2 = { version = "0.21.0", features = ["https", "vendored-openssl"] }
 http-body-util = "0.1.5"
-jsonwebtoken = {
-  version = "11.0.0",
-  default-features = false,
-  features = ["rust_crypto"]
-}
+jsonwebtoken = {version = "11.0.0",default-features = false, features = ["rust_crypto"]}
+rand = "0.9.4"
 reqwest = { version = "0.13.4", features = ["json", "query"] }
-sea-orm = {
-  version = "2.0.0",
-  features = ["macros", "mock", "runtime-tokio-rustls", "sqlx-postgres"]
-}
+sea-orm = { version = "2.0.0",features = ["macros", "mock", "runtime-tokio-rustls", "sqlx-postgres"]}
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 tar = "0.4.46"

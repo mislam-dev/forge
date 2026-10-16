@@ -61,7 +61,16 @@ impl BuildWorkerService {
         let pat_token = if project.project_type == ProjectTypes::Repo {
             let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id).await?;
             match repo {
-                Some(repo) => Some(ATService::decrypt(&repo.access_token_encrypted)),
+                Some(repo) => {
+                    let token = ATService::decrypt(
+                        &repo.access_token_encrypted,
+                        &config.secrets.master_encryption_key,
+                    )
+                    .map_err(|_| {
+                        AppError::InternalServerError("Failed to decrypt access token".to_string())
+                    })?;
+                    Some(token)
+                }
                 None => None,
             }
         } else {

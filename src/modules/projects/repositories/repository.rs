@@ -55,6 +55,7 @@ impl ProjectRepositoriesRepository {
         db: &DatabaseConnection,
         repo: RepositoryModel,
         req: UpdateProjectRepositoryDTO,
+        encrypted_access_token: Option<String>,
     ) -> Result<RepositoryModel, AppError> {
         let mut active_model: RepositoryActiveModel = repo.into();
 
@@ -62,8 +63,8 @@ impl ProjectRepositoriesRepository {
             active_model.repository_url = Set(url);
         }
 
-        if let Some(token) = req.access_token {
-            active_model.access_token_encrypted = Set(ATService::encrypt(&token));
+        if let Some(token) = encrypted_access_token {
+            active_model.access_token_encrypted = Set(token);
             active_model.auth_type = Set(ProjectRespositoryAuthType::Pat);
         }
         if let Some(branch) = req.default_branch {

@@ -22,8 +22,14 @@ pub async fn connect_repository(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<ConnectProjectRepositoryDTO>,
 ) -> Result<ApiResponse<ProjectRepositoryResponse>, AppError> {
-    let repository =
-        ProjectRepositoriesService::connect_repository(&state.db, org_id, id, payload).await?;
+    let repository = ProjectRepositoriesService::connect_repository(
+        &state.db,
+        org_id,
+        id,
+        &state.config.secrets.master_encryption_key,
+        payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -50,8 +56,14 @@ pub async fn update_repository(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<UpdateProjectRepositoryDTO>,
 ) -> Result<ApiResponse<ProjectRepositoryResponse>, AppError> {
-    let repository =
-        ProjectRepositoriesService::update_repository(&state.db, org_id, id, payload).await?;
+    let repository = ProjectRepositoriesService::update_repository(
+        &state.db,
+        org_id,
+        id,
+        &state.config.secrets.master_encryption_key,
+        payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
