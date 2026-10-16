@@ -9,24 +9,23 @@ use crate::modules::organization::router::organization_router;
 use crate::modules::projects::router::projects_router;
 use crate::modules::teams::router::teams_router;
 use crate::modules::users::router::user_router;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use crate::shared::logger::logging_middleware;
-use axum::{Router, http::StatusCode, middleware, routing::get};
+use axum::{Router, http::StatusCode, middleware};
 use std::time::Duration;
 use tower_http::timeout::TimeoutLayer;
 
 pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::error::Error>> {
-    let router = Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
-        .nest("/api/v1/auth", auth_router())
-        .nest("/api/v1/users", user_router())
-        .nest("/api/v1/access-control", access_control_router())
-        .nest("/api/v1/organizations", organization_router())
-        .nest("/api/v1/teams", teams_router())
-        .nest("/api/v1/projects", projects_router())
-        .nest("/api/v1/notifications", notifications_router())
-        .nest("/api/v1/dashboard", dashboard_router())
-        .nest("/api/v1/health", health_router())
+    let root_app_router: Router = Router::new()
+        .nest("/auth", auth_router())
+        .nest("/users", user_router())
+        .nest("/access-control", access_control_router())
+        .nest("/organizations", organization_router())
+        .nest("/teams", teams_router())
+        .nest("/projects", projects_router())
+        .nest("/notifications", notifications_router())
+        .nest("/dashboard", dashboard_router())
+        .nest("/health", health_router())
         .merge(docs_router())
         .fallback(not_found_handler)
         .layer(cors_middleware())
@@ -37,7 +36,9 @@ pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::erro
         .layer(middleware::from_fn(logging_middleware))
         .with_state(app_state);
 
-    Ok(router)
+    let v1_router: Router = Router::new().nest("/api/v1", root_app_router);
+    let final_router: Router = Router::new().merge(v1_router);
+    Ok(final_router)
 }
 
 async fn not_found_handler() -> AppError {
@@ -46,4 +47,3 @@ async fn not_found_handler() -> AppError {
         "The requested resource was not found",
     )
 }
-
