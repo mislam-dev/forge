@@ -25,7 +25,7 @@ async fn test_system_dashboard_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/dashboard")
+        .uri("/api/v1/dashboard")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -41,7 +41,7 @@ async fn test_user_dashboard_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/dashboard/user")
+        .uri("/api/v1/dashboard/user")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -57,7 +57,7 @@ async fn test_org_dashboard_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(format!("/api/dashboard/org/{}", Uuid::new_v4()))
+        .uri(format!("/api/v1/dashboard/org/{}", Uuid::new_v4()))
         .method("GET")
         .body(Body::empty())
         .unwrap();

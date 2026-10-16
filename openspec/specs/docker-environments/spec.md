@@ -17,7 +17,7 @@ The system SHALL provide a dedicated development container environment (`Dockerf
 - **THEN** the environment SHALL enable verbose debug logging (`RUST_LOG=debug`) and full backtraces (`RUST_BACKTRACE=1`) by default.
 
 ### Requirement: Production Container Environment
-The system SHALL provide an optimized multi-stage production container image (`Dockerfile.prod` or root `Dockerfile`). The build stage MUST compile a release binary with symbols stripped, and the runtime stage MUST use a minimal, hardened base image (such as `debian:bookworm-slim` or distroless) executing as an unprivileged non-root user. The production image MUST include a built-in container healthcheck probe targeting the HTTP `/health` endpoint.
+The system SHALL provide an optimized multi-stage production container image (`Dockerfile.prod` or root `Dockerfile`). The build stage MUST compile a release binary with symbols stripped, and the runtime stage MUST use a minimal, hardened base image (such as `debian:bookworm-slim` or distroless) executing as an unprivileged non-root user. The production image MUST include a built-in container healthcheck probe targeting the HTTP `/health/live` endpoint.
 
 #### Scenario: Building minimal production image
 - **WHEN** the production Docker image is built
@@ -25,7 +25,7 @@ The system SHALL provide an optimized multi-stage production container image (`D
 
 #### Scenario: Container health verification in production
 - **WHEN** the production container starts and enters steady state
-- **THEN** the Docker daemon SHALL periodically query `/health`, marking the container healthy when HTTP 200 is received and unhealthy upon successive failures.
+- **THEN** the Docker daemon SHALL periodically query `/health/live`, marking the container healthy when HTTP 200 is received and unhealthy upon successive failures.
 
 ### Requirement: Containerized Testing Environment with Automated Limits
 The system SHALL provide a self-contained testing container environment (`Dockerfile.test`) equipped with all dependencies necessary to execute Rust unit/integration tests, Newman API collection matrix tests, and k6 load tests. The test container configuration MUST automatically enforce elevated file descriptor and socket limits (setting `nofile` soft and hard limits to at least 65535) within the container specification, ensuring that neither developers nor CI runners need to manually tune host OS limits (such as macOS `ulimit -n` or sysctl settings).

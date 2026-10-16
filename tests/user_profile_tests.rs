@@ -154,7 +154,7 @@ async fn test_delete_profile_authorized_for_admin() {
     .unwrap();
 
     let req = Request::builder()
-        .uri(format!("/api/users/{}/profile", user_id))
+        .uri(format!("/api/v1/users/{}/profile", user_id))
         .method("DELETE")
         .header("Authorization", format!("Bearer {}", token))
         .body(Body::empty())

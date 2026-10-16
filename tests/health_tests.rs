@@ -24,7 +24,7 @@ async fn test_public_health_probe_accessible_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/health/")
+        .uri("/api/v1/health/")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -42,7 +42,7 @@ async fn test_api_health_probe_accessible_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/health/")
+        .uri("/api/v1/health/")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -58,7 +58,7 @@ async fn test_health_details_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/health/details")
+        .uri("/api/v1/health/details")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -74,7 +74,7 @@ async fn test_health_liveness_probe() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/health/live")
+        .uri("/api/v1/health/live")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -98,7 +98,7 @@ async fn test_health_readiness_probe() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/health/ready")
+        .uri("/api/v1/health/ready")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -125,7 +125,7 @@ async fn test_health_deep_check_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/health/deep")
+        .uri("/api/v1/health/deep")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -152,7 +152,7 @@ async fn test_health_deep_check_forbidden_for_non_admin() {
     .unwrap();
 
     let req = Request::builder()
-        .uri("/health/deep")
+        .uri("/api/v1/health/deep")
         .method("GET")
         .header("Authorization", format!("Bearer {}", token))
         .body(Body::empty())
@@ -180,7 +180,7 @@ async fn test_health_deep_check_authorized_for_admin() {
     .unwrap();
 
     let req = Request::builder()
-        .uri("/health/deep?timeout_ms=5000")
+        .uri("/api/v1/health/deep?timeout_ms=5000")
         .method("GET")
         .header("Authorization", format!("Bearer {}", token))
         .body(Body::empty())

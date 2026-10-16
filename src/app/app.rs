@@ -15,8 +15,10 @@ use axum::{Router, http::StatusCode, middleware};
 use std::time::Duration;
 use tower_http::timeout::TimeoutLayer;
 
+pub const API_V1_PATH: &str = "/api/v1";
+
 pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::error::Error>> {
-    let root_app_router: Router = Router::new()
+    let api_v1_router: Router<AppState> = Router::new()
         .nest("/auth", auth_router())
         .nest("/users", user_router())
         .nest("/access-control", access_control_router())
@@ -26,7 +28,11 @@ pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::erro
         .nest("/notifications", notifications_router())
         .nest("/dashboard", dashboard_router())
         .nest("/health", health_router())
-        .merge(docs_router())
+        .merge(docs_router());
+
+    let final_router: Router = Router::new()
+        .nest(API_V1_PATH, api_v1_router)
+        .nest("/health", health_router())
         .fallback(not_found_handler)
         .layer(cors_middleware())
         .layer(TimeoutLayer::with_status_code(
@@ -36,8 +42,6 @@ pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::erro
         .layer(middleware::from_fn(logging_middleware))
         .with_state(app_state);
 
-    let v1_router: Router = Router::new().nest("/api/v1", root_app_router);
-    let final_router: Router = Router::new().merge(v1_router);
     Ok(final_router)
 }
 

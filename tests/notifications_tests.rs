@@ -25,7 +25,7 @@ async fn test_list_notifications_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/notifications")
+        .uri("/api/v1/notifications")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -41,7 +41,7 @@ async fn test_unread_count_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/notifications/unread-count")
+        .uri("/api/v1/notifications/unread-count")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -57,7 +57,7 @@ async fn test_mark_as_read_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(format!("/api/notifications/{}/read", Uuid::new_v4()))
+        .uri(format!("/api/v1/notifications/{}/read", Uuid::new_v4()))
         .method("PATCH")
         .body(Body::empty())
         .unwrap();
@@ -73,7 +73,7 @@ async fn test_mark_all_as_read_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/notifications/read-all")
+        .uri("/api/v1/notifications/read-all")
         .method("PATCH")
         .body(Body::empty())
         .unwrap();

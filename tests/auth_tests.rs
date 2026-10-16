@@ -147,7 +147,7 @@ async fn test_me_endpoint_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/auth/me")
+        .uri("/api/v1/auth/me")
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -172,7 +172,7 @@ async fn test_me_endpoint_authorized_with_valid_jwt() {
     .unwrap();
 
     let req = Request::builder()
-        .uri("/api/auth/me")
+        .uri("/api/v1/auth/me")
         .method("GET")
         .header("Authorization", format!("Bearer {}", token))
         .body(Body::empty())
@@ -196,7 +196,7 @@ async fn test_register_validation_failure() {
     });
 
     let req = Request::builder()
-        .uri("/api/auth/register")
+        .uri("/api/v1/auth/register")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_vec(&invalid_payload).unwrap()))
@@ -222,7 +222,7 @@ async fn test_login_validation_failure() {
     });
 
     let req = Request::builder()
-        .uri("/api/auth/login")
+        .uri("/api/v1/auth/login")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_vec(&invalid_payload).unwrap()))
@@ -239,7 +239,7 @@ async fn test_logout_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri("/api/auth/logout")
+        .uri("/api/v1/auth/logout")
         .method("POST")
         .body(Body::empty())
         .unwrap();
@@ -259,7 +259,7 @@ async fn test_refresh_validation_failure() {
     });
 
     let req = Request::builder()
-        .uri("/api/auth/refresh")
+        .uri("/api/v1/auth/refresh")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_vec(&invalid_payload).unwrap()))
@@ -280,7 +280,7 @@ async fn test_refresh_invalid_token() {
     });
 
     let req = Request::builder()
-        .uri("/api/auth/refresh")
+        .uri("/api/v1/auth/refresh")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_vec(&payload).unwrap()))
@@ -301,7 +301,7 @@ async fn test_forgot_password_success() {
     });
 
     let req = Request::builder()
-        .uri("/api/auth/forgot-password")
+        .uri("/api/v1/auth/forgot-password")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_vec(&payload).unwrap()))
@@ -329,7 +329,7 @@ async fn test_forgot_password_empty_email() {
     });
 
     let req = Request::builder()
-        .uri("/api/auth/forgot-password")
+        .uri("/api/v1/auth/forgot-password")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_vec(&payload).unwrap()))
@@ -355,7 +355,7 @@ async fn test_reset_password_passwords_mismatch() {
     });
 
     let req = Request::builder()
-        .uri("/api/auth/reset-password")
+        .uri("/api/v1/auth/reset-password")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_vec(&payload).unwrap()))
@@ -382,7 +382,7 @@ async fn test_reset_password_invalid_token() {
     });
 
     let req = Request::builder()
-        .uri("/api/auth/reset-password")
+        .uri("/api/v1/auth/reset-password")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_vec(&payload).unwrap()))
@@ -403,7 +403,7 @@ async fn test_verify_email_invalid_token() {
     });
 
     let req = Request::builder()
-        .uri("/api/auth/verify-email")
+        .uri("/api/v1/auth/verify-email")
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_vec(&payload).unwrap()))

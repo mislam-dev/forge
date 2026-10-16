@@ -26,7 +26,7 @@
     - `cargo test --test environment_variables_tests` and `cargo test --test repositories_tests` pass.
     - Raw database query on `project_repositories` and `project_environment_variables` shows ciphertext with nonce; plaintext hex decoding fails to recover secrets.
 
-- [ ] **T-002 | Fix Docker Container Healthcheck and Mount `/health` Endpoints**
+- [x] **T-002 | Fix Docker Container Healthcheck and Mount `/health` Endpoints**
   - **Priority:** P0 (blocks production)
   - **Track:** Production
   - **Effort:** S (<1h)
@@ -39,26 +39,23 @@
     - `curl -f http://localhost:9000/health` and `curl -f http://localhost:9000/health/live` return HTTP 200 with JSON payload `{"status":"ok"}`.
     - `docker inspect --format='{{.State.Health.Status}}' forge-api` reports `healthy`.
 
-- [ ] **T-003 | Restore API Route Aliasing and Fix Failing Integration Tests**
+- [x] **T-003 | Standardize Integration Tests to `/api/v1` and Centralize Base Path**
   - **Priority:** P0 (blocks production)
   - **Track:** Production
   - **Effort:** M (1–4h)
-  - **Depends on:** T-002
+  - **Depends on:** none
   - **Steps:**
-    1. In `src/app/app.rs`, re-introduce route aliases for backward compatibility and test consistency:
-       - `.nest("/api/auth", auth_router())`
-       - `.nest("/api/users", user_router())`
-       - `.nest("/api/access-control", access_control_router())`
-       - `.nest("/api/organizations", organization_router())`
-       - `.nest("/api/teams", teams_router())`
-       - `.nest("/api/projects", projects_router())`
-       - `.nest("/api/notifications", notifications_router())`
-       - `.nest("/api/dashboard", dashboard_router())`
-       - `.nest("/api/health", health_router())`
-    2. Alternatively, parameterize integration tests to test both `/api/v1/` and legacy `/api/` paths.
+    1. In `src/app/app.rs`, define and export common API base path constant `pub const API_V1_PATH: &str = "/api/v1";` and mount the versioned router via `.nest(API_V1_PATH, root_app_router)`.
+    2. Refactor integration test suites to target the canonical `/api/v1` base path directly without legacy route aliases:
+       - `tests/auth_tests.rs`: Update all authentication URIs to `/api/v1/auth/...`
+       - `tests/teams_tests.rs`: Update all team URIs to `/api/v1/teams/...`
+       - `tests/notifications_tests.rs`: Update all notification URIs to `/api/v1/notifications/...`
+       - `tests/dashboard_tests.rs`: Update all dashboard URIs to `/api/v1/dashboard/...`
+       - `tests/health_tests.rs`: Update all health probe URIs to `/api/v1/health/...`
+       - `tests/user_profile_tests.rs`: Update line 157 to `/api/v1/users/{}/profile`
     3. Run `cargo test --test auth_tests`, `teams_tests`, `notifications_tests`, `dashboard_tests`, `health_tests`.
   - **Acceptance criteria:**
-    - `cargo test --no-fail-fast` exits with code 0 across all integration test targets.
+    - `cargo test --test auth_tests --test teams_tests --test notifications_tests --test dashboard_tests --test health_tests` passes with code 0.
 
 - [ ] **T-004 | Register Missing DELETE Route in User Profile Router**
   - **Priority:** P0 (blocks production)
@@ -312,7 +309,7 @@ flowchart TD
     subgraph Day 1: Emergency Fixes
         T002["T-002: Docker Healthcheck & /health"] --> T004["T-004: DELETE Profile Route"]
         T004 --> T006["T-006: 404 Contract Alignment"]
-        T006 --> T003["T-003: Route Aliasing & Fix 37 Tests"]
+        T006 --> T003["T-003: Standardize Tests to /api/v1 & Base Path"]
     end
 
     subgraph Day 2: Security & Decoupling
@@ -340,7 +337,7 @@ flowchart TD
   - Complete T-002 (Fix Docker healthcheck & `/health` endpoint).
   - Complete T-004 (Register missing DELETE route on profile).
   - Complete T-006 (Align 404 contract in foundation tests).
-  - Complete T-003 (Restore route aliases in `src/app/app.rs`).
+  - Complete T-003 (Standardize integration test routes to /api/v1 using common base path).
   - *Outcome:* `cargo test` passes 100% across all 12 integration test files.
 - **Day 2 (Security Hardening & Broker Deduplication):**
   - Complete T-001 (Implement AES-256-GCM authenticated cipher for PATs and secrets).
