@@ -48,16 +48,19 @@ impl ProjectEnvironmentVariablesService {
     }
 
     fn encrypt_value(raw_value: &str, key: &str) -> Result<String, AppError> {
-        let service = AESSymmetricEncryptionService::new(key.to_string())
-            .map_err(|_| AppError::bad_request(codes::projects::ENV_005, "Invalid value"))?;
-        let value = service
-            .encrypt(raw_value.as_bytes())
-            .map_err(|_| AppError::bad_request(codes::projects::ENV_005, "Invalid value"))?;
+        let service = AESSymmetricEncryptionService::new(key).map_err(|e| {
+            println!("{:#?}", e);
+            return AppError::bad_request(codes::projects::ENV_005, "Invalid value");
+        })?;
+        let value = service.encrypt(raw_value.as_bytes()).map_err(|e| {
+            println!("{:#?}", e);
+            return AppError::bad_request(codes::projects::ENV_005, "Invalid value");
+        })?;
         Ok(value)
     }
 
     fn decrypt_value(encrypted_hex: &str, key: &str) -> Result<String, AppError> {
-        let service = AESSymmetricEncryptionService::new(key.to_string())
+        let service = AESSymmetricEncryptionService::new(key)
             .map_err(|_| AppError::bad_request(codes::projects::ENV_005, "Invalid value"))?;
         let value = service
             .decrypt(encrypted_hex)
@@ -328,11 +331,19 @@ mod tests {
 
     #[test]
     fn test_encryption_decryption_roundtrip() {
+        let key = "0123456789abcdef0123456789abcdef";
         let raw = "super-secret-password-123!@#";
-        let encrypted = ProjectEnvironmentVariablesService::encrypt_value(raw, "1234").unwrap();
+        let encrypted = ProjectEnvironmentVariablesService::encrypt_value(raw, key)
+            .map_err(|e| {
+                println!("encrypt: {:#?}", e);
+            })
+            .unwrap();
         assert_ne!(raw, encrypted);
-        let decrypted =
-            ProjectEnvironmentVariablesService::decrypt_value(&encrypted, "1234").unwrap();
+        let decrypted = ProjectEnvironmentVariablesService::decrypt_value(&encrypted, key)
+            .map_err(|e| {
+                println!("decrypt: {:#?}", e);
+            })
+            .unwrap();
         assert_eq!(raw, decrypted);
     }
 

@@ -6,12 +6,12 @@ pub struct AccessTokenService;
 
 impl AccessTokenService {
     pub fn encrypt(raw_token: &str, key: &str) -> Result<String, EncryptionError> {
-        let service = AESSymmetricEncryptionService::new(key.to_string())?;
+        let service = AESSymmetricEncryptionService::new(key)?;
         service.encrypt(raw_token.as_bytes())
     }
 
     pub fn decrypt(encrypted_hex: &str, key: &str) -> Result<String, EncryptionError> {
-        let service = AESSymmetricEncryptionService::new(key.to_string())?;
+        let service = AESSymmetricEncryptionService::new(key)?;
         service.decrypt(encrypted_hex)
     }
 }

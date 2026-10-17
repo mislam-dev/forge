@@ -16,7 +16,7 @@ pub struct AESSymmetricEncryptionService {
 }
 
 impl AESSymmetricEncryptionService {
-    pub fn new(key: String) -> Result<Self, EncryptionError> {
+    pub fn new(key: &str) -> Result<Self, EncryptionError> {
         let k = Key::<Aes256Gcm>::try_from(key.as_bytes())
             .map_err(|e| EncryptionError::AesGcmError(e.to_string()))?;
         let cipher = Aes256Gcm::new(&k);
