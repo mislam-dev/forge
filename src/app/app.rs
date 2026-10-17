@@ -27,12 +27,12 @@ pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::erro
         .nest("/projects", projects_router())
         .nest("/notifications", notifications_router())
         .nest("/dashboard", dashboard_router())
-        .nest("/health", health_router())
-        .merge(docs_router());
+        .nest("/health", health_router());
 
     let final_router: Router = Router::new()
         .nest(API_V1_PATH, api_v1_router)
         .nest("/health", health_router())
+        .merge(docs_router())
         .fallback(not_found_handler)
         .layer(cors_middleware())
         .layer(TimeoutLayer::with_status_code(
