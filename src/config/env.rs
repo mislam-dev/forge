@@ -19,6 +19,7 @@ pub struct Secrets {
     pub master_encryption_key: String,
     pub jwt_expiry_seconds: i64,        // default 3600
     pub refresh_token_expiry_days: i64, // default 7
+    pub worker_service_token: String,
 }
 
 #[derive(Debug, Clone)]
@@ -109,12 +110,17 @@ impl AppConfig {
             .unwrap_or(7);
         let master_encryption_key = EnvConfig::var("MASTER_ENCRYPTION_KEY")
             .map_err(|_| "MASTER_ENCRYPTION_KEY is required!")?;
+        let worker_service_token = EnvConfig::var("WORKER_SERVICE_TOKEN")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(master_encryption_key.clone());
 
         Ok(Secrets {
             jwt_secret,
             jwt_expiry_seconds,
             refresh_token_expiry_days,
             master_encryption_key,
+            worker_service_token,
         })
     }
 

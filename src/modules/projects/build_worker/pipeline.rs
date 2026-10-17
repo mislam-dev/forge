@@ -11,7 +11,7 @@ use super::log_stream::{LogItem, LogLevel};
 use crate::config::AppConfig;
 use crate::modules::projects::DeploymentsService;
 use crate::modules::projects::build_worker::traits::{BuilderConfig, ProjectBuilder};
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
@@ -275,7 +275,7 @@ impl BuildPipeline {
         let _c = DeploymentsService::update_status_internal(
             &self.db,
             &self.config,
-            &self.config.secrets.master_encryption_key,
+            &self.config.secrets.worker_service_token,
             self.deployment_id,
             dto,
         )

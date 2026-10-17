@@ -13,7 +13,7 @@ use crate::config::AppConfig;
 use crate::infrastructure::queue::QueuePublisher;
 use crate::infrastructure::queue::events::deployments::DeploymentJobCreated;
 use crate::modules::projects::ProjectRepositoriesService;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use crate::shared::pagination::PaginatedResponse;
 
 pub struct DeploymentsService;
@@ -29,12 +29,17 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::DEPLOY_002, "Project not found")
+            })?;
 
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id)
             .await?
             .ok_or_else(|| {
-                AppError::bad_request(codes::projects::REPO_001, "No repository connected to this project")
+                AppError::bad_request(
+                    codes::projects::REPO_001,
+                    "No repository connected to this project",
+                )
             })?;
 
         if (DeploymentsRepository::find_running_by_project_id(db, project_id).await?).is_some() {
@@ -100,7 +105,9 @@ impl DeploymentsService {
     ) -> Result<PaginatedResponse<DeploymentResponse>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::DEPLOY_002, "Project not found")
+            })?;
 
         let paginated = DeploymentsRepository::find_by_project_id(db, project_id, query).await?;
         let responses = paginated
@@ -125,11 +132,15 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::DEPLOY_002, "Project not found")
+            })?;
 
         let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found")
+            })?;
 
         if deployment.project_id != project_id {
             return Err(AppError::not_found(
@@ -146,7 +157,9 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found")
+            })?;
 
         Ok(DeploymentResponse::from_model(deployment))
     }
@@ -161,11 +174,15 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::DEPLOY_002, "Project not found")
+            })?;
 
         let target = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found")
+            })?;
 
         if target.project_id != project_id {
             return Err(AppError::not_found(
@@ -232,7 +249,9 @@ impl DeploymentsService {
     ) -> Result<DeploymentResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::DEPLOY_002, "Project not found")
+            })?;
 
         if (DeploymentsRepository::find_running_by_project_id(db, project_id).await?).is_some() {
             return Err(AppError::conflict(
@@ -299,7 +318,7 @@ impl DeploymentsService {
         deployment_id: Uuid,
         req: UpdateDeploymentStatusRequest,
     ) -> Result<DeploymentResponse, AppError> {
-        if service_token != config.secrets.master_encryption_key {
+        if service_token != config.secrets.worker_service_token {
             return Err(AppError::unauthorized(
                 codes::auth::AUTH_001,
                 "Invalid service authentication token",
@@ -313,7 +332,9 @@ impl DeploymentsService {
 
         let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found")
+            })?;
 
         let current_status = &deployment.status;
 
