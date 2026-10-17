@@ -82,6 +82,7 @@ impl BuildWorkerService {
             None,
             project_id,
             "production",
+            &config.secrets.master_encryption_key,
         )
         .await
         .unwrap_or_default();

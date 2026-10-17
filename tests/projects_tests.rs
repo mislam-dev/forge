@@ -5,7 +5,6 @@ use axum::{
 use forge::{
     app::{app_core::create_app, state::AppState},
     config::AppConfig,
-    modules::auth::token::{AuthTokenService, JwtPayload},
 };
 use tower::util::ServiceExt;
 use uuid::Uuid;

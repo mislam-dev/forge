@@ -23,8 +23,14 @@ pub async fn create_env_var(
     Path(id): Path<Uuid>,
     JsonValidate(payload): JsonValidate<CreateProjectEnvVarDTO>,
 ) -> Result<ApiResponse<ProjectEnvVarResponse>, AppError> {
-    let env_var =
-        ProjectEnvironmentVariablesService::create_env_var(&state.db, org_id, id, payload).await?;
+    let env_var = ProjectEnvironmentVariablesService::create_env_var(
+        &state.db,
+        org_id,
+        id,
+        &state.config.secrets.master_encryption_key,
+        payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)
@@ -53,9 +59,15 @@ pub async fn update_env_var(
     Path((id, env_id)): Path<(Uuid, Uuid)>,
     JsonValidate(payload): JsonValidate<UpdateProjectEnvVarDTO>,
 ) -> Result<ApiResponse<ProjectEnvVarResponse>, AppError> {
-    let env_var =
-        ProjectEnvironmentVariablesService::update_env_var(&state.db, org_id, id, env_id, payload)
-            .await?;
+    let env_var = ProjectEnvironmentVariablesService::update_env_var(
+        &state.db,
+        org_id,
+        id,
+        env_id,
+        &state.config.secrets.master_encryption_key,
+        payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)
@@ -83,9 +95,14 @@ pub async fn bulk_create_env_vars(
 ) -> Result<ApiResponse<Vec<ProjectEnvVarResponse>>, AppError> {
     tracing::info!("{:#?}", payload);
 
-    let env_vars =
-        ProjectEnvironmentVariablesService::bulk_create_env_vars(&state.db, org_id, id, payload)
-            .await?;
+    let env_vars = ProjectEnvironmentVariablesService::bulk_create_env_vars(
+        &state.db,
+        org_id,
+        id,
+        &state.config.secrets.master_encryption_key,
+        payload,
+    )
+    .await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::CREATED)

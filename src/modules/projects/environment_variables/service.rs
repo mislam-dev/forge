@@ -5,6 +5,7 @@ use super::dto::{
 };
 use super::entities::project_environment_variables::ActiveModel as EnvVarActiveModel;
 use super::repository::ProjectEnvironmentVariablesRepository;
+use crate::infrastructure::encryption::{AESSymmetricEncryptionService, EncryptionServiceTraits};
 use crate::shared::error::{AppError, codes};
 use chrono::Utc;
 use sea_orm::*;
@@ -46,26 +47,29 @@ impl ProjectEnvironmentVariablesService {
         Ok(())
     }
 
-    fn encrypt_value(raw_value: &str) -> String {
-        raw_value.bytes().map(|b| format!("{:02x}", b)).collect()
+    fn encrypt_value(raw_value: &str, key: &str) -> Result<String, AppError> {
+        let service = AESSymmetricEncryptionService::new(key.to_string())
+            .map_err(|_| AppError::bad_request(codes::projects::ENV_005, "Invalid value"))?;
+        let value = service
+            .encrypt(raw_value.as_bytes())
+            .map_err(|_| AppError::bad_request(codes::projects::ENV_005, "Invalid value"))?;
+        Ok(value)
     }
 
-    fn decrypt_value(encrypted_hex: &str) -> String {
-        let mut bytes = Vec::new();
-        for i in (0..encrypted_hex.len()).step_by(2) {
-            if i + 2 <= encrypted_hex.len()
-                && let Ok(b) = u8::from_str_radix(&encrypted_hex[i..i + 2], 16)
-            {
-                bytes.push(b);
-            }
-        }
-        String::from_utf8(bytes).unwrap_or_default()
+    fn decrypt_value(encrypted_hex: &str, key: &str) -> Result<String, AppError> {
+        let service = AESSymmetricEncryptionService::new(key.to_string())
+            .map_err(|_| AppError::bad_request(codes::projects::ENV_005, "Invalid value"))?;
+        let value = service
+            .decrypt(encrypted_hex)
+            .map_err(|_| AppError::bad_request(codes::projects::ENV_005, "Invalid value"))?;
+        Ok(value)
     }
 
     pub async fn create_env_var(
         db: &DatabaseConnection,
         org_id: Option<Uuid>,
         project_id: Uuid,
+        secret_key: &str,
         req: CreateProjectEnvVarDTO,
     ) -> Result<ProjectEnvVarResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
@@ -98,7 +102,7 @@ impl ProjectEnvironmentVariablesService {
             project_id: Set(project_id),
             environment: Set(req.environment),
             key: Set(req.key),
-            value_encrypted: Set(Self::encrypt_value(&req.value)),
+            value_encrypted: Set(Self::encrypt_value(&req.value, secret_key)?),
             is_secret: Set(Some(req.is_secret.unwrap_or(true))),
             created_at: Set(now),
             updated_at: Set(now),
@@ -151,6 +155,7 @@ impl ProjectEnvironmentVariablesService {
         org_id: Option<Uuid>,
         project_id: Uuid,
         env_var_id: Uuid,
+        secret_key: &str,
         req: UpdateProjectEnvVarDTO,
     ) -> Result<ProjectEnvVarResponse, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
@@ -175,7 +180,7 @@ impl ProjectEnvironmentVariablesService {
         active_model.updated_at = Set(now);
 
         if let Some(val) = req.value {
-            active_model.value_encrypted = Set(Self::encrypt_value(&val));
+            active_model.value_encrypted = Set(Self::encrypt_value(&val, secret_key)?);
         }
         if let Some(secret) = req.is_secret {
             active_model.is_secret = Set(Some(secret));
@@ -217,6 +222,7 @@ impl ProjectEnvironmentVariablesService {
         db: &DatabaseConnection,
         org_id: Option<Uuid>,
         project_id: Uuid,
+        secret_key: &str,
         req: BulkCreateProjectEnvVarDTO,
     ) -> Result<Vec<ProjectEnvVarResponse>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
@@ -256,7 +262,7 @@ impl ProjectEnvironmentVariablesService {
                 project_id: Set(project_id),
                 environment: Set(item.environment.clone()),
                 key: Set(item.key),
-                value_encrypted: Set(Self::encrypt_value(&item.value)),
+                value_encrypted: Set(Self::encrypt_value(&item.value, secret_key)?),
                 is_secret: Set(Some(item.is_secret.unwrap_or(false))),
                 ..Default::default()
             };
@@ -275,6 +281,7 @@ impl ProjectEnvironmentVariablesService {
         org_id: Option<Uuid>,
         project_id: Uuid,
         environment: &str,
+        secret_key: &str,
     ) -> Result<HashMap<String, String>, AppError> {
         let _project = ProjectsRepository::find_by_id_and_optional_org(db, project_id, org_id)
             .await?
@@ -289,7 +296,7 @@ impl ProjectEnvironmentVariablesService {
 
         let mut map = HashMap::with_capacity(env_vars.len());
         for var in env_vars {
-            let val = Self::decrypt_value(&var.value_encrypted);
+            let val = Self::decrypt_value(&var.value_encrypted, secret_key)?;
             map.insert(var.key, val);
         }
 
@@ -322,9 +329,10 @@ mod tests {
     #[test]
     fn test_encryption_decryption_roundtrip() {
         let raw = "super-secret-password-123!@#";
-        let encrypted = ProjectEnvironmentVariablesService::encrypt_value(raw);
+        let encrypted = ProjectEnvironmentVariablesService::encrypt_value(raw, "1234").unwrap();
         assert_ne!(raw, encrypted);
-        let decrypted = ProjectEnvironmentVariablesService::decrypt_value(&encrypted);
+        let decrypted =
+            ProjectEnvironmentVariablesService::decrypt_value(&encrypted, "1234").unwrap();
         assert_eq!(raw, decrypted);
     }
 
@@ -362,6 +370,7 @@ mod tests {
             None,
             Uuid::new_v4(),
             "production",
+            "1234",
         )
         .await;
         assert!(result.is_err());
