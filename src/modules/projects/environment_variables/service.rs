@@ -5,7 +5,7 @@ use super::dto::{
 };
 use super::entities::project_environment_variables::ActiveModel as EnvVarActiveModel;
 use super::repository::ProjectEnvironmentVariablesRepository;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use chrono::Utc;
 use sea_orm::*;
 use std::collections::HashMap;
@@ -54,9 +54,10 @@ impl ProjectEnvironmentVariablesService {
         let mut bytes = Vec::new();
         for i in (0..encrypted_hex.len()).step_by(2) {
             if i + 2 <= encrypted_hex.len()
-                && let Ok(b) = u8::from_str_radix(&encrypted_hex[i..i + 2], 16) {
-                    bytes.push(b);
-                }
+                && let Ok(b) = u8::from_str_radix(&encrypted_hex[i..i + 2], 16)
+            {
+                bytes.push(b);
+            }
         }
         String::from_utf8(bytes).unwrap_or_default()
     }
@@ -86,8 +87,7 @@ impl ProjectEnvironmentVariablesService {
                 codes::projects::ENV_002,
                 format!(
                     "Environment variable '{}' already exists in {} environment",
-                    req.key,
-                    req.environment
+                    req.key, req.environment
                 ),
             ));
         }
@@ -160,10 +160,7 @@ impl ProjectEnvironmentVariablesService {
         let env_var = ProjectEnvironmentVariablesRepository::find_by_id(db, env_var_id)
             .await?
             .ok_or_else(|| {
-                AppError::not_found(
-                    codes::projects::ENV_004,
-                    "Environment variable not found",
-                )
+                AppError::not_found(codes::projects::ENV_004, "Environment variable not found")
             })?;
 
         if env_var.project_id != project_id {
@@ -202,10 +199,7 @@ impl ProjectEnvironmentVariablesService {
         let env_var = ProjectEnvironmentVariablesRepository::find_by_id(db, env_var_id)
             .await?
             .ok_or_else(|| {
-                AppError::not_found(
-                    codes::projects::ENV_004,
-                    "Environment variable not found",
-                )
+                AppError::not_found(codes::projects::ENV_004, "Environment variable not found")
             })?;
 
         if env_var.project_id != project_id {
@@ -244,9 +238,8 @@ impl ProjectEnvironmentVariablesService {
                 &item.key,
             )
             .await?;
-            if find_env.is_some() {
-                let find_env = find_env.unwrap();
-                let mut active_model = find_env.into_active_model();
+            if let Some(find_env) = find_env {
+                let mut active_model: EnvVarActiveModel = find_env.into_active_model();
 
                 active_model.environment = Set(item.environment);
                 active_model.value_encrypted = Set(item.value);

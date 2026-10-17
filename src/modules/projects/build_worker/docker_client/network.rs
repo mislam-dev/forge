@@ -12,28 +12,22 @@ impl DockerNetwork {
         Self { client }
     }
 
-    pub async fn create(
+    pub async fn _create(
         &self,
         config: NetworkCreateRequest,
     ) -> Result<NetworkCreateResponse, DockerClientError> {
         let res = self.client.create_network(config).await.map_err(|e| {
-            DockerClientError::NetworkError(format!(
-                "failed to create new network: {}",
-                e
-            ))
+            DockerClientError::NetworkError(format!("failed to create new network: {}", e))
         })?;
         Ok(res)
     }
 
-    pub async fn remove(&self, network_name: &str) -> Result<(), DockerClientError> {
+    pub async fn _remove(&self, network_name: &str) -> Result<(), DockerClientError> {
         self.client
             .remove_network(network_name)
             .await
             .map_err(|e| {
-                DockerClientError::NetworkError(format!(
-                    "failed to create new network: {}",
-                    e
-                ))
+                DockerClientError::NetworkError(format!("failed to create new network: {}", e))
             })?;
 
         Ok(())

@@ -1,4 +1,4 @@
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -77,8 +77,7 @@ impl PackageJson {
 
         let malicious_pkgs: Vec<String> = vec![];
 
-        if self.dependencies.is_some() {
-            let deps = self.dependencies.as_ref().unwrap();
+        if let Some(deps) = &self.dependencies {
             for (name, _version) in deps.iter() {
                 if malicious_pkgs.contains(name) {
                     errors.push(format!(
@@ -89,8 +88,7 @@ impl PackageJson {
                 }
             }
         }
-        if self.dev_dependencies.is_some() {
-            let deps = self.dev_dependencies.as_ref().unwrap();
+        if let Some(deps) = &self.dev_dependencies {
             for (name, _version) in deps.iter() {
                 if malicious_pkgs.contains(name) {
                     errors.push(format!(

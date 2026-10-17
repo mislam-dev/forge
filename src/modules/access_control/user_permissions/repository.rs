@@ -5,7 +5,7 @@ use super::entities::user_permissions::{
 use crate::modules::access_control::permissions::entities::permissions::{
     Column as PermissionColumn, Entity as PermissionEntity, Model as PermissionModel,
 };
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
     QueryFilter,
@@ -22,7 +22,7 @@ impl UserPermissionsRepository {
     ) -> Result<Vec<UserPermissionModel>, AppError> {
         let mut data: Vec<UserPermissionModel> = vec![];
         for perm_id in permission_ids {
-            if let Ok(_) = Self::find_entry(db, user_id, perm_id).await {
+            if Self::find_entry(db, user_id, perm_id).await.is_ok() {
                 continue;
             }
 

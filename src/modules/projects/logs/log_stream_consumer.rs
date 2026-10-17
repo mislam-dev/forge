@@ -80,7 +80,7 @@ impl MessageHandler<BuildLogsJobCreated> for Consumer {
             let done_event = Event::default()
                 .event("done")
                 .data(r#"{"status":"finished"}"#);
-            let _ = self.tx.send(Ok(done_event));
+            let _ = self.tx.send(Ok(done_event)).await;
         }
 
         Ok(())

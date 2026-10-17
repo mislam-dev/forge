@@ -27,5 +27,8 @@ pub trait RabbitMqMessage: Serialize + Send + Sync {
 }
 
 pub trait MessagePublisher: Send + Sync {
-    async fn publish<M: RabbitMqMessage>(&self, message: &M) -> Result<(), QueueError>;
+    fn publish<M: RabbitMqMessage>(
+        &self,
+        message: &M,
+    ) -> impl std::future::Future<Output = Result<(), QueueError>> + Send;
 }

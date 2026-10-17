@@ -1,5 +1,5 @@
 use crate::shared::error::AppError;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[derive(Debug)]
 pub enum PkgManger {
@@ -58,7 +58,7 @@ impl PkgManger {
     }
 
     // todo: remove this
-    pub fn has_ts_config(path: &PathBuf) -> bool {
+    pub fn has_ts_config(path: &Path) -> bool {
         path.join("tsconfig.json").exists()
     }
 }

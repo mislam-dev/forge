@@ -5,7 +5,7 @@ use super::entities::user_roles::{
 use crate::modules::access_control::roles::entities::roles::{
     Column as RoleColumn, Entity as RoleEntity, Model as RoleModel,
 };
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
     QueryFilter,
@@ -22,7 +22,7 @@ impl UserRolesRepository {
     ) -> Result<Vec<UserRoleModel>, AppError> {
         let mut data: Vec<UserRoleModel> = vec![];
         for role_id in role_ids {
-            if let Ok(_) = Self::find_entry(db, user_id, role_id).await {
+            if Self::find_entry(db, user_id, role_id).await.is_ok() {
                 continue;
             }
             let active_model = UserRoleActiveModel {

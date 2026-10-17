@@ -41,6 +41,7 @@ pub struct BuildPipeline {
     log_stream: LogStream,
 }
 
+// todo: organize and optimize the whole file
 impl BuildPipeline {
     pub fn new(
         db: &DatabaseConnection,
@@ -79,7 +80,7 @@ impl BuildPipeline {
             OwnerType::User => Owner::user(self.org_or_user_id),
             OwnerType::Org => Owner::org(self.org_or_user_id),
         };
-        
+
         DeploymentPath::new(DeploymentPathDTO {
             project_id: self.project_id.to_string(),
             deployment_id: self.deployment_id.to_string(),

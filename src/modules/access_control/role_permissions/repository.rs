@@ -4,7 +4,7 @@ use super::entities::role_permissions::{
 };
 use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
 use crate::modules::access_control::permissions::service::PermissionsService;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use crate::shared::pagination::{PaginatedResponse, PaginationParams};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
@@ -22,7 +22,10 @@ impl RolePermissionsRepository {
     ) -> Result<Vec<RolePermissionModel>, AppError> {
         let mut data: Vec<RolePermissionModel> = vec![];
         for permission_id in permission_ids {
-            if let Ok(_) = Self::find_permissions_entry(db, role_id, permission_id).await {
+            if Self::find_permissions_entry(db, role_id, permission_id)
+                .await
+                .is_ok()
+            {
                 continue;
             }
             let active_model = RolePermissionActiveModel {
