@@ -44,11 +44,13 @@ export default function (data) {
 }
 
 export function handleSummary(data) {
-  const metrics = data.metrics;
-  const p95 = metrics.http_req_duration ? metrics.http_req_duration.values['p(95)'].toFixed(2) : 'N/A';
-  const p99 = metrics.http_req_duration ? metrics.http_req_duration.values['p(99)'].toFixed(2) : 'N/A';
-  const failRate = metrics.http_req_failed ? (metrics.http_req_failed.values.rate * 100).toFixed(3) : 'N/A';
-  const rps = metrics.http_reqs ? metrics.http_reqs.values.rate.toFixed(1) : 'N/A';
+  const metrics = data.metrics || {};
+  const p95Val = metrics.http_req_duration && metrics.http_req_duration.values ? metrics.http_req_duration.values['p(95)'] : undefined;
+  const p99Val = metrics.http_req_duration && metrics.http_req_duration.values ? metrics.http_req_duration.values['p(99)'] : undefined;
+  const p95 = p95Val !== undefined ? p95Val.toFixed(2) : 'N/A';
+  const p99 = p99Val !== undefined ? p99Val.toFixed(2) : 'N/A';
+  const failRate = metrics.http_req_failed && metrics.http_req_failed.values ? (metrics.http_req_failed.values.rate * 100).toFixed(3) : 'N/A';
+  const rps = metrics.http_reqs && metrics.http_reqs.values ? metrics.http_reqs.values.rate.toFixed(1) : 'N/A';
 
   const summaryText = `
 =====================================================

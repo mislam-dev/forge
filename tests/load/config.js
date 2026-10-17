@@ -7,7 +7,7 @@ export const CONFIG = {
     email: __ENV.TEST_EMAIL || 'admin1@forge.local',
     password: __ENV.TEST_PASSWORD || 'Password123!',
   },
-  ORGANIZATION_ID: __ENV.ORG_ID || '00000000-0000-0000-0000-000000000001',
+  ORGANIZATION_ID: __ENV.ORG_ID || '1b913f11-5abc-4dc8-b0a6-3aada3466472',
   ENDPOINTS: {
     root: '/',
     health: '/api/v1/health',

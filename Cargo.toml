@@ -3,6 +3,9 @@ name = "forge"
 version = "0.1.0"
 edition = "2024"
 default-run = "forge"
+description = "High-performance, event-driven self-hosted developer platform (PaaS) in Rust"
+license = "MIT"
+readme = "README.md"
 
 
 [workspace]

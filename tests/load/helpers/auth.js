@@ -44,8 +44,9 @@ export function login(email = CONFIG.DEFAULT_CREDENTIALS.email, password = CONFI
 
   try {
     const json = res.json();
-    const token = json.body ? json.body.access_token : null;
-    const refreshToken = json.body ? json.body.refresh_token : null;
+    const data = json.data || json.body || json;
+    const token = data ? data.access_token : null;
+    const refreshToken = data ? data.refresh_token : null;
     return {
       accessToken: token,
       refreshToken: refreshToken,

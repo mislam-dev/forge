@@ -1,4 +1,13 @@
 set dotenv-load
+
+# ================================
+# Demonstration & Evaluation
+# ================================
+
+# Run complete one-command live demonstration workflow (<60s)
+demo:
+    bash scripts/demo.sh
+
 # ================================
 # Development
 # ================================
