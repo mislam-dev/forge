@@ -12,7 +12,7 @@ use crate::modules::{
     auth::token::AccessTokenClaims,
     organization::permissions::extractors::{RequireOwner, RequireViewer},
 };
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use crate::shared::response::ApiResponse;
 use crate::shared::validation::JsonValidate;
 use crate::{

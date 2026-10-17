@@ -8,7 +8,7 @@ use super::entities::deployments::{
     Model as DeploymentModel,
 };
 use super::status::DeploymentStatus;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use crate::shared::pagination::PaginatedResponse;
 
 pub struct DeploymentsRepository;
@@ -37,9 +37,10 @@ impl DeploymentsRepository {
             .order_by_desc(DeploymentColumn::CreatedAt);
 
         if let Some(status) = query.status
-            && let Ok(st) = status.parse::<DeploymentStatus>() {
-                stmt = stmt.filter(DeploymentColumn::Status.eq(st));
-            }
+            && let Ok(st) = status.parse::<DeploymentStatus>()
+        {
+            stmt = stmt.filter(DeploymentColumn::Status.eq(st));
+        }
         if let Some(branch) = query.branch {
             stmt = stmt.filter(DeploymentColumn::Branch.eq(branch));
         }
@@ -137,9 +138,9 @@ impl DeploymentsRepository {
         deploy_duration: Option<i32>,
         error_message: Option<String>,
     ) -> Result<DeploymentModel, AppError> {
-        let deployment = Self::find_by_id(db, deployment_id)
-            .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found"))?;
+        let deployment = Self::find_by_id(db, deployment_id).await?.ok_or_else(|| {
+            AppError::not_found(codes::deployments::DEPLOY_001, "Deployment not found")
+        })?;
 
         let mut active_model: DeploymentActiveModel = deployment.into();
         active_model.status = Set(target_status);

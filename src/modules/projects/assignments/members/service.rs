@@ -6,7 +6,7 @@ use super::dto::{AssignProjectMemberDTO, ProjectMemberResponse};
 use super::repository::ProjectAssignmentsRepository;
 use crate::modules::organization::permissions::service::OrgPermissionsService;
 use crate::modules::users::repository::UserRepository;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct ProjectAssignmentsService;
 

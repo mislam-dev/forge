@@ -14,7 +14,7 @@ use crate::modules::organization::permissions::service::OrgPermissionsService;
 use crate::modules::teams::members::entities::team_member::{
     Column as TeamMemberColumn, Entity as TeamMemberEntity,
 };
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct ProjectPermissionsService;
 
@@ -34,19 +34,20 @@ impl ProjectPermissionsService {
         if let Some(org_id) = org_id
             && let Some(org_role) =
                 OrgPermissionsService::resolve_org_role(db, org_id, user_id).await?
-            {
-                match org_role {
-                    OrgRole::Owner => return Ok(Some(ProjectRole::Owner)),
-                    OrgRole::Admin => return Ok(Some(ProjectRole::Admin)),
-                    _ => {}
-                }
+        {
+            match org_role {
+                OrgRole::Owner => return Ok(Some(ProjectRole::Owner)),
+                OrgRole::Admin => return Ok(Some(ProjectRole::Admin)),
+                _ => {}
             }
+        }
 
         // Fetch project to check owner_id
         if let Some(project) = ProjectsRepository::find_any_by_id(db, project_id).await?
-            && project.owner_id == user_id {
-                return Ok(Some(ProjectRole::Owner));
-            }
+            && project.owner_id == user_id
+        {
+            return Ok(Some(ProjectRole::Owner));
+        }
 
         // Check project_members junction table
         if let Some(member) = MemberEntity::find()
@@ -54,8 +55,9 @@ impl ProjectPermissionsService {
             .filter(MemberColumn::UserId.eq(user_id))
             .one(db)
             .await?
-            && let Some(role) = member.role {
-                match role {
+            && let Some(role) = member.role
+        {
+            match role {
                     crate::modules::projects::assignments::members::entities::sea_orm_active_enums::ProjectMembersRole::Admin => {
                         return Ok(Some(ProjectRole::Admin));
                     }
@@ -66,7 +68,7 @@ impl ProjectPermissionsService {
                         return Ok(Some(ProjectRole::Viewer));
                     }
                 }
-            }
+        }
 
         // Check project_teams & team_members junction tables
         let project_teams = ProjectTeamEntity::find()

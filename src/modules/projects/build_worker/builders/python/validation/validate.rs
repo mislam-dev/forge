@@ -1,4 +1,4 @@
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use std::path::Path;
 
 pub struct Validation;

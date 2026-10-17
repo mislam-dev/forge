@@ -27,4 +27,3 @@ mod tests {
         let _router = health_router();
     }
 }
-

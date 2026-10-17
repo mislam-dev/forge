@@ -247,4 +247,3 @@ mod tests {
         assert_eq!(json["is_error"], true);
     }
 }
-

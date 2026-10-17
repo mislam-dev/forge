@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use sea_orm::DatabaseConnection;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::{
@@ -10,9 +10,7 @@ use crate::{
         users::{
             dto::request::CreateUserDto,
             entities::sea_orm_active_enums::UserStatus,
-            profile::{
-                dto::request::UpdateUserProfileDto, repository::UserProfileRepository,
-            },
+            profile::{dto::request::UpdateUserProfileDto, repository::UserProfileRepository},
             repository::UserRepository,
         },
     },
@@ -48,7 +46,6 @@ impl UserSeeder {
                 last_name: "Two",
                 role_key: "admin",
             },
-
             // 5 Developer Users
             UserSeed {
                 name: "Developer One",
@@ -85,7 +82,6 @@ impl UserSeeder {
                 last_name: "Five",
                 role_key: "developer",
             },
-
             // 10 Viewer Users
             UserSeed {
                 name: "Viewer One",
@@ -160,9 +156,7 @@ impl UserSeeder {
         ]
     }
 
-    pub async fn seed_users(
-        db: &DatabaseConnection,
-    ) -> Result<(), AppError> {
+    pub async fn seed_users(db: &DatabaseConnection) -> Result<(), AppError> {
         let default_users = Self::get_default_users();
         let default_password = "Password123!";
 
@@ -174,7 +168,9 @@ impl UserSeeder {
         }
 
         for user_seed in default_users {
-            let existing_user = UserRepository::find_by_email_with_password(db, &user_seed.email.to_string()).await?;
+            let existing_user =
+                UserRepository::find_by_email_with_password(db, &user_seed.email.to_string())
+                    .await?;
             let user_id = match existing_user {
                 Some(u) => u.id,
                 None => {
@@ -187,7 +183,8 @@ impl UserSeeder {
                         },
                     )
                     .await?;
-                    let _ = UserRepository::update_status(db, created.id, UserStatus::Active).await?;
+                    let _ =
+                        UserRepository::update_status(db, created.id, UserStatus::Active).await?;
                     created.id
                 }
             };

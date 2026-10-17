@@ -21,10 +21,7 @@ pub fn deployments_router() -> Router<AppState> {
             "/{id}/deployments/{deployment_id}/redeploy",
             post(handlers::redeploy),
         )
-        .route(
-            "/{id}/deployments/rollback",
-            post(handlers::rollback),
-        )
+        .route("/{id}/deployments/rollback", post(handlers::rollback))
         .route_layer(middleware::from_extractor::<AccessTokenClaims>());
 
     let internal_deployments_router = Router::new().route(

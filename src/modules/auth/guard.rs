@@ -15,20 +15,12 @@ where
             .get(AUTHORIZATION)
             .and_then(|value| value.to_str().ok())
             .ok_or_else(|| {
-                AppError::unauthorized(
-                    codes::auth::AUTH_000,
-                    "Missing Authorization header",
-                )
+                AppError::unauthorized(codes::auth::AUTH_000, "Missing Authorization header")
             })?;
 
-        let token = auth_header
-            .strip_prefix("Bearer ")
-            .ok_or_else(|| {
-                AppError::unauthorized(
-                    codes::auth::AUTH_000,
-                    "Invalid Authorization header format",
-                )
-            })?;
+        let token = auth_header.strip_prefix("Bearer ").ok_or_else(|| {
+            AppError::unauthorized(codes::auth::AUTH_000, "Invalid Authorization header format")
+        })?;
 
         let jwt_claims = AccessTokenService::verify(token)
             .map_err(|_| AppError::unauthorized(codes::auth::AUTH_000, "Unauthorized"))?;
@@ -78,4 +70,3 @@ mod tests {
         }
     }
 }
-

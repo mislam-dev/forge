@@ -1,5 +1,5 @@
 use super::package_json::PackageJson;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use std::fs::read_to_string;
 use std::path::Path;
 

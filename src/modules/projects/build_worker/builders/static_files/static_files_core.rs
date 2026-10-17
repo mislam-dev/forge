@@ -1,5 +1,5 @@
-use super::super::base_builder::BaseBuilder;
 use super::super::super::traits::{BuilderConfig, ProjectBuilder};
+use super::super::base_builder::BaseBuilder;
 use super::file_generator::FileGenerator;
 use crate::shared::error::AppError;
 use async_trait::async_trait;
@@ -19,7 +19,9 @@ impl StaticFilesBuilder {
 #[async_trait]
 impl ProjectBuilder for StaticFilesBuilder {
     async fn download_pkgs(&self) -> Result<(), AppError> {
-        self.base.log_info("Package", "Processing static assets...").await;
+        self.base
+            .log_info("Package", "Processing static assets...")
+            .await;
         Ok(())
     }
 
@@ -32,7 +34,10 @@ impl ProjectBuilder for StaticFilesBuilder {
 
     async fn create_files(&self) -> Result<(), AppError> {
         self.base
-            .log_info("Generator", "Generating Nginx Dockerfile and .dockerignore...")
+            .log_info(
+                "Generator",
+                "Generating Nginx Dockerfile and .dockerignore...",
+            )
             .await;
         let file_gen = FileGenerator::new(self.base.project_path.source.clone());
         file_gen.create_dockerfile().await?;

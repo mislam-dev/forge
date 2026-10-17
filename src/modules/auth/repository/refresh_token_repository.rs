@@ -2,7 +2,7 @@ use crate::modules::auth::entities::refresh_tokens::{
     ActiveModel as RefreshActiveModel, Column as RefreshColumn, Entity as RefreshEntity,
     Model as RefreshModel,
 };
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
     QueryFilter,

@@ -7,7 +7,7 @@ use super::dto::{
 };
 use super::entities::notification::ActiveModel as NotificationActiveModel;
 use super::repository::NotificationsRepository;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use crate::shared::pagination::PaginatedResponse;
 
 pub struct NotificationsService;
@@ -48,7 +48,9 @@ impl NotificationsService {
     ) -> Result<NotificationResponse, AppError> {
         let notification = NotificationsRepository::find_by_id(db, notification_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::notifications::NOTIF_001, "Notification not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::notifications::NOTIF_001, "Notification not found")
+            })?;
 
         if notification.user_id != user_id {
             return Err(AppError::forbidden(

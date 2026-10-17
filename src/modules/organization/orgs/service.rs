@@ -6,7 +6,7 @@ use crate::modules::organization::members::entities::sea_orm_active_enums::Organ
 use crate::modules::organization::members::repository::OrganizationMembersRepository;
 use crate::modules::organization::permissions::role::OrgRole;
 use crate::modules::organization::permissions::service::OrgPermissionsService;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use chrono::Utc;
 use sea_orm::{DatabaseConnection, Set, TransactionTrait};
 use uuid::Uuid;
@@ -98,10 +98,7 @@ impl OrganizationService {
         let org = OrganizationRepository::find_by_id(db, id)
             .await?
             .ok_or_else(|| {
-                AppError::not_found(
-                    codes::organization::ORG_001,
-                    "Organization not found",
-                )
+                AppError::not_found(codes::organization::ORG_001, "Organization not found")
             })?;
 
         let owner_id = OrganizationRepository::find_owner_id(db, org.id).await?;
@@ -117,10 +114,7 @@ impl OrganizationService {
         let org = OrganizationRepository::find_by_id(db, id)
             .await?
             .ok_or_else(|| {
-                AppError::not_found(
-                    codes::organization::ORG_001,
-                    "Organization not found",
-                )
+                AppError::not_found(codes::organization::ORG_001, "Organization not found")
             })?;
 
         let role = OrgPermissionsService::find_role(db, id, user_id)
@@ -144,12 +138,13 @@ impl OrganizationService {
             if !slugified.is_empty() {
                 let existing = OrganizationRepository::find_by_slug(db, &slugified).await?;
                 if let Some(other) = existing
-                    && other.id != id {
-                        return Err(AppError::conflict(
-                            codes::organization::ORG_004,
-                            "An organization with this slug already exists",
-                        ));
-                    }
+                    && other.id != id
+                {
+                    return Err(AppError::conflict(
+                        codes::organization::ORG_004,
+                        "An organization with this slug already exists",
+                    ));
+                }
                 active.slug = Set(slugified);
             }
         }
@@ -172,10 +167,7 @@ impl OrganizationService {
         let _org = OrganizationRepository::find_by_id(db, id)
             .await?
             .ok_or_else(|| {
-                AppError::not_found(
-                    codes::organization::ORG_001,
-                    "Organization not found",
-                )
+                AppError::not_found(codes::organization::ORG_001, "Organization not found")
             })?;
 
         OrganizationRepository::delete(db, id).await?;

@@ -6,7 +6,7 @@ use crate::{
         request::{CreateUserDto, UpdateUserDto},
         response::{UserItemResponse, UserItemWithPassword},
     },
-    shared::error::{codes, AppError},
+    shared::error::{AppError, codes},
 };
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
@@ -57,9 +57,8 @@ impl UserService {
     pub async fn find_one(db: &DatabaseConnection, id: Uuid) -> Result<UserItemResponse, AppError> {
         let user = UserRepository::find_by_id(db, id).await?;
 
-        let user = user.ok_or_else(|| {
-            AppError::not_found(codes::users::USER_001, "User not found")
-        })?;
+        let user =
+            user.ok_or_else(|| AppError::not_found(codes::users::USER_001, "User not found"))?;
 
         Ok(UserItemResponse {
             id: user.id,
@@ -121,9 +120,8 @@ impl UserService {
         email: &String,
     ) -> Result<UserItemWithPassword, AppError> {
         let user = UserRepository::find_by_email_with_password(db, email).await?;
-        let user = user.ok_or_else(|| {
-            AppError::not_found(codes::users::USER_001, "User not found")
-        })?;
+        let user =
+            user.ok_or_else(|| AppError::not_found(codes::users::USER_001, "User not found"))?;
         Ok(UserItemWithPassword {
             id: user.id,
             name: user.name,
@@ -136,9 +134,8 @@ impl UserService {
         email: &String,
     ) -> Result<UserItemResponse, AppError> {
         let user = UserRepository::find_by_email_with_password(db, email).await?;
-        let user = user.ok_or_else(|| {
-            AppError::not_found(codes::users::USER_001, "User not found")
-        })?;
+        let user =
+            user.ok_or_else(|| AppError::not_found(codes::users::USER_001, "User not found"))?;
         Ok(UserItemResponse {
             id: user.id,
             name: user.name,

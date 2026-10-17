@@ -1,4 +1,4 @@
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use bcrypt::{DEFAULT_COST, hash, verify};
 
 pub struct PasswordService;

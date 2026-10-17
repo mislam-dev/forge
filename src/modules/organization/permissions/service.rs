@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use super::role::OrgRole;
 use crate::modules::organization::members::repository::OrganizationMembersRepository;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct OrgPermissionsService;
 

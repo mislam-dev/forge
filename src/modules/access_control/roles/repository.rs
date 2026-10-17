@@ -3,7 +3,7 @@ use super::entities::roles::{
 };
 use crate::{
     modules::access_control::roles::dto::request::{RoleCreateDto, RoleUpdateDto},
-    shared::error::{codes, AppError},
+    shared::error::{AppError, codes},
 };
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
@@ -59,12 +59,7 @@ impl RoleRepository {
     ) -> Result<RoleModel, AppError> {
         let existing_role = Self::find_by_id(db, id)
             .await?
-            .ok_or_else(|| {
-                AppError::not_found(
-                    codes::access::ACCESS_002,
-                    "Role not found!",
-                )
-            })?;
+            .ok_or_else(|| AppError::not_found(codes::access::ACCESS_002, "Role not found!"))?;
 
         let mut active_role: RoleActiveModel = existing_role.into();
 

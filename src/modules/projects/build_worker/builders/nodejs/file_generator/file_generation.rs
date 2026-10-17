@@ -19,30 +19,15 @@ impl FileGenerator {
         let pkg_manager = PkgManger::detect(&self.project_path)?;
 
         let mut replaceable: Vec<(String, String)> = vec![
-            (
-                String::from("{pkg_installer}"),
-                pkg_manager.install(),
-            ),
+            (String::from("{pkg_installer}"), pkg_manager.install()),
             (
                 String::from("{pkg_postinstaller}"),
                 pkg_manager.postinstall(),
             ),
-            (
-                String::from("{pkg_builder}"),
-                pkg_manager.build(),
-            ),
-            (
-                String::from("{pkg_prune}"),
-                pkg_manager.prune(),
-            ),
-            (
-                String::from("{lock_file}"),
-                pkg_manager.lock_file(),
-            ),
-            (
-                String::from("{exposed_port}"),
-                "3000".to_string(),
-            ),
+            (String::from("{pkg_builder}"), pkg_manager.build()),
+            (String::from("{pkg_prune}"), pkg_manager.prune()),
+            (String::from("{lock_file}"), pkg_manager.lock_file()),
+            (String::from("{exposed_port}"), "3000".to_string()),
             (
                 String::from("{pkg_start}"),
                 format!(
@@ -57,15 +42,9 @@ impl FileGenerator {
         ];
 
         if PkgManger::has_ts_config(&self.project_path.to_path_buf()) {
-            replaceable.push((
-                String::from("{ts_config}"),
-                "tsconfig.json".to_string(),
-            ));
+            replaceable.push((String::from("{ts_config}"), "tsconfig.json".to_string()));
         } else {
-            replaceable.push((
-                String::from("{ts_config}"),
-                String::new(),
-            ));
+            replaceable.push((String::from("{ts_config}"), String::new()));
         }
 
         for (key, value) in replaceable {

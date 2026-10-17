@@ -1,5 +1,5 @@
-use super::super::base_builder::BaseBuilder;
 use super::super::super::traits::{BuilderConfig, ProjectBuilder};
+use super::super::base_builder::BaseBuilder;
 use super::file_generator::FileGenerator;
 use super::validation::Validation;
 use crate::shared::error::AppError;
@@ -20,14 +20,20 @@ impl PythonBuilder {
 #[async_trait]
 impl ProjectBuilder for PythonBuilder {
     async fn download_pkgs(&self) -> Result<(), AppError> {
-        self.base.log_info("Package", "Resolving Python dependencies...").await;
+        self.base
+            .log_info("Package", "Resolving Python dependencies...")
+            .await;
         Ok(())
     }
 
     async fn validate(&self) -> Result<(), AppError> {
-        self.base.log_info("Validation", "Validating Python project...").await;
+        self.base
+            .log_info("Validation", "Validating Python project...")
+            .await;
         Validation::validate(&self.base.project_path.source.to_string_lossy())?;
-        self.base.log_info("Validation", "Python project validated successfully").await;
+        self.base
+            .log_info("Validation", "Python project validated successfully")
+            .await;
         Ok(())
     }
 

@@ -36,9 +36,10 @@ impl GithubRepo {
         let mut req = client.get(url);
 
         if let Some(token) = &dto.token
-            && token.clone() != "" {
-                req = req.bearer_auth(token);
-            }
+            && token.clone() != ""
+        {
+            req = req.bearer_auth(token);
+        }
 
         let response = req
             .send()

@@ -1,5 +1,5 @@
-use super::super::base_builder::BaseBuilder;
 use super::super::super::traits::{BuilderConfig, ProjectBuilder};
+use super::super::base_builder::BaseBuilder;
 use super::validation::Validation;
 use crate::shared::error::AppError;
 use async_trait::async_trait;
@@ -19,19 +19,27 @@ impl DockerBuilder {
 #[async_trait]
 impl ProjectBuilder for DockerBuilder {
     async fn download_pkgs(&self) -> Result<(), AppError> {
-        self.base.log_info("Package", "Downloading packages...").await;
+        self.base
+            .log_info("Package", "Downloading packages...")
+            .await;
         Ok(())
     }
 
     async fn validate(&self) -> Result<(), AppError> {
-        self.base.log_info("Validation", "Validating project...").await;
+        self.base
+            .log_info("Validation", "Validating project...")
+            .await;
         Validation::validate(&self.base.project_path.source.to_string_lossy())?;
-        self.base.log_info("Validation", "Project validation passed").await;
+        self.base
+            .log_info("Validation", "Project validation passed")
+            .await;
         Ok(())
     }
 
     async fn create_files(&self) -> Result<(), AppError> {
-        self.base.log_info("Generator", "Using existing Dockerfile").await;
+        self.base
+            .log_info("Generator", "Using existing Dockerfile")
+            .await;
         Ok(())
     }
 

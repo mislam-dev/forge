@@ -3,7 +3,7 @@ use super::super::entities::organization_members::{
     Model as MemberModel,
 };
 use super::super::entities::sea_orm_active_enums::OrganizationMemberRole;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use sea_orm::*;
 use uuid::Uuid;
 

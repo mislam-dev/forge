@@ -9,7 +9,7 @@ use crate::{
             service::OrgPermissionsService,
         },
     },
-    shared::error::{codes, AppError},
+    shared::error::{AppError, codes},
 };
 use axum::extract::{FromRef, FromRequestParts};
 use uuid::Uuid;

@@ -11,7 +11,7 @@ use super::dto::{
 use super::service::HealthService;
 use crate::app::state::AppState;
 use crate::modules::auth::token::AccessTokenClaims;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use crate::shared::response::ApiResponse;
 
 pub async fn check_health(
@@ -163,7 +163,13 @@ mod tests {
             exp: 9999999999,
         };
 
-        let result = health_deep_check(admin_claims, Query(DeepHealthQuery { timeout_ms: Some(3000) })).await;
+        let result = health_deep_check(
+            admin_claims,
+            Query(DeepHealthQuery {
+                timeout_ms: Some(3000),
+            }),
+        )
+        .await;
         assert!(result.is_ok());
         let (status, Json(res)) = result.unwrap();
         assert_eq!(status, StatusCode::OK);
@@ -183,7 +189,8 @@ mod tests {
             exp: 9999999999,
         };
 
-        let result = health_deep_check(user_claims, Query(DeepHealthQuery { timeout_ms: None })).await;
+        let result =
+            health_deep_check(user_claims, Query(DeepHealthQuery { timeout_ms: None })).await;
         assert!(result.is_err());
         match result {
             Err(AppError::Forbidden(code, msg)) => {
@@ -194,4 +201,3 @@ mod tests {
         }
     }
 }
-

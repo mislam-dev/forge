@@ -1,5 +1,5 @@
-use super::super::base_builder::BaseBuilder;
 use super::super::super::traits::{BuilderConfig, ProjectBuilder};
+use super::super::base_builder::BaseBuilder;
 use super::file_generator::FileGenerator;
 use super::validation::Validation;
 use crate::shared::error::AppError;

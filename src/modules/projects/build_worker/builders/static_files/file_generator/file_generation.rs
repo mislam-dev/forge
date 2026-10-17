@@ -27,7 +27,10 @@ impl FileGenerator {
         if !ignore_path.exists() {
             const DOCKERIGNORE_TEMPLATE: &str = include_str!("./assets/.dockerignore");
             fs::write(&ignore_path, DOCKERIGNORE_TEMPLATE).map_err(|e| {
-                AppError::InternalServerError(format!("Failed to write Static .dockerignore: {}", e))
+                AppError::InternalServerError(format!(
+                    "Failed to write Static .dockerignore: {}",
+                    e
+                ))
             })?;
         }
         Ok(())

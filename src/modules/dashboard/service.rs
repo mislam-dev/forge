@@ -6,7 +6,7 @@ use crate::modules::organization::members::repository::OrganizationMembersReposi
 use crate::modules::organization::orgs::repository::OrganizationRepository;
 use crate::modules::organization::permissions::role::OrgRole;
 use crate::modules::organization::permissions::service::OrgPermissionsService;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct DashboardService;
 
@@ -19,7 +19,9 @@ impl DashboardService {
     ) -> Result<OrgDashboardResponse, AppError> {
         let org = OrganizationRepository::find_by_id(db, org_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::dashboard::DASH_001, "Organization not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::dashboard::DASH_001, "Organization not found")
+            })?;
 
         if !is_system_admin {
             OrgPermissionsService::verify_org_role(

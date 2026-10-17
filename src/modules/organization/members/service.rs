@@ -6,7 +6,7 @@ use super::entities::sea_orm_active_enums::{
 use super::repository::{OrganizationInvitationRepository, OrganizationMembersRepository};
 use crate::modules::organization::orgs::repository::OrganizationRepository;
 use crate::modules::users::service::UserService;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use chrono::{Duration, Utc};
 use sea_orm::DatabaseConnection;
 use std::collections::HashMap;
@@ -23,10 +23,7 @@ impl OrganizationMembersService {
         let _org = OrganizationRepository::find_by_id(db, org_id)
             .await?
             .ok_or_else(|| {
-                AppError::not_found(
-                    codes::organization::ORG_001,
-                    "Organization not found",
-                )
+                AppError::not_found(codes::organization::ORG_001, "Organization not found")
             })?;
 
         let member_role: OrganizationMemberRole = dto
@@ -131,10 +128,7 @@ impl OrganizationMembersService {
         let _org = OrganizationRepository::find_by_id(db, org_id)
             .await?
             .ok_or_else(|| {
-                AppError::not_found(
-                    codes::organization::ORG_001,
-                    "Organization not found",
-                )
+                AppError::not_found(codes::organization::ORG_001, "Organization not found")
             })?;
 
         let members = OrganizationMembersRepository::find_members_by_org_id(db, org_id).await?;
@@ -162,10 +156,7 @@ impl OrganizationMembersService {
         let _org = OrganizationRepository::find_by_id(db, org_id)
             .await?
             .ok_or_else(|| {
-                AppError::not_found(
-                    codes::organization::ORG_001,
-                    "Organization not found",
-                )
+                AppError::not_found(codes::organization::ORG_001, "Organization not found")
             })?;
 
         let invites = OrganizationInvitationRepository::find_pending(db, org_id).await?;

@@ -38,13 +38,12 @@ impl Deploy {
             .container
             .exist(&dto.container_name)
             .await
-            .map_err(|e| {
-                AppError::InternalServerError(format!("failed to get container: {}", e))
-            })?
-            && let Some(container_id) = &container_summary.id {
-                let _ = self.docker_client.container.stop(container_id).await;
-                let _ = self.docker_client.container.remove(container_id).await;
-            }
+            .map_err(|e| AppError::InternalServerError(format!("failed to get container: {}", e)))?
+            && let Some(container_id) = &container_summary.id
+        {
+            let _ = self.docker_client.container.stop(container_id).await;
+            let _ = self.docker_client.container.remove(container_id).await;
+        }
 
         let options = CreateContainerOptions {
             name: Some(dto.container_name),

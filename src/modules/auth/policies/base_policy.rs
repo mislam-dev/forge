@@ -1,4 +1,7 @@
-use crate::{modules::auth::token::AccessTokenClaims, shared::error::{codes, AppError}};
+use crate::{
+    modules::auth::token::AccessTokenClaims,
+    shared::error::{AppError, codes},
+};
 use axum::extract::FromRequestParts;
 use std::marker::PhantomData;
 
@@ -28,10 +31,7 @@ where
         let claims = AccessTokenClaims::from_request_parts(parts, state).await?;
 
         if !P::check(&claims) {
-            return Err(AppError::forbidden(
-                codes::access::ACCESS_005,
-                "Forbidden",
-            ));
+            return Err(AppError::forbidden(codes::access::ACCESS_005, "Forbidden"));
         }
         Ok(Guard(claims, PhantomData))
     }

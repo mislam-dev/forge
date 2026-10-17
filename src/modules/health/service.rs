@@ -5,7 +5,7 @@ use std::time::Instant;
 use uuid::Uuid;
 
 use super::dto::{DetailedHealthResponse, HealthProbeResponse, ServiceHealthItem};
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct HealthService;
 

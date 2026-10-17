@@ -31,9 +31,7 @@ impl RepoCloning {
             token: self.pat_token.clone(),
         })
         .await
-        .map_err(|e| {
-            AppError::InternalServerError(format!("repo didn't exist: {}", e))
-        })?;
+        .map_err(|e| AppError::InternalServerError(format!("repo didn't exist: {}", e)))?;
 
         Ok(repo)
     }
@@ -46,9 +44,8 @@ impl RepoCloning {
             token: self.pat_token.clone(),
         };
 
-        GithubRepo::clone(dto).map_err(|e| {
-            AppError::InternalServerError(format!("Failed to clone repo: {}", e))
-        })?;
+        GithubRepo::clone(dto)
+            .map_err(|e| AppError::InternalServerError(format!("Failed to clone repo: {}", e)))?;
         Ok(())
     }
 

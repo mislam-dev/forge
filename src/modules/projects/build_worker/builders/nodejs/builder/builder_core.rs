@@ -1,5 +1,5 @@
-use super::super::super::common::tar::build_tar_context;
 use super::super::super::super::docker_client::DockerClient;
+use super::super::super::common::tar::build_tar_context;
 use crate::modules::projects::build_worker::log_stream::LogStream;
 use crate::shared::error::AppError;
 use bollard::query_parameters::BuildImageOptions;
@@ -52,9 +52,7 @@ impl Builder {
                     for line in chunk.lines() {
                         let trimmed = line.trim();
                         if !trimmed.is_empty() {
-                            log_stream
-                                .log_info(&deployment_id, "Build", trimmed)
-                                .await;
+                            log_stream.log_info(&deployment_id, "Build", trimmed).await;
                         }
                     }
                 }

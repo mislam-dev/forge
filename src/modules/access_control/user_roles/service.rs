@@ -3,7 +3,7 @@ use super::repository::UserRolesRepository;
 use crate::modules::access_control::roles::dto::response::RoleResponseDto;
 use crate::modules::access_control::user_roles::dto::response::UserRoleResponse;
 use crate::modules::users::repository::UserRepository;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 

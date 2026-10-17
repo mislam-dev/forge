@@ -7,7 +7,7 @@ use super::dto::{CreateTeamDTO, TeamResponse, UpdateTeamDTO};
 use super::entities::team::ActiveModel as TeamActiveModel;
 use super::repository::TeamsRepository;
 use crate::modules::teams::members::dto::AddTeamMemberDTO;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct TeamsService;
 
@@ -85,15 +85,16 @@ impl TeamsService {
             if let Some(org_id) = active_model.organization_id.clone().unwrap()
                 && let Some(existing) =
                     TeamsRepository::find_by_org_and_name(db, org_id, &new_name).await?
-                    && existing.id != team_id {
-                        return Err(AppError::conflict(
-                            codes::teams::TEAM_002,
-                            format!(
-                                "Team with name '{}' already exists in this organization",
-                                new_name
-                            ),
-                        ));
-                    }
+                && existing.id != team_id
+            {
+                return Err(AppError::conflict(
+                    codes::teams::TEAM_002,
+                    format!(
+                        "Team with name '{}' already exists in this organization",
+                        new_name
+                    ),
+                ));
+            }
             active_model.name = Set(new_name);
         }
 

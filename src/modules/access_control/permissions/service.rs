@@ -4,7 +4,7 @@ use super::dto::{
 };
 use super::repository::PermissionsRepository;
 use crate::shared::{
-    error::{codes, AppError},
+    error::{AppError, codes},
     pagination::{PaginatedResponse, PaginationParams},
 };
 use sea_orm::DatabaseConnection;
@@ -45,10 +45,7 @@ impl PermissionsService {
     ) -> Result<PermissionResponseDto, AppError> {
         let perm = PermissionsRepository::find_by_id(db, id).await?;
         let perm = perm.ok_or_else(|| {
-            AppError::not_found(
-                codes::access::ACCESS_102,
-                "Permission not found!",
-            )
+            AppError::not_found(codes::access::ACCESS_102, "Permission not found!")
         })?;
 
         Ok(PermissionResponseDto {

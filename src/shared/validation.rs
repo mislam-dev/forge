@@ -1,4 +1,4 @@
-use super::error::{codes, AppError};
+use super::error::{AppError, codes};
 use axum::{Json, extract::FromRequest};
 use serde::de::DeserializeOwned;
 use uuid::Uuid;
@@ -67,4 +67,3 @@ mod tests {
         assert!(validate_uuid_format("invalid-uuid").is_err());
     }
 }
-

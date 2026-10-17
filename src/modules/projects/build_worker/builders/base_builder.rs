@@ -1,9 +1,9 @@
-use super::common::tar::build_tar_context;
 use super::common::deploy::{Deploy, DeployDTO};
+use super::common::tar::build_tar_context;
+use crate::modules::projects::build_worker::DeploymentPath;
 use crate::modules::projects::build_worker::docker_client::DockerClient;
 use crate::modules::projects::build_worker::log_stream::LogStream;
 use crate::modules::projects::build_worker::traits::BuilderConfig;
-use crate::modules::projects::build_worker::DeploymentPath;
 use crate::shared::error::AppError;
 use bollard::query_parameters::BuildImageOptions;
 use std::fs;
@@ -88,9 +88,7 @@ impl BaseBuilder {
                     for line in chunk.lines() {
                         let trimmed = line.trim();
                         if !trimmed.is_empty() {
-                            log_stream
-                                .log_info(&deployment_id, "Build", trimmed)
-                                .await;
+                            log_stream.log_info(&deployment_id, "Build", trimmed).await;
                         }
                     }
                 }

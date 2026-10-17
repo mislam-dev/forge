@@ -3,7 +3,7 @@ use crate::modules::access_control::roles::dto::{
     response::RoleResponseDto,
 };
 use crate::modules::access_control::roles::repository::RoleRepository;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
@@ -31,12 +31,8 @@ impl RolesService {
         id: Uuid,
     ) -> Result<RoleResponseDto, AppError> {
         let role = RoleRepository::find_by_id(db, id).await?;
-        let role = role.ok_or_else(|| {
-            AppError::not_found(
-                codes::access::ACCESS_002,
-                "Role not found!",
-            )
-        })?;
+        let role =
+            role.ok_or_else(|| AppError::not_found(codes::access::ACCESS_002, "Role not found!"))?;
 
         Ok(RoleResponseDto {
             id: role.id.to_string(),

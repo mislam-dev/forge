@@ -62,4 +62,3 @@ pub struct VerifyEmailDto {
 }
 
 pub type VerifyEmailQueryDto = VerifyEmailDto;
-

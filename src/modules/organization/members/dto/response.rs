@@ -66,10 +66,10 @@ impl InvitationResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::Utc;
     use crate::modules::organization::members::entities::sea_orm_active_enums::{
         OrganizationInvitationsStatus, OrganizationMemberRole,
     };
+    use chrono::Utc;
 
     #[test]
     fn test_member_response_from_model() {

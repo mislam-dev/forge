@@ -7,7 +7,7 @@ use super::entities::team_member::{
 };
 use crate::modules::teams::members::TeamRole;
 use crate::modules::teams::members::dto::AddTeamMemberDTO;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct TeamMembersRepository;
 

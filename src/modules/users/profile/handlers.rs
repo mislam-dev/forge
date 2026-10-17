@@ -7,7 +7,7 @@ use super::service::UserProfileService;
 use crate::app::state::AppState;
 use crate::modules::auth::token::AccessTokenClaims;
 use crate::shared::{
-    error::{codes, AppError},
+    error::{AppError, codes},
     response::ApiResponse,
     utils::IdParams,
     validation::JsonValidate,

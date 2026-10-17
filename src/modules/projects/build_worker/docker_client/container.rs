@@ -26,10 +26,7 @@ impl DockerContainer {
             .create_container(options, config)
             .await
             .map_err(|e| {
-                DockerClientError::ContainerError(format!(
-                    "Failed to create container: {}",
-                    e
-                ))
+                DockerClientError::ContainerError(format!("Failed to create container: {}", e))
             })?;
 
         Ok(container.id)
@@ -44,10 +41,7 @@ impl DockerContainer {
             .start_container(container_id, options)
             .await
             .map_err(|e| {
-                DockerClientError::ContainerError(format!(
-                    "Failed to start container: {}",
-                    e
-                ))
+                DockerClientError::ContainerError(format!("Failed to start container: {}", e))
             })?;
 
         Ok(())
@@ -62,10 +56,7 @@ impl DockerContainer {
             .stop_container(container_id, Some(options))
             .await
             .map_err(|e| {
-                DockerClientError::ContainerError(format!(
-                    "Failed to stop container: {}",
-                    e
-                ))
+                DockerClientError::ContainerError(format!("Failed to stop container: {}", e))
             })?;
         Ok(())
     }
@@ -79,10 +70,7 @@ impl DockerContainer {
             .remove_container(container_id, Some(options))
             .await
             .map_err(|e| {
-                DockerClientError::ContainerError(format!(
-                    "Failed to remove container: {}",
-                    e
-                ))
+                DockerClientError::ContainerError(format!("Failed to remove container: {}", e))
             })?;
         Ok(())
     }

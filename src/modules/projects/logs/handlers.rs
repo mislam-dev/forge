@@ -5,7 +5,7 @@ use crate::modules::projects::deployments::DeploymentStatus;
 use crate::modules::projects::deployments::repository::DeploymentsRepository;
 use crate::modules::projects::extractors::{OptionalOrgViewer, OrgValidationOptional};
 use crate::modules::projects::logs::LogStreamConsumer;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use crate::shared::response::ApiResponse;
 use axum::response::sse::Event;
 use axum::{

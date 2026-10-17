@@ -9,7 +9,7 @@ use crate::modules::auth::dto::response::{
 use crate::modules::auth::service::AuthService;
 use crate::modules::auth::token::AccessTokenClaims;
 use crate::shared::{
-    error::{codes, AppError},
+    error::{AppError, codes},
     response::ApiResponse,
     validation::JsonValidate,
 };
@@ -248,4 +248,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-

@@ -9,7 +9,7 @@ use crate::{
         auth::token::AccessTokenClaims,
         organization::{permissions::role::OrgRole, service::OrgPermissionsService},
     },
-    shared::error::{codes, AppError},
+    shared::error::{AppError, codes},
 };
 
 pub trait OrgRoleRequirements: Send + Sync + 'static {

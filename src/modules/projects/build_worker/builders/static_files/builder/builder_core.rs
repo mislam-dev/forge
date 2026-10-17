@@ -52,9 +52,7 @@ impl Builder {
                     for line in chunk.lines() {
                         let trimmed = line.trim();
                         if !trimmed.is_empty() {
-                            log_stream
-                                .log_info(&deployment_id, "Build", trimmed)
-                                .await;
+                            log_stream.log_info(&deployment_id, "Build", trimmed).await;
                         }
                     }
                 }

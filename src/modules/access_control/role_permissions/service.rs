@@ -3,7 +3,7 @@ use super::repository::RolePermissionsRepository;
 use crate::modules::access_control::permissions::dto::response::PermissionResponseDto;
 use crate::modules::access_control::role_permissions::dto::response::RolePermissionsResponse;
 use crate::modules::access_control::roles::repository::RoleRepository;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use crate::shared::pagination::{PaginatedResponse, PaginationParams};
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;

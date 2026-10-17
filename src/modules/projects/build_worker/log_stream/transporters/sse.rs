@@ -22,10 +22,7 @@ impl LogStreamTransporter for SseStreamTransporter {
     async fn stream(&self, item: LogItem) {
         let job_event = BuildLogsJobCreated {
             id: Uuid::new_v4(),
-            routing_key: format!(
-                "forge.deployments.logs.{}",
-                item.deployment_id.clone()
-            ),
+            routing_key: format!("forge.deployments.logs.{}", item.deployment_id.clone()),
             payload: item,
         };
         if let Err(err) = self.publisher.publish(&job_event).await {

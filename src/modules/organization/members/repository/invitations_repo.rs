@@ -10,7 +10,7 @@ use super::super::entities::sea_orm_active_enums::{
     OrganizationInvitationsStatus, OrganizationMemberRole,
 };
 
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct OrganizationInvitationRepository;
 
@@ -83,10 +83,7 @@ impl OrganizationInvitationRepository {
             .one(db)
             .await?
             .ok_or_else(|| {
-                AppError::not_found(
-                    codes::organization::ORG_005,
-                    "Invitation not found",
-                )
+                AppError::not_found(codes::organization::ORG_005, "Invitation not found")
             })?;
 
         let mut active: InvitationActiveModel = invite.into();

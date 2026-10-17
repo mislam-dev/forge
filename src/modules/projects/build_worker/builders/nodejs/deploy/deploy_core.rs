@@ -41,33 +41,30 @@ impl Deploy {
             .container
             .exist(&dto.container_name)
             .await
-            .map_err(|e| {
-                AppError::InternalServerError(format!("failed to get container: {}", e))
-            })?
-            && let Some(container_id) = &container_summary.id {
-                self.docker_client
-                    .container
-                    .stop(container_id)
-                    .await
-                    .map_err(|e| {
-                        AppError::InternalServerError(format!(
-                            "failed to stop existing '{}' container: {}",
-                            container_id,
-                            e
-                        ))
-                    })?;
-                self.docker_client
-                    .container
-                    .remove(container_id)
-                    .await
-                    .map_err(|e| {
-                        AppError::InternalServerError(format!(
-                            "failed to remove existing '{}' container: {}",
-                            container_id,
-                            e
-                        ))
-                    })?;
-            }
+            .map_err(|e| AppError::InternalServerError(format!("failed to get container: {}", e)))?
+            && let Some(container_id) = &container_summary.id
+        {
+            self.docker_client
+                .container
+                .stop(container_id)
+                .await
+                .map_err(|e| {
+                    AppError::InternalServerError(format!(
+                        "failed to stop existing '{}' container: {}",
+                        container_id, e
+                    ))
+                })?;
+            self.docker_client
+                .container
+                .remove(container_id)
+                .await
+                .map_err(|e| {
+                    AppError::InternalServerError(format!(
+                        "failed to remove existing '{}' container: {}",
+                        container_id, e
+                    ))
+                })?;
+        }
 
         let options = CreateContainerOptions {
             name: Some(dto.container_name),
@@ -135,10 +132,7 @@ impl Deploy {
             .create(Some(options), config)
             .await
             .map_err(|e| {
-                AppError::InternalServerError(format!(
-                    "Failed to create container: {}",
-                    e
-                ))
+                AppError::InternalServerError(format!("Failed to create container: {}", e))
             })?;
 
         Ok(DeployResponse {
