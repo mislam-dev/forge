@@ -3,6 +3,7 @@ use bollard::Docker;
 use bollard::plugin::{NetworkCreateRequest, NetworkCreateResponse};
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct DockerNetwork {
     client: Docker,
 }

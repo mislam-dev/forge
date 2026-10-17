@@ -1,9 +1,9 @@
 use axum::{
-    body::{to_bytes, Body},
+    body::{Body, to_bytes},
     http::{Request, StatusCode},
 };
 use forge::{
-    app::{app::create_app, state::AppState},
+    app::{app_core::create_app, state::AppState},
     config::AppConfig,
 };
 use tower::util::ServiceExt;
@@ -32,7 +32,12 @@ async fn test_openapi_yaml_served_successfully() {
     let response = app.oneshot(req).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
 
-    let content_type = response.headers().get("content-type").unwrap().to_str().unwrap();
+    let content_type = response
+        .headers()
+        .get("content-type")
+        .unwrap()
+        .to_str()
+        .unwrap();
     assert!(content_type.contains("application/x-yaml") || content_type.contains("yaml"));
 
     let body_bytes = to_bytes(response.into_body(), usize::MAX).await.unwrap();

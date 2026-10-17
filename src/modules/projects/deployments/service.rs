@@ -1,7 +1,7 @@
 use sea_orm::DatabaseConnection;
 use uuid::Uuid;
 
-use super::super::projects::repository::ProjectsRepository;
+use super::super::projects_core::repository::ProjectsRepository;
 use super::super::repositories::repository::ProjectRepositoriesRepository;
 use super::dto::{
     DeploymentHistoryQuery, DeploymentResponse, TriggerDeploymentRequest,

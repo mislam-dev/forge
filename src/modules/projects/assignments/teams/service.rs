@@ -1,12 +1,12 @@
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::super::super::projects::repository::ProjectsRepository;
+use super::super::super::projects_core::repository::ProjectsRepository;
 use super::dto::{AssignProjectTeamDTO, ProjectTeamResponse};
 use super::repository::TeamRepository;
-use crate::modules::teams::teams::repository::TeamsRepository;
+use crate::modules::teams::teams_core::repository::TeamsRepository;
 
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct ProjectAssignmentsService;
 

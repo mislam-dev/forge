@@ -5,8 +5,8 @@ use super::dto::{AddTeamMemberDTO, TeamMemberResponse, UpdateTeamMemberRoleDTO};
 use super::entities::team_member::ActiveModel as TeamMemberActiveModel;
 use super::repository::TeamMembersRepository;
 use super::role::TeamRole;
-use crate::modules::teams::teams::repository::TeamsRepository;
-use crate::shared::error::{codes, AppError};
+use crate::modules::teams::teams_core::repository::TeamsRepository;
+use crate::shared::error::{AppError, codes};
 
 pub struct TeamMembersService;
 
@@ -63,7 +63,9 @@ impl TeamMembersService {
 
         let member = TeamMembersRepository::find_member(db, team_id, target_user_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::teams::TEAM_003, "Member not found in team"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::teams::TEAM_003, "Member not found in team")
+            })?;
 
         let role: TeamRole = req
             .role

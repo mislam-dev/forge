@@ -1,5 +1,5 @@
 use forge::{
-    app::{app::create_app, state::AppState},
+    app::{app_core::create_app, state::AppState},
     config::AppConfig,
     infrastructure::queue::{RabbitMq, RabbitMqConfig, RabbitMqConsumer, RabbitMqTopology},
     modules::projects::BuildWorkerService,

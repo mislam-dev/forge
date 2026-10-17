@@ -11,6 +11,8 @@ dev:
 
 test:
     cargo test
+clippy:
+    cargo clippy --all-targets --all-features -- -D warnings
 
 check:
     cargo check

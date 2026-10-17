@@ -3,7 +3,7 @@ mod builder;
 #[allow(dead_code)]
 mod deploy;
 mod file_generator;
-mod rust;
+mod rust_core;
 mod validation;
 
-pub use rust::RustBuilder;
+pub use rust_core::RustBuilder;

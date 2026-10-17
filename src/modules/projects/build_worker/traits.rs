@@ -6,6 +6,7 @@ use async_trait::async_trait;
 
 #[async_trait]
 pub trait ProjectBuilder: Send + Sync {
+    #[allow(dead_code)]
     async fn download_pkgs(&self) -> Result<(), AppError>;
     async fn validate(&self) -> Result<(), AppError>;
     async fn create_files(&self) -> Result<(), AppError>;

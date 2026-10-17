@@ -5,7 +5,7 @@ use uuid::Uuid;
 use super::dto::{CreateProjectDTO, ProjectResponse, UpdateProjectDTO};
 use super::entities::projects::ActiveModel as ProjectActiveModel;
 use super::repository::ProjectsRepository;
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 
 pub struct ProjectsService;
 
@@ -67,20 +67,12 @@ impl ProjectsService {
         let project = if let Some(org_id) = org_id {
             ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
                 .await?
-                .ok_or_else(|| {
-                    AppError::not_found(
-                        codes::projects::PRJ_001,
-                        "Project not found",
-                    )
-                })?
+                .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?
         } else {
             let p = ProjectsRepository::find_by_id(db, project_id)
                 .await?
                 .ok_or_else(|| {
-                    AppError::not_found(
-                        codes::projects::PRJ_001,
-                        "Project not found",
-                    )
+                    AppError::not_found(codes::projects::PRJ_001, "Project not found")
                 })?;
             if p.owner_id != requester_id {
                 return Err(AppError::forbidden(
@@ -99,12 +91,7 @@ impl ProjectsService {
     ) -> Result<ProjectResponse, AppError> {
         let project = ProjectsRepository::find_by_id_internal(db, project_id)
             .await?
-            .ok_or_else(|| {
-                AppError::not_found(
-                    codes::projects::PRJ_001,
-                    "Project not found",
-                )
-            })?;
+            .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?;
 
         Ok(ProjectResponse::from_model(project))
     }
@@ -119,21 +106,11 @@ impl ProjectsService {
         let project = if let Some(org_id) = org_id {
             ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
                 .await?
-                .ok_or_else(|| {
-                    AppError::not_found(
-                        codes::projects::PRJ_001,
-                        "Project not found",
-                    )
-                })?
+                .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?
         } else {
             ProjectsRepository::find_by_id(db, project_id)
                 .await?
-                .ok_or_else(|| {
-                    AppError::not_found(
-                        codes::projects::PRJ_001,
-                        "Project not found",
-                    )
-                })?
+                .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?
         };
 
         let mut active_model: ProjectActiveModel = project.clone().into();
@@ -144,24 +121,26 @@ impl ProjectsService {
             if let Some(org_id) = project.organization_id {
                 if let Some(existing) =
                     ProjectsRepository::find_by_org_and_name(db, org_id, &new_name).await?
-                    && existing.id != project_id {
-                        return Err(AppError::conflict(
-                            codes::projects::PRJ_004,
-                            format!(
-                                "Project with name '{}' already exists in this organization",
-                                new_name
-                            ),
-                        ));
-                    }
+                    && existing.id != project_id
+                {
+                    return Err(AppError::conflict(
+                        codes::projects::PRJ_004,
+                        format!(
+                            "Project with name '{}' already exists in this organization",
+                            new_name
+                        ),
+                    ));
+                }
             } else {
                 if let Some(existing) =
                     ProjectsRepository::find_by_owner_and_name(db, requester_id, &new_name).await?
-                    && existing.id != project_id {
-                        return Err(AppError::conflict(
-                            codes::projects::PRJ_004,
-                            format!("Project with name '{}' already exists!", new_name),
-                        ));
-                    }
+                    && existing.id != project_id
+                {
+                    return Err(AppError::conflict(
+                        codes::projects::PRJ_004,
+                        format!("Project with name '{}' already exists!", new_name),
+                    ));
+                }
             }
             active_model.name = Set(new_name);
         }
@@ -205,20 +184,12 @@ impl ProjectsService {
         if let Some(org_id) = org_id {
             ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
                 .await?
-                .ok_or_else(|| {
-                    AppError::not_found(
-                        codes::projects::PRJ_001,
-                        "Project not found",
-                    )
-                })?
+                .ok_or_else(|| AppError::not_found(codes::projects::PRJ_001, "Project not found"))?
         } else {
             let p = ProjectsRepository::find_by_id(db, project_id)
                 .await?
                 .ok_or_else(|| {
-                    AppError::not_found(
-                        codes::projects::PRJ_001,
-                        "Project not found",
-                    )
+                    AppError::not_found(codes::projects::PRJ_001, "Project not found")
                 })?;
             if p.owner_id != requester_id {
                 return Err(AppError::forbidden(
@@ -245,7 +216,7 @@ mod tests {
     async fn test_get_project_by_internal_not_found() {
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results([Vec::<
-                crate::modules::projects::projects::entities::projects::Model,
+                crate::modules::projects::projects_core::entities::projects::Model,
             >::new()])
             .into_connection();
 

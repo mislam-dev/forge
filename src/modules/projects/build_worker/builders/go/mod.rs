@@ -3,7 +3,7 @@ mod builder;
 #[allow(dead_code)]
 mod deploy;
 mod file_generator;
-mod go;
+mod go_core;
 mod validation;
 
-pub use go::GoBuilder;
+pub use go_core::GoBuilder;

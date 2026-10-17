@@ -3,7 +3,7 @@ use axum::{
     http::{HeaderValue, Request, StatusCode},
 };
 use forge::{
-    app::{app::create_app, state::AppState},
+    app::{app_core::create_app, state::AppState},
     config::AppConfig,
 };
 use tower::util::ServiceExt;

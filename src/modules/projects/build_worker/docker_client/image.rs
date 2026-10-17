@@ -55,6 +55,7 @@ impl DockerImage {
         Ok(image_id)
     }
 
+    #[allow(dead_code)]
     pub async fn create(
         &self,
         tag: &str,
@@ -67,6 +68,7 @@ impl DockerImage {
         .await
     }
 
+    #[allow(dead_code)]
     pub async fn remove(&self, tag: &str) -> Result<(), DockerClientError> {
         self.client
             .remove_image(tag, None::<RemoveImageOptions>, None)

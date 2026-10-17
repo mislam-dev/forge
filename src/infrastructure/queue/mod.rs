@@ -6,7 +6,7 @@ pub mod events;
 mod message;
 mod mock;
 mod publisher;
-mod queue;
+mod queue_core;
 mod topology;
 mod traits;
 
@@ -16,6 +16,6 @@ pub use consumer::RabbitMqConsumer;
 pub use error::QueueError;
 pub use mock::MockMessagePublisher;
 pub use publisher::RabbitMqPublisher;
-pub use queue::QueuePublisher;
+pub use queue_core::QueuePublisher;
 pub use topology::RabbitMqTopology;
 pub use traits::{MessageHandler, MessagePublisher, RabbitMqMessage};

@@ -1,3 +1,3 @@
-mod cloning;
+mod cloning_core;
 
-pub use cloning::RepoCloning;
+pub use cloning_core::RepoCloning;

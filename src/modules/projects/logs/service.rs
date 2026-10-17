@@ -1,9 +1,9 @@
 use super::super::deployments::repository::DeploymentsRepository;
-use super::super::projects::repository::ProjectsRepository;
+use super::super::projects_core::repository::ProjectsRepository;
 use super::dto::{BuildLogResponse, LogItem, LogSearchQuery};
 use crate::infrastructure::logging::loki_client::{LokiClient, LokiFetchQuery};
 
-use crate::shared::error::{codes, AppError};
+use crate::shared::error::{AppError, codes};
 use sea_orm::*;
 use uuid::Uuid;
 
@@ -55,16 +55,22 @@ impl BuildLogsService {
         if let Some(org_id) = org_id {
             let _project = ProjectsRepository::find_by_id_with_org(db, project_id, org_id)
                 .await?
-                .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found!"))?;
+                .ok_or_else(|| {
+                    AppError::not_found(codes::deployments::DEPLOY_002, "Project not found!")
+                })?;
         } else {
             let _project = ProjectsRepository::find_by_id(db, project_id)
                 .await?
-                .ok_or_else(|| AppError::not_found(codes::deployments::DEPLOY_002, "Project not found!"))?;
+                .ok_or_else(|| {
+                    AppError::not_found(codes::deployments::DEPLOY_002, "Project not found!")
+                })?;
         }
 
         let deployment = DeploymentsRepository::find_by_id(db, deployment_id)
             .await?
-            .ok_or_else(|| AppError::not_found(codes::deployments::LOG_001, "Deployment not found"))?;
+            .ok_or_else(|| {
+                AppError::not_found(codes::deployments::LOG_001, "Deployment not found")
+            })?;
 
         if deployment.project_id != project_id {
             return Err(AppError::not_found(
@@ -80,10 +86,7 @@ impl BuildLogsService {
         };
 
         let logs = loki.find_by_deployment_id(dto).await.map_err(|e| {
-            AppError::InternalServerError(format!(
-                "Failed to fetch logs from Loki: {:?}",
-                e
-            ))
+            AppError::InternalServerError(format!("Failed to fetch logs from Loki: {:?}", e))
         })?;
 
         println!("LokiLogs:  {:#?}", logs);

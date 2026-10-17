@@ -7,7 +7,7 @@ use super::super::assignments::members::entities::project_members::{
 use super::super::assignments::teams::entities::project_teams::{
     Column as ProjectTeamColumn, Entity as ProjectTeamEntity,
 };
-use super::super::projects::repository::ProjectsRepository;
+use super::super::projects_core::repository::ProjectsRepository;
 use super::role::ProjectRole;
 use crate::modules::organization::permissions::role::OrgRole;
 use crate::modules::organization::permissions::service::OrgPermissionsService;

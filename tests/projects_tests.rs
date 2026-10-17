@@ -3,7 +3,7 @@ use axum::{
     http::{Request, StatusCode},
 };
 use forge::{
-    app::{app::create_app, state::AppState},
+    app::{app_core::create_app, state::AppState},
     config::AppConfig,
     modules::auth::token::{AuthTokenService, JwtPayload},
 };
@@ -17,16 +17,6 @@ fn setup_test_config() -> AppConfig {
         std::env::set_var("MASTER_ENCRYPTION_KEY", "0123456789abcdef0123456789abcdef");
     }
     AppConfig::load().expect("Test AppConfig must load successfully")
-}
-
-fn _generate_test_token(user_id: Uuid) -> String {
-    let payload = JwtPayload {
-        user_id,
-        email: "test@forge.dev".to_string(),
-        roles: vec!["User".to_string()],
-        permissions: vec![],
-    };
-    AuthTokenService::access(payload).unwrap()
 }
 
 #[tokio::test]

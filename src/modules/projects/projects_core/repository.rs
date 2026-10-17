@@ -6,7 +6,7 @@ use super::entities::projects::{
     Model as ProjectModel,
 };
 use crate::{
-    modules::projects::projects::{
+    modules::projects::projects_core::{
         dto::CreateProjectDTO, entities::sea_orm_active_enums::ProjectStatus,
     },
     shared::error::AppError,

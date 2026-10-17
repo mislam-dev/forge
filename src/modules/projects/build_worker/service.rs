@@ -7,7 +7,7 @@ use crate::modules::projects::build_worker::OwnerType;
 use crate::modules::projects::build_worker::log_stream::LogStream;
 use crate::modules::projects::deployments::DeploymentStatus;
 use crate::modules::projects::deployments::dto::UpdateDeploymentStatusRequest;
-use crate::modules::projects::projects::entities::sea_orm_active_enums::ProjectTypes;
+use crate::modules::projects::projects_core::entities::sea_orm_active_enums::ProjectTypes;
 use crate::modules::projects::repositories::repository::ProjectRepositoriesRepository;
 use crate::modules::projects::repositories::utils::ATService;
 use crate::modules::projects::{

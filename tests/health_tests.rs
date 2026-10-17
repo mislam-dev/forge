@@ -3,7 +3,7 @@ use axum::{
     http::{Request, StatusCode},
 };
 use forge::{
-    app::{app::create_app, state::AppState},
+    app::{app_core::create_app, state::AppState},
     config::AppConfig,
 };
 use tower::util::ServiceExt;
@@ -82,7 +82,9 @@ async fn test_health_liveness_probe() {
     let response = app.oneshot(req).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
 
-    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let body: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(body["status"], "healthy");
     assert_eq!(body["service"], "forge-platform");
@@ -106,7 +108,9 @@ async fn test_health_readiness_probe() {
     let response = app.oneshot(req).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
 
-    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let body: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(body["status"], "ready");
     assert_eq!(body["service"], "forge-platform");
@@ -189,7 +193,9 @@ async fn test_health_deep_check_authorized_for_admin() {
     let response = app.oneshot(req).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
 
-    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let body: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(body["status"], "healthy");
     assert_eq!(body["service"], "forge-platform");
@@ -197,4 +203,3 @@ async fn test_health_deep_check_authorized_for_admin() {
     assert_eq!(body["uptime_seconds"], 864000);
     assert!(body["timestamp"].as_str().is_some());
 }
-

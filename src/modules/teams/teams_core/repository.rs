@@ -7,7 +7,7 @@ use super::super::members::entities::team_member::{
 use super::entities::team::{
     ActiveModel as TeamActiveModel, Column as TeamColumn, Entity as TeamEntity, Model as TeamModel,
 };
-use crate::modules::teams::teams::dto::CreateTeamDTO;
+use crate::modules::teams::teams_core::dto::CreateTeamDTO;
 use crate::shared::error::AppError;
 
 pub struct TeamsRepository;

@@ -3,7 +3,7 @@ mod builder;
 #[allow(dead_code)]
 mod deploy;
 mod file_generator;
-mod python;
+mod python_core;
 mod validation;
 
-pub use python::PythonBuilder;
+pub use python_core::PythonBuilder;

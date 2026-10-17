@@ -4,6 +4,7 @@ use bollard::plugin::{Volume, VolumeCreateRequest};
 use bollard::query_parameters::RemoveVolumeOptions;
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct DockerVolume {
     client: Docker,
 }
@@ -13,25 +14,21 @@ impl DockerVolume {
         Self { client }
     }
 
+    #[allow(dead_code)]
     pub async fn create(&self, config: VolumeCreateRequest) -> Result<Volume, DockerClientError> {
         let res = self.client.create_volume(config).await.map_err(|e| {
-            DockerClientError::NetworkError(format!(
-                "failed to create new volume: {}",
-                e
-            ))
+            DockerClientError::NetworkError(format!("failed to create new volume: {}", e))
         })?;
         Ok(res)
     }
 
+    #[allow(dead_code)]
     pub async fn remove(&self, volume_name: &str) -> Result<(), DockerClientError> {
         self.client
             .remove_volume(volume_name, None::<RemoveVolumeOptions>)
             .await
             .map_err(|e| {
-                DockerClientError::NetworkError(format!(
-                    "failed to remove volume: {}",
-                    e
-                ))
+                DockerClientError::NetworkError(format!("failed to remove volume: {}", e))
             })?;
 
         Ok(())

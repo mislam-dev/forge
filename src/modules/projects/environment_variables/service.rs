@@ -1,4 +1,4 @@
-use super::super::projects::repository::ProjectsRepository;
+use super::super::projects_core::repository::ProjectsRepository;
 use super::dto::{
     BulkCreateProjectEnvVarDTO, CreateProjectEnvVarDTO, ProjectEnvVarQueryDTO,
     ProjectEnvVarResponse, UpdateProjectEnvVarDTO,

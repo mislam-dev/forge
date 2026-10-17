@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::super::entities::project_teams::Model as ProjectTeamModel;
-use crate::modules::teams::teams::entities::team::Model as TeamModel;
+use crate::modules::teams::teams_core::entities::team::Model as TeamModel;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectTeamResponse {

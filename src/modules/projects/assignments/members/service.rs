@@ -1,7 +1,7 @@
 use sea_orm::*;
 use uuid::Uuid;
 
-use super::super::super::projects::repository::ProjectsRepository;
+use super::super::super::projects_core::repository::ProjectsRepository;
 use super::dto::{AssignProjectMemberDTO, ProjectMemberResponse};
 use super::repository::ProjectAssignmentsRepository;
 use crate::modules::organization::permissions::service::OrgPermissionsService;

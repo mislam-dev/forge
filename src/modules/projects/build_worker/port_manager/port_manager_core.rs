@@ -42,6 +42,7 @@ impl PortManager {
         )))
     }
 
+    #[allow(dead_code)]
     /// Release a port back to the pool when an app shuts down.
     pub async fn release(&self, port: u16) {
         let mut allocated = self.allocated.lock().await;
@@ -49,6 +50,7 @@ impl PortManager {
         tracing::info!(port, "Port released back to pool");
     }
 
+    #[allow(dead_code)]
     /// How many ports are still available.
     pub async fn available_count(&self) -> usize {
         let allocated = self.allocated.lock().await;
@@ -56,6 +58,7 @@ impl PortManager {
         total - allocated.len()
     }
 
+    #[allow(dead_code)]
     /// Snapshot of all currently allocated ports (for health/debug endpoints).
     pub async fn allocated_ports(&self) -> HashSet<u16> {
         self.allocated.lock().await.clone()

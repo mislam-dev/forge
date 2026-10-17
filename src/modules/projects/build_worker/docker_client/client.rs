@@ -9,6 +9,7 @@ use super::volume::DockerVolume;
 use bollard::Docker;
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct DockerClient {
     client: Docker,
     pub image: DockerImage,
@@ -20,10 +21,7 @@ pub struct DockerClient {
 impl DockerClient {
     pub fn new() -> Result<Self, DockerClientError> {
         let client = Docker::connect_with_local_defaults().map_err(|e| {
-            DockerClientError::ConnectionError(format!(
-                "Failed to connect to docker: {}",
-                e
-            ))
+            DockerClientError::ConnectionError(format!("Failed to connect to docker: {}", e))
         })?;
         Ok(Self {
             client: client.clone(),

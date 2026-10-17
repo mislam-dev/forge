@@ -1,5 +1,5 @@
 pub use super::members::service::TeamMembersService;
-pub use super::teams::service::TeamsService;
+pub use super::teams_core::service::TeamsService;
 
 #[cfg(test)]
 mod tests {

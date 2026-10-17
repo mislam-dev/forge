@@ -3,40 +3,40 @@ use std::path::Path;
 
 #[derive(Debug)]
 pub enum PkgManger {
-    PNPM,
-    NPM,
-    YARN,
+    Pnpm,
+    Npm,
+    Yarn,
 }
 
 impl PkgManger {
     pub fn detect(path: &Path) -> Result<Self, AppError> {
         if path.join("pnpm-lock.yaml").exists() {
-            return Ok(PkgManger::PNPM);
+            return Ok(PkgManger::Pnpm);
         }
         if path.join("yarn.lock").exists() {
-            return Ok(PkgManger::YARN);
+            return Ok(PkgManger::Yarn);
         }
         if path.join("package-lock.json").exists() {
-            return Ok(PkgManger::NPM);
+            return Ok(PkgManger::Npm);
         }
 
         // ? note: no package manager found , use npm as default;
-        Ok(PkgManger::NPM)
+        Ok(PkgManger::Npm)
     }
 
     pub fn lock_file(&self) -> String {
         match self {
-            PkgManger::PNPM => "pnpm-lock.yaml".to_string(),
-            PkgManger::NPM => "package-lock.json".to_string(),
-            PkgManger::YARN => "yarn.lock".to_string(),
+            PkgManger::Pnpm => "pnpm-lock.yaml".to_string(),
+            PkgManger::Npm => "package-lock.json".to_string(),
+            PkgManger::Yarn => "yarn.lock".to_string(),
         }
     }
 
     fn base_command_name(&self) -> String {
         match self {
-            PkgManger::PNPM => "pnpm".to_string(),
-            PkgManger::NPM => "npm".to_string(),
-            PkgManger::YARN => "yarn".to_string(),
+            PkgManger::Pnpm => "pnpm".to_string(),
+            PkgManger::Npm => "npm".to_string(),
+            PkgManger::Yarn => "yarn".to_string(),
         }
     }
 

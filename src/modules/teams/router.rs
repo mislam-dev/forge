@@ -1,7 +1,7 @@
 use axum::Router;
 
 use super::members::router::team_members_router;
-use super::teams::router::teams_router as core_teams_router;
+use super::teams_core::router::teams_router as core_teams_router;
 use crate::app::state::AppState;
 
 pub fn teams_router() -> Router<AppState> {

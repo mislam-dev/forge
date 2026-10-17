@@ -5,7 +5,7 @@ use super::entities::project_teams::{
     ActiveModel as ProjectTeamActiveModel, Column as ProjectTeamColumn,
     Entity as ProjectTeamEntity, Model as ProjectTeamModel,
 };
-use crate::modules::teams::teams::entities::team::{
+use crate::modules::teams::teams_core::entities::team::{
     Column as TeamColumn, Entity as TeamEntity, Model as TeamModel,
 };
 use crate::shared::error::AppError;

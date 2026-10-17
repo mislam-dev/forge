@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::modules::projects::projects::entities::sea_orm_active_enums::{
+use crate::modules::projects::projects_core::entities::sea_orm_active_enums::{
     ProjectRuntime, ProjectStatus, ProjectTypes,
 };
 
