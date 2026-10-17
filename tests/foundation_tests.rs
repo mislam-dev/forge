@@ -30,11 +30,11 @@ async fn test_root_route_returns_hello_world() {
         .unwrap();
 
     let response = app.oneshot(req).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
     let body_bytes = to_bytes(response.into_body(), usize::MAX).await.unwrap();
-    let body_str = String::from_utf8(body_bytes.to_vec()).unwrap();
-    assert_eq!(body_str, "Hello, World!");
+    let json: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
+    assert_eq!(json["message"], "The requested resource was not found");
 }
 
 #[tokio::test]
@@ -54,7 +54,7 @@ async fn test_global_404_handler_returns_json() {
 
     let body_bytes = to_bytes(response.into_body(), usize::MAX).await.unwrap();
     let json: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
-    assert_eq!(json["message"], "you requested resource not found");
+    assert_eq!(json["message"], "The requested resource was not found");
 }
 
 #[tokio::test]

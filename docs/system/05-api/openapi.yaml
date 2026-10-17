@@ -4257,8 +4257,8 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
           example:
             is_error: true
-            code: "DEPLOY_001"
-            message: "Deployment record not found"
+            code: "NOT_FOUND"
+            message: "The requested resource was not found"
 
     Conflict:
       description: "Resource Conflict / Duplicate Entry"
