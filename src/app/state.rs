@@ -3,14 +3,19 @@ use crate::infrastructure::queue::{
     MockMessagePublisher, QueuePublisher, RabbitMq, RabbitMqConfig, RabbitMqPublisher,
 };
 use crate::{config::AppConfig, database::connect_db};
+use axum::extract::FromRef;
+use axum::http::Uri;
+use axum_limit::LimitState;
 use sea_orm::DatabaseConnection;
+use std::fmt::Debug;
 use std::sync::Arc;
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct AppState {
     pub db: Arc<DatabaseConnection>,
     pub config: Arc<AppConfig>,
     pub queue: QueuePublisher,
     pub loki: Arc<LokiClient>,
+    pub limit_state: LimitState<Uri>,
 }
 
 impl AppState {
@@ -36,6 +41,7 @@ impl AppState {
             config: Arc::new(config),
             queue,
             loki: loki_client,
+            limit_state: LimitState::default(),
         }
     }
 
@@ -43,5 +49,22 @@ impl AppState {
         let db = sea_orm::MockDatabase::new(sea_orm::DatabaseBackend::Postgres).into_connection();
         let queue = QueuePublisher::Mock(MockMessagePublisher::new());
         Self::from_parts(db, config, queue)
+    }
+}
+
+impl FromRef<AppState> for LimitState<Uri> {
+    fn from_ref(state: &AppState) -> Self {
+        state.limit_state.clone()
+    }
+}
+
+impl Debug for AppState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AppState")
+            .field("db", &self.db)
+            .field("config", &self.config)
+            .field("queue", &self.queue)
+            .field("loki", &self.loki)
+            .finish()
     }
 }

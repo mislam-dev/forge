@@ -11,6 +11,7 @@ use crate::modules::teams::router::teams_router;
 use crate::modules::users::router::user_router;
 use crate::shared::error::{AppError, codes};
 use crate::shared::logger::logging_middleware;
+use crate::shared::rate_limit_middleware::rate_limit_middleware;
 use axum::{Router, http::StatusCode, middleware};
 use std::time::Duration;
 use tower_http::timeout::TimeoutLayer;
@@ -40,6 +41,10 @@ pub async fn create_app(app_state: AppState) -> Result<Router, Box<dyn std::erro
             Duration::from_secs(30),
         ))
         .layer(middleware::from_fn(logging_middleware))
+        .layer(middleware::from_fn_with_state(
+            app_state.clone(),
+            rate_limit_middleware,
+        ))
         .with_state(app_state);
 
     Ok(final_router)

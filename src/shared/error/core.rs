@@ -39,11 +39,17 @@ pub enum AppError {
 
     #[error("Internal Server Error: {0}")]
     InternalServerError(String),
+
+    #[error("Too Many Requests: {0}")]
+    TooManyRequests(String),
 }
 
 impl AppError {
     pub fn not_found(code: impl Into<String>, msg: impl Into<String>) -> Self {
         Self::NotFound(code.into(), msg.into())
+    }
+    pub fn too_many_requests(msg: impl Into<String>) -> Self {
+        Self::TooManyRequests(msg.into())
     }
 
     pub fn bad_request(code: impl Into<String>, msg: impl Into<String>) -> Self {
@@ -128,6 +134,14 @@ impl IntoResponse for AppError {
                 error_data = error_data.message(message).code(code);
                 status_code = StatusCode::NOT_FOUND;
                 tracing::warn!(message = %msg, "Resource not found");
+            }
+            AppError::TooManyRequests(msg) => {
+                let message = "Too many requests.".to_string();
+                error_data = error_data
+                    .message(message)
+                    .code("TOO_MANY_REQUESTS".to_string());
+                status_code = StatusCode::TOO_MANY_REQUESTS;
+                tracing::warn!(message = %msg, "Too many requests");
             }
             AppError::BadRequest(code, msg) => {
                 error_data = error_data.message(msg.clone()).code(code);
