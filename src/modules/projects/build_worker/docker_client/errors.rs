@@ -2,6 +2,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[allow(dead_code)]
+#[allow(clippy::enum_variant_names)]
 pub enum DockerClientError {
     #[error("docker error: {0}")]
     ConnectionError(String),

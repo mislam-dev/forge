@@ -48,14 +48,11 @@ impl ProjectEnvironmentVariablesService {
     }
 
     fn encrypt_value(raw_value: &str, key: &str) -> Result<String, AppError> {
-        let service = AESSymmetricEncryptionService::new(key).map_err(|e| {
-            println!("{:#?}", e);
-            return AppError::bad_request(codes::projects::ENV_005, "Invalid value");
-        })?;
-        let value = service.encrypt(raw_value.as_bytes()).map_err(|e| {
-            println!("{:#?}", e);
-            return AppError::bad_request(codes::projects::ENV_005, "Invalid value");
-        })?;
+        let service = AESSymmetricEncryptionService::new(key)
+            .map_err(|_| AppError::bad_request(codes::projects::ENV_005, "Invalid value"))?;
+        let value = service
+            .encrypt(raw_value.as_bytes())
+            .map_err(|_| AppError::bad_request(codes::projects::ENV_005, "Invalid value"))?;
         Ok(value)
     }
 

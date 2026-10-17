@@ -5,6 +5,7 @@ use super::traits::{MessagePublisher, RabbitMqMessage};
 use tokio::sync::Mutex;
 
 #[derive(Clone, Default, Debug)]
+#[allow(clippy::type_complexity)]
 pub struct MockMessagePublisher {
     pub published: Arc<Mutex<Vec<(String, String, Vec<u8>)>>>,
 }

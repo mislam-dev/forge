@@ -42,6 +42,7 @@ pub struct BuildPipeline {
 }
 
 // todo: organize and optimize the whole file
+#[allow(clippy::too_many_arguments)]
 impl BuildPipeline {
     pub fn new(
         db: &DatabaseConnection,
