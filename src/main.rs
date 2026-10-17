@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "info"
     };
 
-    let _guard = logger::init_tracing(log_filter);
+    let _guard = logger::init_tracing(log_filter, &app_config.infra.loki_url);
 
     tracing::info!("Starting application.....");
     let app_state = AppState::new().await?;

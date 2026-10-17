@@ -6,13 +6,13 @@ use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberI
 use url::Url;
 use uuid::Uuid;
 
-pub fn init_tracing(rust_log: &str) -> WorkerGuard {
+pub fn init_tracing(rust_log: &str, connection_url: &str) -> WorkerGuard {
     let filter = EnvFilter::try_new(rust_log).unwrap_or_else(|_| EnvFilter::new("info"));
 
     let file_appender = rolling::daily("logs", "forge.log");
     let (non_blocking_writer, guard) = tracing_appender::non_blocking(file_appender);
 
-    let loki = init_loki().ok();
+    let loki = init_loki(connection_url).ok();
 
     tracing_subscriber::registry()
         .with(filter)
@@ -31,12 +31,12 @@ pub fn init_tracing(rust_log: &str) -> WorkerGuard {
     guard
 }
 
-fn init_loki() -> Result<tracing_loki::Layer, tracing_loki::Error> {
+fn init_loki(connection_url: &str) -> Result<tracing_loki::Layer, tracing_loki::Error> {
     let (layer, task) = tracing_loki::builder()
         .label("app", "forge")?
         .label("env", "development")?
         .extra_field("pid", format!("{}", process::id()))?
-        .build_url(Url::parse("http://127.0.0.1:3100").unwrap())?;
+        .build_url(Url::parse(connection_url).unwrap())?;
 
     tokio::spawn(task);
 
