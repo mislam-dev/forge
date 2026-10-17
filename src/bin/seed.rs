@@ -1,17 +1,14 @@
 use forge::{
     config::AppConfig,
     database::connect_db,
-    modules::{
-        access_control::seeder::AccessControlSeeder,
-        users::seeder::UserSeeder,
-    },
+    modules::{access_control::seeder::AccessControlSeeder, users::seeder::UserSeeder},
     shared::logger,
 };
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app_config = AppConfig::load()?;
-    let _guard = logger::init_tracing("info");
+    let _guard = logger::init_tracing("info", &app_config.infra.loki_url);
 
     tracing::info!("Connecting to database for seeding...");
     let db = connect_db(&app_config.infra.db).await?;
