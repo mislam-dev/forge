@@ -31,8 +31,8 @@ impl ProjectPermissionsService {
         }
 
         // Check Org role inheritance (Org Owner -> Project Owner, Org Admin -> Project Admin)
-        if let Some(org_id) = org_id {
-            if let Some(org_role) =
+        if let Some(org_id) = org_id
+            && let Some(org_role) =
                 OrgPermissionsService::resolve_org_role(db, org_id, user_id).await?
             {
                 match org_role {
@@ -41,14 +41,12 @@ impl ProjectPermissionsService {
                     _ => {}
                 }
             }
-        }
 
         // Fetch project to check owner_id
-        if let Some(project) = ProjectsRepository::find_any_by_id(db, project_id).await? {
-            if project.owner_id == user_id {
+        if let Some(project) = ProjectsRepository::find_any_by_id(db, project_id).await?
+            && project.owner_id == user_id {
                 return Ok(Some(ProjectRole::Owner));
             }
-        }
 
         // Check project_members junction table
         if let Some(member) = MemberEntity::find()
@@ -56,8 +54,7 @@ impl ProjectPermissionsService {
             .filter(MemberColumn::UserId.eq(user_id))
             .one(db)
             .await?
-        {
-            if let Some(role) = member.role {
+            && let Some(role) = member.role {
                 match role {
                     crate::modules::projects::assignments::members::entities::sea_orm_active_enums::ProjectMembersRole::Admin => {
                         return Ok(Some(ProjectRole::Admin));
@@ -70,7 +67,6 @@ impl ProjectPermissionsService {
                     }
                 }
             }
-        }
 
         // Check project_teams & team_members junction tables
         let project_teams = ProjectTeamEntity::find()

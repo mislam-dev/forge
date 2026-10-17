@@ -53,11 +53,10 @@ impl ProjectEnvironmentVariablesService {
     fn decrypt_value(encrypted_hex: &str) -> String {
         let mut bytes = Vec::new();
         for i in (0..encrypted_hex.len()).step_by(2) {
-            if i + 2 <= encrypted_hex.len() {
-                if let Ok(b) = u8::from_str_radix(&encrypted_hex[i..i + 2], 16) {
+            if i + 2 <= encrypted_hex.len()
+                && let Ok(b) = u8::from_str_radix(&encrypted_hex[i..i + 2], 16) {
                     bytes.push(b);
                 }
-            }
         }
         String::from_utf8(bytes).unwrap_or_default()
     }
@@ -88,7 +87,7 @@ impl ProjectEnvironmentVariablesService {
                 format!(
                     "Environment variable '{}' already exists in {} environment",
                     req.key,
-                    req.environment.to_string()
+                    req.environment
                 ),
             ));
         }

@@ -24,7 +24,7 @@ impl LogStreamTransporter for SseStreamTransporter {
             id: Uuid::new_v4(),
             routing_key: format!(
                 "forge.deployments.logs.{}",
-                item.deployment_id.clone().to_string()
+                item.deployment_id.clone()
             ),
             payload: item,
         };

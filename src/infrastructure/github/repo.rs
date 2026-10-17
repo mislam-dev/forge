@@ -35,23 +35,22 @@ impl GithubRepo {
 
         let mut req = client.get(url);
 
-        if let Some(token) = &dto.token {
-            if token.clone() != "".to_string() {
+        if let Some(token) = &dto.token
+            && token.clone() != "" {
                 req = req.bearer_auth(token);
             }
-        }
 
         let response = req
             .send()
             .await
             .map_err(|e| GithubError::InternalError(e.to_string()))?;
 
-        return match response.status().as_u16() {
+        match response.status().as_u16() {
             200 => Ok(true),
             404 => Ok(false),
             403 | 401 => Err(GithubError::AuthFailed("Authentication Failed".to_string())),
             _ => Err(GithubError::InternalError("Internal Error".to_string())),
-        };
+        }
     }
 
     pub fn clone(dto: RepoCloneDto) -> Result<(), GithubError> {

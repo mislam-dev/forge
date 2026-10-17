@@ -43,7 +43,7 @@ impl ProjectBuilder for NodeJsBuilder {
         self.base
             .log_info("Validation", "Validating Node.js project...")
             .await;
-        Validation::validate(&self.base.project_path.source.to_string_lossy().to_string())?;
+        Validation::validate(self.base.project_path.source.to_string_lossy().as_ref())?;
         self.base
             .log_info("Validation", "Node.js project validated successfully")
             .await;

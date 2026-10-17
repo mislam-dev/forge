@@ -60,7 +60,7 @@ impl RolesHandlers {
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
     ) -> Result<ApiResponse<()>, AppError> {
-        let _ = RolesService::remove(&state.db, id.0).await?;
+        RolesService::remove(&state.db, id.0).await?;
         Ok(ApiResponse::new()
             .status(StatusCode::OK)
             .message("Role deleted successfully".to_string())

@@ -11,6 +11,12 @@ use tokio::sync::mpsc::Sender;
 
 pub struct LogStreamConsumer {}
 
+impl Default for LogStreamConsumer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LogStreamConsumer {
     pub fn new() -> Self {
         Self {}

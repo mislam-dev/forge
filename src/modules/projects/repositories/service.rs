@@ -103,7 +103,7 @@ impl ProjectRepositoriesService {
     ) -> Result<Option<ProjectRepositoryResponse>, AppError> {
         let repo = ProjectRepositoriesRepository::find_by_project_id(db, project_id).await?;
 
-        Ok(repo.map(|r| ProjectRepositoryResponse::from_model(r)))
+        Ok(repo.map(ProjectRepositoryResponse::from_model))
     }
 
     pub async fn update_repository(

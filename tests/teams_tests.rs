@@ -62,7 +62,7 @@ async fn test_get_team_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(&format!("/api/v1/teams/{}", Uuid::new_v4()))
+        .uri(format!("/api/v1/teams/{}", Uuid::new_v4()))
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -78,7 +78,7 @@ async fn test_update_team_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(&format!("/api/v1/teams/{}", Uuid::new_v4()))
+        .uri(format!("/api/v1/teams/{}", Uuid::new_v4()))
         .method("PUT")
         .header("Content-Type", "application/json")
         .body(Body::from(r#"{"name": "New Team Name"}"#))
@@ -95,7 +95,7 @@ async fn test_delete_team_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(&format!("/api/v1/teams/{}", Uuid::new_v4()))
+        .uri(format!("/api/v1/teams/{}", Uuid::new_v4()))
         .method("DELETE")
         .body(Body::empty())
         .unwrap();
@@ -111,7 +111,7 @@ async fn test_add_team_member_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(&format!("/api/v1/teams/{}/members", Uuid::new_v4()))
+        .uri(format!("/api/v1/teams/{}/members", Uuid::new_v4()))
         .method("POST")
         .header("Content-Type", "application/json")
         .body(Body::from(format!(
@@ -131,7 +131,7 @@ async fn test_list_team_members_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(&format!("/api/v1/teams/{}/members", Uuid::new_v4()))
+        .uri(format!("/api/v1/teams/{}/members", Uuid::new_v4()))
         .method("GET")
         .body(Body::empty())
         .unwrap();
@@ -147,7 +147,7 @@ async fn test_update_team_member_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(&format!(
+        .uri(format!(
             "/api/v1/teams/{}/members/{}",
             Uuid::new_v4(),
             Uuid::new_v4()
@@ -168,7 +168,7 @@ async fn test_remove_team_member_unauthorized_without_jwt() {
     let app = create_app(state).await.expect("App creation failed");
 
     let req = Request::builder()
-        .uri(&format!(
+        .uri(format!(
             "/api/v1/teams/{}/members/{}",
             Uuid::new_v4(),
             Uuid::new_v4()

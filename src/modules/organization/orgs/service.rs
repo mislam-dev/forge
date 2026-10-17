@@ -143,14 +143,13 @@ impl OrganizationService {
             let slugified = Self::slugify(&new_slug);
             if !slugified.is_empty() {
                 let existing = OrganizationRepository::find_by_slug(db, &slugified).await?;
-                if let Some(other) = existing {
-                    if other.id != id {
+                if let Some(other) = existing
+                    && other.id != id {
                         return Err(AppError::conflict(
                             codes::organization::ORG_004,
                             "An organization with this slug already exists",
                         ));
                     }
-                }
                 active.slug = Set(slugified);
             }
         }

@@ -18,7 +18,7 @@ impl UserService {
         db: &DatabaseConnection,
         params: &PaginationParams,
     ) -> Result<PaginatedResponse<UserItemResponse>, AppError> {
-        let users = UserRepository::find(db, &params).await?;
+        let users = UserRepository::find(db, params).await?;
         let users_data = users
             .data
             .into_iter()

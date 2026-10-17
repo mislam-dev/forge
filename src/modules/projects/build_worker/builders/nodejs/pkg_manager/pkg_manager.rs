@@ -21,7 +21,7 @@ impl PkgManger {
         }
 
         // ? note: no package manager found , use npm as default;
-        return Ok(PkgManger::NPM);
+        Ok(PkgManger::NPM)
     }
 
     pub fn lock_file(&self) -> String {

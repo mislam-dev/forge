@@ -90,7 +90,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tracing::info!("Server listening on http://{}", local_addr);
 
-    let _ = axum::serve(listener, app.layer(TraceLayer::new_for_http()))
+    axum::serve(listener, app.layer(TraceLayer::new_for_http()))
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 

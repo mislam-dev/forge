@@ -19,7 +19,7 @@ fn setup_test_config() -> AppConfig {
     AppConfig::load().expect("Test AppConfig must load successfully")
 }
 
-fn generate_test_token(user_id: Uuid) -> String {
+fn _generate_test_token(user_id: Uuid) -> String {
     let payload = JwtPayload {
         user_id,
         email: "test@forge.dev".to_string(),

@@ -42,34 +42,32 @@ impl Deploy {
             .exist(&dto.container_name)
             .await
             .map_err(|e| {
-                AppError::InternalServerError(format!("failed to get container: {}", e.to_string()))
+                AppError::InternalServerError(format!("failed to get container: {}", e))
             })?
-        {
-            if let Some(container_id) = &container_summary.id {
+            && let Some(container_id) = &container_summary.id {
                 self.docker_client
                     .container
-                    .stop(&container_id)
+                    .stop(container_id)
                     .await
                     .map_err(|e| {
                         AppError::InternalServerError(format!(
                             "failed to stop existing '{}' container: {}",
                             container_id,
-                            e.to_string()
+                            e
                         ))
                     })?;
                 self.docker_client
                     .container
-                    .remove(&container_id)
+                    .remove(container_id)
                     .await
                     .map_err(|e| {
                         AppError::InternalServerError(format!(
                             "failed to remove existing '{}' container: {}",
                             container_id,
-                            e.to_string()
+                            e
                         ))
                     })?;
             }
-        }
 
         let options = CreateContainerOptions {
             name: Some(dto.container_name),
@@ -139,7 +137,7 @@ impl Deploy {
             .map_err(|e| {
                 AppError::InternalServerError(format!(
                     "Failed to create container: {}",
-                    e.to_string()
+                    e
                 ))
             })?;
 

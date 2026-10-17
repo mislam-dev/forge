@@ -46,7 +46,7 @@ where
         let app_state = AppState::from_ref(state);
         let db = &app_state.db;
         let required_roles = R::required_roles();
-        let _ = OrgPermissionsService::validate(db, org_id, claims.sub, required_roles).await?;
+        OrgPermissionsService::validate(db, org_id, claims.sub, required_roles).await?;
 
         Ok(Self(claims, org_id, PhantomData))
     }

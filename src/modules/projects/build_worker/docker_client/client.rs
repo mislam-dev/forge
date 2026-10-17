@@ -22,7 +22,7 @@ impl DockerClient {
         let client = Docker::connect_with_local_defaults().map_err(|e| {
             DockerClientError::ConnectionError(format!(
                 "Failed to connect to docker: {}",
-                e.to_string()
+                e
             ))
         })?;
         Ok(Self {

@@ -21,45 +21,45 @@ impl FileGenerator {
         let mut replaceable: Vec<(String, String)> = vec![
             (
                 String::from("{pkg_installer}"),
-                String::from(pkg_manager.install()),
+                pkg_manager.install(),
             ),
             (
                 String::from("{pkg_postinstaller}"),
-                String::from(pkg_manager.postinstall()),
+                pkg_manager.postinstall(),
             ),
             (
                 String::from("{pkg_builder}"),
-                String::from(pkg_manager.build()),
+                pkg_manager.build(),
             ),
             (
                 String::from("{pkg_prune}"),
-                String::from(pkg_manager.prune()),
+                pkg_manager.prune(),
             ),
             (
                 String::from("{lock_file}"),
-                String::from(pkg_manager.lock_file()),
+                pkg_manager.lock_file(),
             ),
             (
                 String::from("{exposed_port}"),
-                String::from("3000".to_string()),
+                "3000".to_string(),
             ),
             (
                 String::from("{pkg_start}"),
-                String::from(format!(
+                format!(
                     "{:?}",
                     pkg_manager
                         .start()
                         .split_whitespace()
                         .map(|s| s.to_string())
                         .collect::<Vec<String>>()
-                )),
+                ),
             ),
         ];
 
         if PkgManger::has_ts_config(&self.project_path.to_path_buf()) {
             replaceable.push((
                 String::from("{ts_config}"),
-                String::from("tsconfig.json".to_string()),
+                "tsconfig.json".to_string(),
             ));
         } else {
             replaceable.push((
@@ -83,7 +83,7 @@ impl FileGenerator {
 
         fs::write(
             self.project_path.join(".dockerignore"),
-            DOCKERIGNORE_TEMPLATE.to_string(),
+            DOCKERIGNORE_TEMPLATE,
         )
         .map_err(|e| {
             AppError::InternalServerError(format!("Failed to copy .dockerignore: {}", e))

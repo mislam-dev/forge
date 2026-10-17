@@ -6,6 +6,12 @@ use super::super::traits::LogStreamTransporter;
 use async_trait::async_trait;
 pub struct LokiStreamTransporter;
 
+impl Default for LokiStreamTransporter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LokiStreamTransporter {
     pub fn new() -> Self {
         Self

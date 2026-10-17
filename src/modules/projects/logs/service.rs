@@ -80,10 +80,10 @@ impl BuildLogsService {
         };
 
         let logs = loki.find_by_deployment_id(dto).await.map_err(|e| {
-            return AppError::InternalServerError(format!(
+            AppError::InternalServerError(format!(
                 "Failed to fetch logs from Loki: {:?}",
                 e
-            ));
+            ))
         })?;
 
         println!("LokiLogs:  {:#?}", logs);

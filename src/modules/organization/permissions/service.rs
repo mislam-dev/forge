@@ -93,7 +93,7 @@ impl OrgPermissionsService {
             )
         })?;
 
-        let _r = Self::match_roles(required_roles, vec![role.to_string()]).await?;
+        Self::match_roles(required_roles, vec![role.to_string()]).await?;
 
         Ok(())
     }

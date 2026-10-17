@@ -82,11 +82,10 @@ impl TeamsService {
         active_model.updated_at = Set(now);
 
         if let Some(new_name) = req.name {
-            if let Some(org_id) = active_model.organization_id.clone().unwrap() {
-                if let Some(existing) =
+            if let Some(org_id) = active_model.organization_id.clone().unwrap()
+                && let Some(existing) =
                     TeamsRepository::find_by_org_and_name(db, org_id, &new_name).await?
-                {
-                    if existing.id != team_id {
+                    && existing.id != team_id {
                         return Err(AppError::conflict(
                             codes::teams::TEAM_002,
                             format!(
@@ -95,8 +94,6 @@ impl TeamsService {
                             ),
                         ));
                     }
-                }
-            }
             active_model.name = Set(new_name);
         }
 

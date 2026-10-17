@@ -28,7 +28,7 @@ impl DockerContainer {
             .map_err(|e| {
                 DockerClientError::ContainerError(format!(
                     "Failed to create container: {}",
-                    e.to_string()
+                    e
                 ))
             })?;
 
@@ -46,7 +46,7 @@ impl DockerContainer {
             .map_err(|e| {
                 DockerClientError::ContainerError(format!(
                     "Failed to start container: {}",
-                    e.to_string()
+                    e
                 ))
             })?;
 
@@ -64,7 +64,7 @@ impl DockerContainer {
             .map_err(|e| {
                 DockerClientError::ContainerError(format!(
                     "Failed to stop container: {}",
-                    e.to_string()
+                    e
                 ))
             })?;
         Ok(())
@@ -81,7 +81,7 @@ impl DockerContainer {
             .map_err(|e| {
                 DockerClientError::ContainerError(format!(
                     "Failed to remove container: {}",
-                    e.to_string()
+                    e
                 ))
             })?;
         Ok(())
@@ -98,7 +98,7 @@ impl DockerContainer {
             }) => Ok(None),
             Err(e) => Err(DockerClientError::ContainerError(format!(
                 "failed to inspect container: {}",
-                e.to_string()
+                e
             ))),
         }
     }

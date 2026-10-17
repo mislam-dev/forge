@@ -144,8 +144,7 @@ impl ProjectsService {
             if let Some(org_id) = project.organization_id {
                 if let Some(existing) =
                     ProjectsRepository::find_by_org_and_name(db, org_id, &new_name).await?
-                {
-                    if existing.id != project_id {
+                    && existing.id != project_id {
                         return Err(AppError::conflict(
                             codes::projects::PRJ_004,
                             format!(
@@ -154,18 +153,15 @@ impl ProjectsService {
                             ),
                         ));
                     }
-                }
             } else {
                 if let Some(existing) =
                     ProjectsRepository::find_by_owner_and_name(db, requester_id, &new_name).await?
-                {
-                    if existing.id != project_id {
+                    && existing.id != project_id {
                         return Err(AppError::conflict(
                             codes::projects::PRJ_004,
                             format!("Project with name '{}' already exists!", new_name),
                         ));
                     }
-                }
             }
             active_model.name = Set(new_name);
         }

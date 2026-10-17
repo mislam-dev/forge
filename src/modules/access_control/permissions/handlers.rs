@@ -67,7 +67,7 @@ impl PermissionsHandlers {
         State(state): State<AppState>,
         Path(id): Path<IdParams>,
     ) -> Result<ApiResponse<()>, AppError> {
-        let _ = PermissionsService::remove(&state.db, id.0).await?;
+        PermissionsService::remove(&state.db, id.0).await?;
 
         Ok(ApiResponse::new()
             .message("Permissions deleted successfully".to_string())

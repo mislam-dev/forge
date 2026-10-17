@@ -70,7 +70,7 @@ where
             )
         })?;
 
-        let _r = OrgPermissionsService::validate(db, org_id, user_id, required_roles).await?;
+        OrgPermissionsService::validate(db, org_id, user_id, required_roles).await?;
 
         Ok(Self(claims, PhantomData))
     }

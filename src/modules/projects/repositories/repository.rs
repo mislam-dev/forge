@@ -4,10 +4,7 @@ use super::entities::project_repositories::{
 };
 use super::entities::sea_orm_active_enums::{ProjectRepositoryStatus, ProjectRespositoryAuthType};
 use crate::{
-    modules::projects::repositories::{
-        dto::{ConnectProjectRepositoryDTO, UpdateProjectRepositoryDTO},
-        utils::ATService,
-    },
+    modules::projects::repositories::dto::{ConnectProjectRepositoryDTO, UpdateProjectRepositoryDTO},
     shared::error::AppError,
 };
 use sea_orm::*;
@@ -44,7 +41,7 @@ impl ProjectRepositoriesRepository {
             ..Default::default()
         };
 
-        if let Some(_) = req.access_token {
+        if req.access_token.is_some() {
             active_model.auth_type = Set(ProjectRespositoryAuthType::Pat);
         }
 

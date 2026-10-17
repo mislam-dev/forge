@@ -73,7 +73,7 @@ pub async fn delete_project(
     OrgValidationOptional(claims, org_id, _): OptionalOrgOwner,
     Path(id): Path<Uuid>,
 ) -> Result<ApiResponse<()>, AppError> {
-    let _r = ProjectsService::delete_project(&state.db, claims.sub, org_id, id).await?;
+    ProjectsService::delete_project(&state.db, claims.sub, org_id, id).await?;
 
     Ok(ApiResponse::new()
         .status(StatusCode::OK)

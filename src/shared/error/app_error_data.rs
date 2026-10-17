@@ -11,6 +11,12 @@ pub struct AppErrorData {
     pub is_error: bool,
 }
 
+impl Default for AppErrorData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AppErrorData {
     pub fn new() -> Self {
         Self {

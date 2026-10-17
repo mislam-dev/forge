@@ -116,7 +116,7 @@ impl AuthService {
         let token_decode = RefreshTokenService::verify(&dto.refresh_token)
             .map_err(|_| AppError::unauthorized(codes::auth::AUTH_005, "Invalid refresh token"))?;
 
-        let _token = RefreshTokenRepository::fetch_refresh_token(db, &dto.refresh_token)
+        RefreshTokenRepository::fetch_refresh_token(db, &dto.refresh_token)
             .await
             .map_err(|_| AppError::unauthorized(codes::auth::AUTH_005, "Invalid refresh token"))?;
 

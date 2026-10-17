@@ -32,7 +32,7 @@ impl RepoCloning {
         })
         .await
         .map_err(|e| {
-            AppError::InternalServerError(format!("repo didn't exist: {}", e.to_string()))
+            AppError::InternalServerError(format!("repo didn't exist: {}", e))
         })?;
 
         Ok(repo)
@@ -47,7 +47,7 @@ impl RepoCloning {
         };
 
         GithubRepo::clone(dto).map_err(|e| {
-            AppError::InternalServerError(format!("Failed to clone repo: {}", e.to_string()))
+            AppError::InternalServerError(format!("Failed to clone repo: {}", e))
         })?;
         Ok(())
     }

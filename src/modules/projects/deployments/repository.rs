@@ -36,11 +36,10 @@ impl DeploymentsRepository {
             .filter(DeploymentColumn::ProjectId.eq(project_id))
             .order_by_desc(DeploymentColumn::CreatedAt);
 
-        if let Some(status) = query.status {
-            if let Ok(st) = status.parse::<DeploymentStatus>() {
+        if let Some(status) = query.status
+            && let Ok(st) = status.parse::<DeploymentStatus>() {
                 stmt = stmt.filter(DeploymentColumn::Status.eq(st));
             }
-        }
         if let Some(branch) = query.branch {
             stmt = stmt.filter(DeploymentColumn::Branch.eq(branch));
         }

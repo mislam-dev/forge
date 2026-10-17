@@ -56,7 +56,7 @@ impl BuildPipeline {
     ) -> Self {
         let transformed_envs: Vec<(String, String)> = env_vars
             .iter()
-            .map(|(key, value)| return (key.to_string(), value.to_string()))
+            .map(|(key, value)| (key.to_string(), value.to_string()))
             .collect();
         Self {
             db: db.clone(),
@@ -79,13 +79,13 @@ impl BuildPipeline {
             OwnerType::User => Owner::user(self.org_or_user_id),
             OwnerType::Org => Owner::org(self.org_or_user_id),
         };
-        let deployment_path = DeploymentPath::new(DeploymentPathDTO {
+        
+        DeploymentPath::new(DeploymentPathDTO {
             project_id: self.project_id.to_string(),
             deployment_id: self.deployment_id.to_string(),
             owner,
             base: None,
-        });
-        deployment_path
+        })
     }
 
     fn infer_project_type(&mut self) -> Result<ProjectType, AppError> {
@@ -130,7 +130,7 @@ impl BuildPipeline {
             ProjectType::Python => Box::new(PythonBuilder::new(config)?),
             ProjectType::StaticFiles => Box::new(StaticFilesBuilder::new(config)?),
         };
-        return Ok(Some(builder));
+        Ok(Some(builder))
     }
 
     pub async fn execute_pipeline(&mut self) -> Result<(), AppError> {

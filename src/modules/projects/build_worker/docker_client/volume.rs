@@ -17,7 +17,7 @@ impl DockerVolume {
         let res = self.client.create_volume(config).await.map_err(|e| {
             DockerClientError::NetworkError(format!(
                 "failed to create new volume: {}",
-                e.to_string()
+                e
             ))
         })?;
         Ok(res)
@@ -30,7 +30,7 @@ impl DockerVolume {
             .map_err(|e| {
                 DockerClientError::NetworkError(format!(
                     "failed to remove volume: {}",
-                    e.to_string()
+                    e
                 ))
             })?;
 

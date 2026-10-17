@@ -57,6 +57,6 @@ pub async fn remove(
     State(state): State<AppState>,
     Path(id): Path<IdParams>,
 ) -> Result<ApiResponse<UserItemResponse>, AppError> {
-    let _ = UserService::remove(&state.db, id.0).await?;
+    UserService::remove(&state.db, id.0).await?;
     Ok(ApiResponse::new().status(StatusCode::NO_CONTENT))
 }

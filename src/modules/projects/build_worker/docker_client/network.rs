@@ -19,7 +19,7 @@ impl DockerNetwork {
         let res = self.client.create_network(config).await.map_err(|e| {
             DockerClientError::NetworkError(format!(
                 "failed to create new network: {}",
-                e.to_string()
+                e
             ))
         })?;
         Ok(res)
@@ -32,7 +32,7 @@ impl DockerNetwork {
             .map_err(|e| {
                 DockerClientError::NetworkError(format!(
                     "failed to create new network: {}",
-                    e.to_string()
+                    e
                 ))
             })?;
 

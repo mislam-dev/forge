@@ -4,7 +4,8 @@ use axum::http::header;
 use tower_http::cors::{Any, CorsLayer};
 
 pub fn cors_middleware() -> CorsLayer {
-    let cors = CorsLayer::new()
+    
+    CorsLayer::new()
         .allow_methods([
             Method::GET,
             Method::POST,
@@ -20,6 +21,5 @@ pub fn cors_middleware() -> CorsLayer {
             HeaderName::from_static("x-request-id"),
             HeaderName::from_static("organization-id"),
         ])
-        .expose_headers([HeaderName::from_static("x-request-id")]);
-    cors
+        .expose_headers([HeaderName::from_static("x-request-id")])
 }
