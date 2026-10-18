@@ -1,4 +1,4 @@
-set dotenv-load
+caset dotenv-load
 
 # ================================
 # Demonstration & Evaluation
