@@ -1,10 +1,28 @@
 # Forge Platform — Multi-Tier Load & Performance Benchmarks
 
+> **Documentation Hub:** [📚 Index](./README.md) &nbsp;|&nbsp; [📊 01-Assessment](./01-ASSESSMENT.md) &nbsp;|&nbsp; [🔍 02-Gaps](./02-GAPS.md) &nbsp;|&nbsp; [📋 03-Tasks](./03-TASKS.md) &nbsp;|&nbsp; [📡 API Reference](./API_REQUESTS_SUMMARY.md) &nbsp;|&nbsp; [🧪 API Testing](./API_TESTING_AND_MOCKING.md) &nbsp;|&nbsp; [⚡ Benchmarks](./BENCHMARKS.md) &nbsp;|&nbsp; [🚦 Load Guide](./load-testing-guide.md)
+
+---
+
 > **Auditor / Evaluator Reference Document**  
 > **Date:** October 17, 2026  
 > **Platform Version:** v0.1.0  
 > **Framework:** [Grafana k6 v0.50+](https://k6.io/)  
 > **Architecture:** Modular Monolith (Rust / Axum 0.8, Tokio, SeaORM 2.0, PostgreSQL 16, Redis 7, RabbitMQ 3)
+
+---
+
+## Table of Contents
+- [Executive Summary](#executive-summary)
+- [1. Test Environment & System Specifications](#1-test-environment--system-specifications)
+- [2. Benchmark Results Summary](#2-benchmark-results-summary)
+- [3. Detailed Workload Analysis](#3-detailed-workload-analysis)
+  - [3.1 Unauthenticated Health Probes](#31-unauthenticated-health-probes-testsloadscenarioshealthjs)
+  - [3.2 Authenticated Relational Reads](#32-authenticated-relational-reads-testsloadscenariosreadsjs)
+  - [3.3 Concurrency Tier 1: 1,000 Concurrent Virtual Users](#33-concurrency-tier-1-1000-concurrent-virtual-users-testsloadtierstier_1kjs)
+- [4. Concurrency Tiers Matrix (Target & Stress)](#4-concurrency-tiers-matrix-target--stress)
+- [5. CLI Reproduction Guide](#5-cli-reproduction-guide)
+- [6. Architectural Optimizations & Performance Patterns](#6-architectural-optimizations--performance-patterns)
 
 ---
 
